@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.42 NAR想定確率 安全DOM注入修正版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.42 NAR想定確率 SIM実接続完成版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -6937,6 +6937,284 @@ ${e.message}`,"bad");return false}
   }
 
   setInterval(installIntoFrame, 2500);
+})();
+</script>
+
+
+<script id="narProbabilitySimulationConnectorV3">
+(function(){
+"use strict";
+const FRAME_ID="fullEmuFrame";
+const CFG_KEY="TheKeibaNarProbabilityConfigV2";
+const DATA_KEY="TheKeibaNarProbabilityDataV2";
+const PATCH_FLAG="__narProbabilitySimulationConnectorV3";
+
+function safeJson(text,fallback){try{return JSON.parse(text)}catch(_){return fallback}}
+function num(v){
+  if(v===null||v===undefined||v==="")return null;
+  const n=Number(String(v).replace(/[％%,倍\s]/g,""));
+  return Number.isFinite(n)?n:null;
+}
+function raceId(v){
+  const m=String(v||"").match(/\d{12}/);
+  return m?m[0]:"";
+}
+function horseNo(o){
+  return Number(o?.horseNo??o?.horse_no??o?.horseNumber??o?.number??o?.["馬番"]??0);
+}
+function defaultCfg(){
+  return{mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"};
+}
+function getCfg(win){
+  return Object.assign(defaultCfg(),safeJson(win.localStorage.getItem(CFG_KEY)||"{}",{}));
+}
+function getData(win){
+  const d=safeJson(win.localStorage.getItem(DATA_KEY)||'{"races":{}}',{races:{}});
+  if(!d.races)d.races={};
+  return d;
+}
+function saveData(win,d){win.localStorage.setItem(DATA_KEY,JSON.stringify(d))}
+function normalizeRace(rid,rows){
+  const clean=[];
+  for(const r of rows||[]){
+    const no=horseNo(r);
+    if(!no)continue;
+    clean.push({
+      horseNo:no,
+      horseName:String(r.horseName??r.name??r["馬名"]??""),
+      arionWinPercent:num(r.arionWinPercent??r.arion??r.aiWin??r["AI単"]??r["ARION"]),
+      netkeibaPredictedOdds:num(r.netkeibaPredictedOdds??r.predictedOdds??r.netkeiba??r["予想オッズ"]??r["netkeiba予想"])
+    });
+  }
+  const inverseTotal=clean.reduce((s,r)=>s+(r.netkeibaPredictedOdds>1?1/r.netkeibaPredictedOdds:0),0);
+  for(const r of clean){
+    r.arionProbability=r.arionWinPercent!==null&&r.arionWinPercent>=0?r.arionWinPercent/100:null;
+    r.netkeibaProbability=r.netkeibaPredictedOdds>1&&inverseTotal>0?(1/r.netkeibaPredictedOdds)/inverseTotal:null;
+  }
+  return{raceId:rid,capturedAt:new Date().toISOString(),rows:clean};
+}
+function parseInput(text,explicitRid){
+  const t=String(text||"").trim();
+  if(!t)throw new Error("取込データが空です。");
+  if(t.startsWith("{")||t.startsWith("[")){
+    const obj=JSON.parse(t);
+    const rows=Array.isArray(obj)?obj:(obj.rows||obj.horses||obj.entries||[]);
+    const rid=raceId(explicitRid||obj.raceId||obj.race_id||rows[0]?.raceId||rows[0]?.race_id);
+    return{rid,rows};
+  }
+  const lines=t.split(/\r?\n/).filter(x=>x.trim());
+  const sep=lines[0].includes("\t")?"\t":",";
+  const headers=lines.shift().split(sep).map(x=>x.trim());
+  const rows=lines.map(line=>{
+    const cells=line.split(sep),o={};
+    headers.forEach((h,i)=>o[h]=cells[i]?.trim()??"");
+    return o;
+  });
+  const rid=raceId(explicitRid||rows[0]?.raceId||rows[0]?.race_id);
+  return{rid,rows};
+}
+function modeLabel(c){
+  if(c.mode==="arion")return"ARION AI単";
+  if(c.mode==="netkeiba")return"netkeiba AI予想オッズ";
+  if(c.mode==="compare"){
+    return"比較式／"+({none:"比較のみ",arion:"ARION判定",netkeiba:"netkeiba判定",both:"両方EV以上"}[c.compareDecision]||"比較のみ");
+  }
+  return"本体エミュ標準";
+}
+function selectedValues(rec,odds,cfg){
+  const a=rec?.arionProbability??null;
+  const n=rec?.netkeibaProbability??null;
+  const ae=a!==null&&odds>0?a*odds:null;
+  const ne=n!==null&&odds>0?n*odds:null;
+  if(cfg.mode==="arion")return{prob:a,ev:ae,source:"ARION"};
+  if(cfg.mode==="netkeiba")return{prob:n,ev:ne,source:"netkeiba"};
+  if(cfg.mode==="compare"){
+    if(cfg.compareDecision==="arion")return{prob:a,ev:ae,source:"比較/ARION"};
+    if(cfg.compareDecision==="netkeiba")return{prob:n,ev:ne,source:"比較/netkeiba"};
+    if(cfg.compareDecision==="both"){
+      if(a===null||n===null)return{prob:null,ev:null,source:"比較/両方未取得"};
+      return{prob:Math.min(a,n),ev:Math.min(ae??0,ne??0),source:"比較/両方EV",both:true};
+    }
+    return{prob:null,ev:null,source:"比較のみ",displayOnly:true};
+  }
+  return{prob:null,ev:null,source:"本体標準"};
+}
+function applyRows(win,entries){
+  const cfg=getCfg(win);
+  if(cfg.mode==="standard")return entries;
+  const data=getData(win);
+  for(const e of entries||[]){
+    const rid=raceId(e.race_id||e.raceId);
+    const race=data.races[rid];
+    if(!race)continue;
+    const rec=race.rows.find(x=>Number(x.horseNo)===Number(e.horseNo));
+    const odds=Number(e.odds??e.oddsWin??0);
+    if(!rec){
+      if(cfg.missingAction==="stop"){e.probWin=0;e.ev=0;e.narProbabilityUnavailable=true}
+      continue;
+    }
+    const s=selectedValues(rec,odds,cfg);
+    e.arionProbability=rec.arionProbability;
+    e.netkeibaProbability=rec.netkeibaProbability;
+    e.arionEv=rec.arionProbability!==null?rec.arionProbability*odds:null;
+    e.netkeibaEv=rec.netkeibaProbability!==null?rec.netkeibaProbability*odds:null;
+    e.narProbabilityMode=cfg.mode;
+    e.narProbabilityDecision=cfg.compareDecision;
+    e.narProbabilitySource=s.source;
+    e.narProbabilityCapturedAt=race.capturedAt;
+    e.narProbabilityUnavailable=false;
+    if(s.displayOnly)continue;
+    if(s.prob===null){
+      if(cfg.missingAction==="stop"){e.probWin=0;e.ev=0;e.narProbabilityUnavailable=true}
+      continue;
+    }
+    e.probWin=s.prob;
+    e.probability=s.prob;
+    e.ev=Number((s.ev??(s.prob*odds)).toFixed(3));
+    if(s.both&&e.ev<Number(cfg.minEv||1)){
+      e.ev=0;
+      e.narBothEvRejected=true;
+    }else e.narBothEvRejected=false;
+  }
+  return entries;
+}
+function patchLogic(win){
+  if(!win||win[PATCH_FLAG])return false;
+  if(typeof win.recalcEntryScores!=="function")return false;
+  const original=win.recalcEntryScores;
+  function wrapped(entries){
+    const result=original.apply(this,arguments);
+    return applyRows(win,result||entries);
+  }
+  wrapped.__original=original;
+  wrapped.__narProbabilityV3=true;
+  win.recalcEntryScores=wrapped;
+  try{win.eval("recalcEntryScores = window.recalcEntryScores")}catch(_){}
+  win[PATCH_FLAG]=true;
+  win.TheKeibaNarProbability=Object.assign(win.TheKeibaNarProbability||{},{
+    getConfig:()=>getCfg(win),
+    getData:()=>getData(win),
+    applyEntries:entries=>applyRows(win,entries),
+    importRace:(rid,rows)=>{
+      rid=raceId(rid);
+      if(!rid)throw new Error("12桁race_idが必要です。");
+      const d=getData(win);
+      d.races[rid]=normalizeRace(rid,rows);
+      saveData(win,d);
+      return d.races[rid];
+    }
+  });
+  return true;
+}
+function addDataUi(win,doc){
+  const card=doc.getElementById("narProbabilitySafeCardV2");
+  if(!card||doc.getElementById("narProbDataAreaV3"))return;
+  const box=doc.createElement("div");
+  box.id="narProbDataAreaV3";
+  box.innerHTML=`
+    <hr style="border:0;border-top:1px solid rgba(148,163,184,.25);margin:16px 0">
+    <h3 style="margin:0 0 8px">📥 ARION／netkeibaデータ取込</h3>
+    <div class="nar-prob-note">
+      race_idと馬番で本体DBへ対応させます。ARIONはAI単％、netkeibaはAI予想オッズを入力してください。
+      JSON・CSV・TSVに対応します。
+    </div>
+    <div class="settings-row">
+      <label>race_id</label>
+      <input id="narProbRaceIdV3" inputmode="numeric" placeholder="12桁 race_id">
+    </div>
+    <textarea id="narProbInputV3" style="width:100%;min-height:145px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px"
+      placeholder='{"raceId":"202607240501","rows":[{"horseNo":1,"horseName":"馬名","arionWinPercent":18.5,"netkeibaPredictedOdds":6.8}]}'></textarea>
+    <div class="nar-prob-actions">
+      <button class="btn-sm" id="narProbPasteV3" type="button">📋 貼付</button>
+      <button class="btn-sm" id="narProbImportV3" type="button">✅ 取込・正規化</button>
+      <button class="btn-sm" id="narProbApplyDbV3" type="button">🔄 現在DBへ反映</button>
+      <button class="btn-sm" id="narProbDeleteV3" type="button">🗑 このレースを削除</button>
+    </div>
+    <div class="nar-prob-status" id="narProbDataStatusV3">データ未取込です。</div>
+    <div id="narProbPreviewV3" style="margin-top:10px;overflow:auto"></div>`;
+  card.appendChild(box);
+  const q=id=>doc.getElementById(id);
+  function preview(rid){
+    const race=getData(win).races[raceId(rid)];
+    if(!race){q("narProbPreviewV3").innerHTML="";return}
+    q("narProbPreviewV3").innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr>
+      <th style="text-align:left">馬番</th><th style="text-align:left">馬名</th><th>ARION</th><th>ARION必要</th><th>netkeiba予想</th><th>netkeiba確率</th><th>netkeiba必要</th>
+      </tr></thead><tbody>${race.rows.map(r=>`<tr>
+      <td>${r.horseNo}</td><td>${String(r.horseName||"")}</td>
+      <td style="text-align:right">${r.arionProbability===null?"—":(r.arionProbability*100).toFixed(2)+"%"}</td>
+      <td style="text-align:right">${r.arionProbability>0?(1/r.arionProbability).toFixed(2):"—"}</td>
+      <td style="text-align:right">${r.netkeibaPredictedOdds??"—"}</td>
+      <td style="text-align:right">${r.netkeibaProbability===null?"—":(r.netkeibaProbability*100).toFixed(2)+"%"}</td>
+      <td style="text-align:right">${r.netkeibaProbability>0?(1/r.netkeibaProbability).toFixed(2):"—"}</td>
+      </tr>`).join("")}</tbody></table>`;
+  }
+  q("narProbPasteV3").onclick=async()=>{
+    try{q("narProbInputV3").value=await win.navigator.clipboard.readText()}
+    catch(_){q("narProbDataStatusV3").textContent="クリップボード貼付を許可してください。"}
+  };
+  q("narProbImportV3").onclick=()=>{
+    try{
+      const p=parseInput(q("narProbInputV3").value,q("narProbRaceIdV3").value);
+      if(!p.rid)throw new Error("12桁race_idを入力してください。");
+      const d=getData(win);
+      d.races[p.rid]=normalizeRace(p.rid,p.rows);
+      saveData(win,d);
+      q("narProbRaceIdV3").value=p.rid;
+      preview(p.rid);
+      q("narProbDataStatusV3").textContent=`取込完了：${p.rid}／${d.races[p.rid].rows.length}頭。netkeiba確率はレース内100%へ正規化済みです。`;
+    }catch(e){q("narProbDataStatusV3").textContent="取込失敗："+e.message}
+  };
+  q("narProbApplyDbV3").onclick=async()=>{
+    try{
+      if(typeof win.getAll!=="function"||typeof win.putMany!=="function")throw new Error("本体DB関数が未準備です。");
+      const entries=await win.getAll("entries");
+      const before=entries.filter(e=>raceId(e.race_id||e.raceId)&&getData(win).races[raceId(e.race_id||e.raceId)]).length;
+      applyRows(win,entries);
+      const targets=entries.filter(e=>e.narProbabilityMode);
+      if(targets.length)await win.putMany("entries",targets);
+      try{await win.refreshAll()}catch(_){}
+      q("narProbDataStatusV3").textContent=`DB反映完了：対象${before}頭／更新${targets.length}頭。次回SIMでも自動適用されます。`;
+    }catch(e){q("narProbDataStatusV3").textContent="DB反映失敗："+e.message}
+  };
+  q("narProbDeleteV3").onclick=()=>{
+    const rid=raceId(q("narProbRaceIdV3").value);
+    if(!rid)return;
+    const d=getData(win);delete d.races[rid];saveData(win,d);preview(rid);
+    q("narProbDataStatusV3").textContent="削除しました："+rid;
+  };
+  q("narProbRaceIdV3").onchange=()=>preview(q("narProbRaceIdV3").value);
+}
+function addSimBadge(win,doc){
+  const tab=doc.getElementById("tab-simulation");
+  if(!tab)return;
+  let box=doc.getElementById("narProbSimStatusV3");
+  if(!box){
+    box=doc.createElement("div");
+    box.id="narProbSimStatusV3";
+    box.className="notice";
+    box.style.marginBottom="10px";
+    tab.insertBefore(box,tab.firstChild);
+  }
+  const cfg=getCfg(win),count=Object.keys(getData(win).races||{}).length;
+  box.innerHTML=`<strong>想定確率：${modeLabel(cfg)}</strong><br><small>登録済み比較データ ${count}レース。SIM候補生成時に自動適用します。ARIONとnetkeibaは混合しません。</small>`;
+}
+function install(){
+  const frame=document.getElementById(FRAME_ID);
+  if(!frame)return;
+  let win,doc;
+  try{win=frame.contentWindow;doc=frame.contentDocument||win.document}catch(_){return}
+  if(!doc||!doc.documentElement)return;
+  patchLogic(win);
+  addDataUi(win,doc);
+  addSimBadge(win,doc);
+}
+function attach(){
+  const f=document.getElementById(FRAME_ID);
+  if(f)f.addEventListener("load",()=>[100,400,1000,2500].forEach(ms=>setTimeout(install,ms)));
+  [0,500,1500,3500].forEach(ms=>setTimeout(install,ms));
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",attach,{once:true});else attach();
+setInterval(install,2000);
 })();
 </script>
 
