@@ -15,7 +15,7 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="thekeiba-build" content="v1.2.42-full-integrated-onefile-jra-range-fix-profit-v22-embed">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.42</title>
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.46</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.44 NAR想定確率 実判定修正版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.46 NAR想定確率 期間横断SIM実判定修正版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -7468,6 +7468,233 @@ function attach(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",attach,{once:true});
 else attach();
 setInterval(inject,2500);
+})();
+</script>
+
+<script id="narProbabilitySimulationHardPatchV4">
+(function(){
+'use strict';
+const FRAME_ID='fullEmuFrame', FLAG='__narProbHardPatchV4';
+function install(){
+  const frame=document.getElementById(FRAME_ID); if(!frame)return false;
+  let w,d; try{w=frame.contentWindow;d=frame.contentDocument||w.document}catch(_){return false}
+  if(!w||w[FLAG]||typeof w.buildSimulationCandidate!=='function'||!w.TheKeibaNarProbability)return false;
+  const old=w.buildSimulationCandidate;
+  function n(v,def=0){const x=Number(v);return Number.isFinite(x)?x:def}
+  async function hardBuild(race,result,c){
+    const cfg=w.TheKeibaNarProbability.getConfig?w.TheKeibaNarProbability.getConfig():{mode:'standard'};
+    if(cfg.mode==='standard'||(cfg.mode==='compare'&&cfg.compareDecision==='standard')) return old.call(this,race,result,c);
+    let entries=await w.getByIndex('entries','race_id',race.race_id);
+    // 標準スコアを作った後、当該race_idの外部確率を必ず直接適用する。
+    if(typeof w.recalcEntryScores==='function') w.recalcEntryScores(entries);
+    entries.forEach(e=>{if(!e.race_id)e.race_id=race.race_id});
+    w.TheKeibaNarProbability.applyEntries(entries);
+    const stat=w.__narProbabilityLastApply||{};
+    const unavailable=!stat.registered||n(stat.updated)===0||n(stat.missing)>0;
+    if(unavailable&&cfg.missingAction==='stop'){
+      return {race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,
+        narProbabilityBlocked:true,narProbabilityStatus:{...stat,mode:cfg.mode,reason:!stat.registered?'対象race_idの想定確率未登録':'想定確率の不足・照合失敗'}};
+    }
+    const qualifies=e=>n(e.ev)>=n(c.minEv)&&n(e.ai)>=n(c.minAi)&&n(e.odds)>=n(c.minOdds)&&n(e.odds)<=n(c.maxOdds)&&!e.narProbabilityUnavailable;
+    let candidateEntries=entries.filter(qualifies);
+    const sorters=typeof w.simulationEntrySorters==='function'?w.simulationEntrySorters():{};
+    const sorter=sorters[c.priority]||((a,b)=>n(b.ev)-n(a.ev));
+    candidateEntries.sort(sorter);
+    candidateEntries=candidateEntries.slice(0,Math.max(1,n(c.topN,3)));
+    const candidateTickets=w.generateTickets(c.ticketType,candidateEntries,Math.max(1,n(c.maxTickets,3)));
+    return {race,result,entries,candidateEntries,candidateTickets,purchaseTickets:[],
+      rankScore:typeof w.simulationDailyRankScore==='function'?w.simulationDailyRankScore(candidateEntries,c.dailyRankBasis):(candidateEntries[0]?.ev||-1),
+      narProbabilityStatus:{...stat,mode:cfg.mode}};
+  }
+  hardBuild.__narProbabilityHardPatchV4=true;
+  hardBuild.__original=old;
+  w.buildSimulationCandidate=hardBuild;
+  try{w.eval('buildSimulationCandidate = window.buildSimulationCandidate')}catch(_){ }
+  w[FLAG]=true;
+
+  // SIM実行開始時にデータ未登録を黙って標準へ戻さない。
+  const originalCompute=w.computeSimulationRows;
+  if(typeof originalCompute==='function'&&!originalCompute.__narProbabilityHardPatchV4){
+    const wrappedCompute=async function(c){
+      const rows=await originalCompute.call(this,c);
+      const cfg=w.TheKeibaNarProbability.getConfig();
+      if(cfg.mode!=='standard'&&!(cfg.mode==='compare'&&cfg.compareDecision==='standard')){
+        const blocked=(rows||[]).filter(x=>x&&x.narProbabilityBlocked).length;
+        w.__narProbabilitySimulationSummary={mode:cfg.mode,total:(rows||[]).length,blocked};
+      }
+      return rows;
+    };
+    wrappedCompute.__narProbabilityHardPatchV4=true;
+    w.computeSimulationRows=wrappedCompute;
+    try{w.eval('computeSimulationRows = window.computeSimulationRows')}catch(_){ }
+  }
+  console.log('[NAR Probability HardPatch V4] installed');
+  return true;
+}
+function attach(){
+ const f=document.getElementById(FRAME_ID);if(f)f.addEventListener('load',()=>[100,500,1500,3500].forEach(ms=>setTimeout(install,ms)));
+ [0,500,1500,3500,7000].forEach(ms=>setTimeout(install,ms));
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});else attach();
+setInterval(install,2500);
+})();
+</script>
+
+
+<script id="narProbabilityPeriodSimulationDefinitivePatchV5">
+(function(){
+'use strict';
+const FRAME_ID='fullEmuFrame', FLAG='__narProbabilityPeriodDefinitiveV5';
+function install(){
+  const frame=document.getElementById(FRAME_ID); if(!frame)return false;
+  let w,d; try{w=frame.contentWindow;d=frame.contentDocument||w.document}catch(_){return false}
+  if(!w||w[FLAG]||typeof w.buildSimulationCandidate!=='function')return false;
+
+  const oldBuild=w.buildSimulationCandidate;
+  const oldRun=typeof w.runSimulationCore==='function'?w.runSimulationCore:null;
+  const num=(v,def=0)=>{const x=Number(v);return Number.isFinite(x)?x:def};
+  const rid=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
+  const horseNo=e=>num(e&&((e.horseNo??e.horse_no??e.num??e.number)),0);
+  const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
+  function cfg(){
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}
+    catch(_){return {mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
+  }
+  function db(){
+    try{const x=JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityDataV2')||'{"races":{}}');x.races=x.races||{};return x}
+    catch(_){return {races:{}}}
+  }
+  function selectedSource(c){
+    if(c.mode==='arion')return 'arion';
+    if(c.mode==='netkeiba')return 'netkeiba';
+    if(c.mode==='compare')return c.compareDecision||'none';
+    return 'standard';
+  }
+  function probability(rec,source){
+    if(!rec)return null;
+    if(source==='arion')return rec.arionProbability!=null?num(rec.arionProbability,NaN):null;
+    if(source==='netkeiba')return rec.netkeibaProbability!=null?num(rec.netkeibaProbability,NaN):null;
+    return null;
+  }
+  async function definitiveBuild(race,result,c){
+    const C=cfg(), source=selectedSource(C);
+    if(source==='standard')return oldBuild.call(this,race,result,c);
+
+    // 比較のみは購入判定を行わない。
+    if(source==='none'){
+      const base=await oldBuild.call(this,race,result,c);
+      return Object.assign(base,{candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,
+        narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source:'compare-only',reason:'比較のみ・購入判定しない'}});
+    }
+
+    const raceId=rid(race&&(race.race_id||race.raceId||race.id));
+    const R=db().races[raceId];
+    let entries=await w.getByIndex('entries','race_id',race.race_id||raceId);
+    if(typeof w.recalcEntryScores==='function')w.recalcEntryScores(entries);
+    entries=Array.isArray(entries)?entries:[];
+
+    if(!R||!Array.isArray(R.rows)){
+      return {race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,
+        narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId,registered:false,updated:0,missing:entries.length,reason:'当時スナップショット未登録'}};
+    }
+
+    const map=new Map(R.rows.map(x=>[num(x.horseNo??x.horse_no??x.num,0),x]));
+    let updated=0,missing=0;
+    for(const e of entries){
+      const rec=map.get(horseNo(e));
+      const o=oddsOf(e);
+      const pa=probability(rec,'arion'), pn=probability(rec,'netkeiba');
+      e.arionProbability=Number.isFinite(pa)?pa:null;
+      e.netkeibaProbability=Number.isFinite(pn)?pn:null;
+      e.arionEv=Number.isFinite(pa)&&o>0?pa*o:null;
+      e.netkeibaEv=Number.isFinite(pn)&&o>0?pn*o:null;
+      let p=null;
+      if(source==='both'){
+        const minEv=num(C.minEv,1);
+        const ok=Number.isFinite(e.arionEv)&&Number.isFinite(e.netkeibaEv)&&e.arionEv>=minEv&&e.netkeibaEv>=minEv;
+        if(ok)p=Math.min(pa,pn); // 混合・平均せず、厳しい側だけを採用
+      }else p=probability(rec,source);
+      if(!Number.isFinite(p)||p<=0||o<=0){
+        e.narProbabilityUnavailable=true;e.ev=0;e.probWin=0;missing++;continue;
+      }
+      e.narProbabilityUnavailable=false;
+      e.narProbabilityMode=C.mode;e.narProbabilityDecision=C.compareDecision;
+      e.narProbabilitySource=source;e.narProbabilityCapturedAt=R.capturedAt||'';
+      e.probWin=p;e.prob=p;e.winProbability=p;e.ev=p*o;e.expectedValue=e.ev;
+      updated++;
+    }
+
+    // 1頭でも不足時に停止する設定なら、このレースを丸ごと除外。
+    if((updated===0||(missing>0&&C.missingAction==='stop'))){
+      return {race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,
+        narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId,registered:true,updated,missing,reason:updated===0?'適用可能データなし':'想定確率の不足・馬番照合失敗'}};
+    }
+
+    const qualifies=e=>!e.narProbabilityUnavailable&&num(e.ev)>=num(c.minEv)&&num(e.ai)>=num(c.minAi)&&num(e.odds)>=num(c.minOdds)&&num(e.odds)<=num(c.maxOdds);
+    let candidateEntries=entries.filter(qualifies);
+    const sorters=typeof w.simulationEntrySorters==='function'?w.simulationEntrySorters():{};
+    candidateEntries.sort(sorters[c.priority]||((a,b)=>num(b.ev)-num(a.ev)));
+    candidateEntries=candidateEntries.slice(0,Math.max(1,num(c.topN,3)));
+    const candidateTickets=w.generateTickets(c.ticketType,candidateEntries,Math.max(1,num(c.maxTickets,3)));
+    return {race,result,entries,candidateEntries,candidateTickets,purchaseTickets:[],
+      rankScore:typeof w.simulationDailyRankScore==='function'?w.simulationDailyRankScore(candidateEntries,c.dailyRankBasis):num(candidateEntries[0]?.ev,-1),
+      narProbabilityBlocked:false,narProbabilityStatus:{mode:C.mode,source,raceId,registered:true,updated,missing,capturedAt:R.capturedAt||''}};
+  }
+  definitiveBuild.__narProbabilityDefinitiveV5=true;
+  definitiveBuild.__original=oldBuild;
+  w.buildSimulationCandidate=definitiveBuild;
+  try{w.eval('buildSimulationCandidate = window.buildSimulationCandidate')}catch(_){ }
+
+  if(oldRun&&!oldRun.__narProbabilityDefinitiveV5){
+    const wrappedRun=async function(){
+      const C=cfg(), source=selectedSource(C);
+      w.__narProbabilityPeriodV5={mode:C.mode,source,total:0,covered:0,blocked:0,updated:0,missing:0};
+      if(source!=='standard'){
+        try{
+          const c=w.readSimConfig();
+          const races=await w.getRacesInRange(c.start,c.end);
+          const filtered=(races||[]).filter(r=>(!c.start||r.date>=c.start)&&(!c.end||r.date<=c.end)&&(!c.type||r.type===c.type)&&(!c.places?.length||c.places.includes(r.placeName)));
+          const D=db();
+          const covered=filtered.filter(r=>D.races[rid(r.race_id||r.raceId)]).length;
+          w.__narProbabilityPeriodV5.total=filtered.length;w.__narProbabilityPeriodV5.covered=covered;
+          if(typeof w.setSimSyncStatus==='function')w.setSimSyncStatus('期間横断SIM 判定='+source+' / 対象 '+filtered.length+'R / 登録 '+covered+'R / 未登録 '+Math.max(0,filtered.length-covered)+'R');
+          if(source==='none'){
+            alert('比較のみが選択されています。購入判定を行うには本体標準・ARION・netkeiba・両方EV以上のいずれかを選択してください。');
+            return null;
+          }
+          if(!covered){
+            alert('選択期間に '+source+' の当時スナップショットがありません。\n本体標準へ自動フォールバックせず、期間横断SIMを停止しました。');
+            return null;
+          }
+        }catch(e){console.warn('[NAR Probability V5] preflight',e)}
+      }
+      const result=await oldRun.apply(this,arguments);
+      return result;
+    };
+    wrappedRun.__narProbabilityDefinitiveV5=true;
+    w.runSimulationCore=wrappedRun;
+    try{w.eval('runSimulationCore = window.runSimulationCore')}catch(_){ }
+  }
+
+  // 期間横断SIM画面に、現在の実判定方式を常時表示。
+  try{
+    const sim=d.getElementById('tab-simulation');
+    if(sim&&!d.getElementById('narProbPeriodDefinitiveV5')){
+      const box=d.createElement('div');box.id='narProbPeriodDefinitiveV5';box.className='notice';box.style.marginBottom='10px';
+      const refresh=()=>{const C=cfg(),s=selectedSource(C);box.innerHTML='<strong>期間横断SIM・想定確率実判定</strong><br><small>現在の判定：'+s+'。各race_idの保存スナップショットからEV・候補・最大3点を毎回再生成します。未登録レースは本体標準へ戻さず除外します。</small>'};
+      refresh();sim.insertBefore(box,sim.firstChild);setInterval(refresh,1500);
+    }
+  }catch(_){ }
+  w[FLAG]=true;
+  console.log('[NAR Probability Period Definitive V5] installed');
+  return true;
+}
+function attach(){
+ const f=document.getElementById(FRAME_ID);if(f)f.addEventListener('load',()=>[100,500,1500,3500,7000].forEach(ms=>setTimeout(install,ms)));
+ [0,500,1500,3500,7000].forEach(ms=>setTimeout(install,ms));
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});else attach();
+setInterval(install,2500);
 })();
 </script>
 
