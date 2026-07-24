@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.42 JRA期間横断修正版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.42 NAR想定確率選択比較修正版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -960,6 +960,77 @@ Userscript利用時はWorker URLを空欄にできます。取得失敗Rは1回�
         <div class="toolbar" style="margin-top:13px"><button class="btn good" id="cloneImportSourceBtn">元EV分析から完全読込</button><button class="btn" id="cloneExportSourceBtn">元EV分析へ完全保存</button><button class="btn primary" id="cloneApplyBtn">NEXTへ完全適用</button></div>
         <div class="notice" id="cloneCompatStatus" style="margin-top:12px">元EV分析の tk-html-settings と tk-sweep-purchase-guard-v1 を同じ項目名で双方向同期します。18モード 全て同意 対象券種 最低AI 券種別EV 日次予算 NAR移動補正 NoForceFillまで設定プロファイルへ保存されます。</div>
       </div>
+      
+<div class="card nar-prob-card" id="narProbabilitySettingsCard">
+  <div class="toolbar">
+    <h3 style="margin:0 auto 0 0">🏇 地方競馬・想定確率ソース</h3>
+    <span class="badge" id="narProbSettingsBadge">想定確率：本体エミュ標準</span>
+  </div>
+  <div class="notice">
+    ARIONとnetkeibaを混ぜません。単独選択、または横並び比較で使用します。
+    netkeibaはAI予想オッズの逆数をレース内で合計100%へ正規化します。
+  </div>
+  <div class="form-grid" style="margin-top:12px">
+    <div class="field wide">
+      <label>計算モード</label>
+      <select id="narProbMode">
+        <option value="standard">本体エミュ標準</option>
+        <option value="arion">ARION AI単</option>
+        <option value="netkeiba">netkeiba AI予想オッズ</option>
+        <option value="compare">ARION／netkeiba 比較式</option>
+      </select>
+    </div>
+    <div class="field wide">
+      <label>比較式の購入判定</label>
+      <select id="narProbCompareDecision">
+        <option value="none">比較のみ・購入判定しない</option>
+        <option value="arion">ARIONで判定</option>
+        <option value="netkeiba">netkeibaで判定</option>
+        <option value="both">両方が最低EV以上のみ</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>比較最低EV</label>
+      <input id="narProbMinEv" type="number" min="0" step="0.01" value="1.00">
+    </div>
+    <div class="field">
+      <label>未取得時</label>
+      <select id="narProbFallback">
+        <option value="stop">候補生成停止</option>
+        <option value="standard">本体標準を維持</option>
+      </select>
+    </div>
+  </div>
+  <div class="toolbar" style="margin-top:13px">
+    <button class="btn primary" id="narProbSaveBtn">設定保存・SIMへ反映</button>
+    <button class="btn" id="narProbApplyBtn">登録済みDBへ再適用</button>
+    <button class="btn" id="narProbExportBtn">比較データを書き出す</button>
+  </div>
+
+  <h3 style="margin-top:18px">ARION／netkeiba データ取込</h3>
+  <div class="form-grid">
+    <div class="field wide">
+      <label>race_id</label>
+      <input id="narProbRaceId" inputmode="numeric" placeholder="12桁 race_id">
+    </div>
+  </div>
+  <textarea id="narProbText" class="nar-prob-text" spellcheck="false"
+    style="width:100%;min-height:150px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+    placeholder='JSON例:
+{"raceId":"202607240501","rows":[
+ {"horseNo":1,"horseName":"馬名","arionWinPercent":18.5,"netkeibaPredictedOdds":6.8}
+]}'></textarea>
+  <div class="toolbar" style="margin-top:10px">
+    <button class="btn good" id="narProbImportBtn">取込・正規化</button>
+    <button class="btn" id="narProbPasteBtn">クリップボード貼付</button>
+    <button class="btn danger" id="narProbDeleteBtn">このレースを削除</button>
+  </div>
+  <div class="code-box" id="narProbStatus" style="margin-top:10px">
+    race_id・馬番単位で端末内へ保存します。
+  </div>
+  <div id="narProbPreview" style="margin-top:12px"></div>
+</div>
+
       <div class="card"><h3>モード選択</h3><div class="form-grid"><div class="field wide"><label>既定の予想モード</label><select id="defaultPredictionMode"><option value="custom">戦略・個別設定を使用</option><option value="ai">AI重視</option><option value="ev">EV重視</option><option value="expected">期待払戻重視</option><option value="balanced">総合バランス</option><option value="agreement">全て同意</option><option value="clone">完全クローン EV分析互換</option></select></div><div class="field"><label>予算の使い方</label><select id="defaultBudgetMode"><option value="sequential">レース順に購入</option><option value="dailyRank">全日ランキング</option></select></div><div class="field"><label>全日ランキング基準</label><select id="defaultDailyRankBasis"><option value="ev">EVの高い順</option><option value="adjusted">AI補正EVの高い順</option><option value="expected">期待払戻の高い順</option><option value="learned">過去学習後の期待利益順</option></select></div></div><div class="notice" id="settingsModeHelp" style="margin-top:12px">モードを選択すると、期間横断SIMの優先順位・同意モード・予算配分へ反映します。</div><div class="toolbar" style="margin-top:13px"><button class="btn primary" id="settingsModeSaveBtn">モードを保存・SIMへ反映</button></div></div>
       <div class="card"><h3>基本設定</h3><div class="form-grid"><div class="field"><label>テーマ</label><select id="themeSelect"><option value="dark">ダーク</option><option value="light">ライト</option></select></div><div class="field"><label>既定最低EV</label><input id="defaultMinEv" type="number" step="0.01" value="1.00"></div><div class="field"><label>既定最低AI</label><input id="defaultMinAi" type="number" value="80"></div><div class="field"><label>既定1日予算</label><input id="defaultBudget" type="number" value="2000"></div><div class="field"><label>既定1点金額</label><input id="defaultUnit" type="number" value="100"></div><div class="field"><label>AI補正強度</label><input id="aiStrength" type="number" step="0.1" value="1"></div></div><div class="toolbar" style="margin-top:13px"><button class="btn primary" id="settingsSaveBtn">基本設定を保存</button></div></div>
       <div class="card"><h3>DBMS・D1設定</h3>
