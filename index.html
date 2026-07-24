@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.42 NAR想定確率 SIM実接続完成版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.42 NAR想定確率 比較判定選択修正版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -6781,6 +6781,7 @@ ${e.message}`,"bad");return false}
 
       <div class="nar-prob-note">
         ARIONとnetkeibaは混合しません。単独選択、または独立した比較式で使用します。
+        比較式の購入判定は常時選択でき、想定確率ソースを「比較式」にした時点で有効になります。
         netkeibaはAI予想オッズの逆数をレース内で合計100%へ正規化します。
       </div>
 
@@ -6795,7 +6796,7 @@ ${e.message}`,"bad");return false}
       </div>
 
       <div class="settings-row">
-        <label>比較式の購入判定</label>
+        <label>比較式の購入判定（いつでも選択可）</label>
         <select id="narProbDecisionV2">
           <option value="none">比較のみ・購入判定しない</option>
           <option value="arion">ARIONで判定</option>
@@ -6840,7 +6841,7 @@ ${e.message}`,"bad");return false}
     function refresh(){
       cfg = readJSON(storage, CONFIG_KEY, defaultConfig());
       q("narProbInnerBadgeV2").textContent = "現在：" + modeLabel(cfg);
-      q("narProbDecisionV2").disabled = cfg.mode !== "compare";
+      q("narProbDecisionV2").disabled = false;
       parentBadge(modeLabel(cfg));
 
       win.TheKeibaNarProbability = win.TheKeibaNarProbability || {};
@@ -6854,7 +6855,7 @@ ${e.message}`,"bad");return false}
     }
 
     q("narProbModeV2").addEventListener("change", function(){
-      q("narProbDecisionV2").disabled = this.value !== "compare";
+      q("narProbDecisionV2").disabled = false;
     });
 
     q("narProbSaveV2").addEventListener("click", function(){
