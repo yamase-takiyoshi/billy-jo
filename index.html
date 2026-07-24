@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- TheKeiba Link Integrated: DBMS main entry / Product v2.0.0 realtime hotfix r1 -->
+<!-- TheKeiba Ultimate NEXT v2.2.0 LINK-REPAIRED ONEFILE: canonical engine + analysis + internal RDB embedded -->
 <html lang="ja">
 <head>
 <script id="earlySharedTheme">(function(){try{var v=localStorage.getItem("TheKeibaSharedThemeV2")||localStorage.getItem("TheKeibaTheme");v=/^(?:light|ライト)$/i.test(String(v||""))?"light":/^(?:dark|ダーク)$/i.test(String(v||""))?"dark":"";if(v)document.documentElement.setAttribute("data-theme",v)}catch(e){}})();</script>
@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 NEXT">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<title>The競馬 Ultimate NEXT Professional Product Edition v2.0.0</title>
+<title>The競馬 Ultimate NEXT Professional v2.2.0 LINK-REPAIRED ONEFILE</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -318,12 +318,24 @@ input,select,textarea{font-size:16px}
 .prediction-ledger-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.prediction-ledger-controls select{width:auto;min-width:150px}.prediction-ledger-table table{min-width:1080px}.prediction-source{font-weight:900;color:var(--good)}
 @media(max-width:900px){.product-flow{grid-template-columns:repeat(2,minmax(0,1fr))}.product-flow-step{border-bottom:1px solid var(--line)}.product-flow-step:last-child{grid-column:1/-1}.product-core-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.product-core-kpi:last-child{grid-column:1/-1}}
 @media(max-width:620px){.product-core-head{display:block}.product-core-state{justify-content:flex-start;margin-top:10px}.product-core-actions .btn{flex:1 1 calc(50% - 8px)}.product-core-actions .btn.primary{flex-basis:100%}.product-core-kpis{grid-template-columns:1fr 1fr}}
+
+<style id="completeOneFileStyles">
+/* v2.2.0 LINK-REPAIRED ONEFILE: 外部本体iframe・外部RDB画面リンクを廃止し、予想正本・分析・RDBを同一HTMLへ内蔵 */
+.inline-engine-shell{border:1px solid color-mix(in srgb,var(--good) 48%,var(--line));border-radius:16px;overflow:hidden;background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 92%,var(--good) 8%),var(--panel))}
+.inline-engine-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel2) 88%,var(--good) 12%)}
+.inline-engine-title{font-size:20px;font-weight:950}.inline-engine-sub{margin-top:5px;color:var(--muted);font-size:12px;line-height:1.6}.inline-engine-body{padding:15px}
+.inline-engine-flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}.inline-engine-step{padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);min-width:0}.inline-engine-step small{display:block;color:var(--muted);font-size:10px;font-weight:900}.inline-engine-step strong{display:block;margin-top:4px;font-size:13px}
+.inline-engine-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0}.inline-engine-kpi{padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--bg);min-width:0}.inline-engine-kpi small{display:block;color:var(--muted);font-size:10px;font-weight:900}.inline-engine-kpi strong{display:block;margin-top:5px;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inline-engine-config{min-height:180px;line-height:1.65}.inline-engine-hidden{display:none!important}
+#splitFrame{background:var(--bg)}
+@media(max-width:820px){.inline-engine-flow{grid-template-columns:repeat(2,minmax(0,1fr))}.inline-engine-step:last-child{grid-column:1/-1}.inline-engine-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 </style>
 
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>Product Edition v2.0.0 本体エミュ予想中核</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>v2.2.0 LINK-REPAIRED ONEFILE・予想／分析／RDB完全内蔵</small></div></div>
   <div class="header-actions"><button class="btn small" id="headerPredictionBtn" title="本体エミュ予想を開く">予想中核</button><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -531,36 +543,39 @@ input,select,textarea{font-size:16px}
       <div class="card"><div class="table-wrap"><table><thead><tr><th>日付</th><th>区分</th><th>開催</th><th>R</th><th>券種</th><th>候補点</th><th>購入点</th><th>購入的中</th><th>投資</th><th>払戻</th><th>収支</th><th>ROI</th></tr></thead><tbody id="emuRows"></tbody><tfoot id="emuFoot"></tfoot></table></div></div>
     </section>
 
-
-
     <section class="view" id="view-site-emulator">
-      <h2 class="page-title">🖥 内蔵本体エミュ予想エンジン</h2>
+      <h2 class="page-title">🧠 完全内蔵・本体エミュ予想エンジン</h2>
       <div class="card full-emu-hero">
-        <div class="toolbar"><h3 id="fullEmuHeading" style="margin:0 auto 0 0">The競馬 EV分析（公開最新版・ライブ同期型）</h3><span class="badge" id="fullEmuStateBadge"><span class="status-dot"></span>未読込</span></div>
-        <div class="notice">この本体エミュを単レース予想・期間横断・フォワード運用の正本エンジンとして使用します。画面を切り替えてもフレームは破棄されず、予想結果は <code>race_id</code> 単位で予想台帳へ自動保存されます。同一オリジン時はlocalStorage・IndexedDB・Bridgeを共有し、テーマも即時連動します。</div>
+        <div class="toolbar"><h3 style="margin:0 auto 0 0">The競馬 EV分析 Canonical Engine v5.18.297-inline</h3><span class="badge good" id="fullEmuStateBadge"><span class="status-dot on"></span>内蔵接続済み</span></div>
+        <div class="notice">予想ロジック、予算配分、設定読込、予想台帳、期間横断SIMをこのHTML内部へ固定しました。外部サイトiframe・別ファイル・同一オリジン配置を必要とせず、<code>race_id</code> を主キーに同じIndexedDBを直接使用します。</div>
         <div class="full-emu-toolbar" style="margin-top:12px">
-          <div class="full-emu-url"><label>本体サイトURL</label><input id="fullEmuUrl" type="url" value="https://yamase-takiyoshi.github.io/takuya/" inputmode="url"></div>
-          <label class="full-emu-auto" title="本体エミュレータ画面を開いた時に自動読込"><input id="fullEmuAuto" type="checkbox" checked>画面表示時に自動読込</label>
-          <label class="full-emu-live-toggle" title="本体エミュのSIM結果を親SIMへリアルタイム転送"><input id="fullEmuLiveSync" type="checkbox" checked>SIMへリアルタイム転送</label>
+          <div class="full-emu-url"><label>予想正本</label><input id="fullEmuUrl" type="text" value="inline://TheKeiba-Canonical-Engine-v5.18.297" readonly></div>
+          <label class="full-emu-auto"><input id="fullEmuAuto" type="checkbox" checked disabled>自動初期化</label>
+          <label class="full-emu-live-toggle"><input id="fullEmuLiveSync" type="checkbox" checked>SIMへリアルタイム反映</label>
         </div>
         <div class="full-emu-controls" style="margin-top:10px">
-          <button class="btn primary" id="fullEmuLoadBtn">▶ 丸ごと読込</button>
-          <button class="btn" id="fullEmuReloadBtn">↻ 再読込</button>
-          <button class="btn" id="fullEmuHomeBtn">⌂ 本体ホーム</button>
-          <button class="btn good" id="fullEmuBridgeBtn">🔗 Bridge再接続</button>
+          <button class="btn primary" id="fullEmuLoadBtn">▶ 内蔵エンジン初期化</button>
+          <button class="btn" id="fullEmuReloadBtn">↻ 設定再読込</button>
+          <button class="btn" id="fullEmuHomeBtn">⌂ ダッシュボード</button>
+          <button class="btn good" id="fullEmuBridgeBtn">🔗 Bridge状態確認</button>
           <button class="btn good" id="fullEmuShowSimBtn">📊 SIMを表示</button>
-          <button class="btn" id="fullEmuSyncNowBtn">↔ 今すぐ転送</button>
-          <button class="btn" id="fullEmuOpenBtn">↗ 別タブ</button>
-          <select id="fullEmuViewport" style="width:auto" title="表示幅"><option value="full">全幅</option><option value="tablet">iPad幅</option><option value="mobile">スマホ幅</option></select>
+          <button class="btn" id="fullEmuSyncNowBtn">↔ 現在結果を反映</button>
+          <button class="btn" id="fullEmuOpenBtn">🎯 単レース予想</button>
+          <select id="fullEmuViewport" class="inline-engine-hidden"><option value="full" selected>全幅</option></select>
         </div>
-        <div class="full-emu-badges"><span class="badge" id="fullEmuOriginBadge">接続方式を確認中</span><span class="badge" id="fullEmuBridgeBadge">Bridge未確認</span><span class="badge" id="fullEmuLiveBadge">LIVE接続待ち</span><span class="badge" id="fullEmuLiveCountBadge">0R</span><span class="badge" id="fullEmuThemeBadge">テーマ連動待ち</span><span class="badge" id="fullEmuVersionBadge">公開版を確認中</span></div>
-        <div class="code-box full-emu-status" id="fullEmuStatus">「丸ごと読込」を押すと、公開サイト本体をこの画面内で起動します。</div>
+        <div class="full-emu-badges"><span class="badge same" id="fullEmuOriginBadge">完全内蔵：外部依存なし</span><span class="badge" id="fullEmuBridgeBadge">Bridge確認中</span><span class="badge same" id="fullEmuLiveBadge">LIVE：親SIM直結</span><span class="badge" id="fullEmuLiveCountBadge">0R</span><span class="badge same" id="fullEmuThemeBadge">テーマ共通</span><span class="badge same" id="fullEmuVersionBadge">inline v5.18.297</span></div>
+        <div class="code-box full-emu-status" id="fullEmuStatus">内蔵エンジンを初期化しています。</div>
       </div>
       <div class="card" style="padding:10px">
-        <div class="full-emu-frame-shell" id="fullEmuFrameShell">
-          <div class="full-emu-cover" id="fullEmuCover"><div><strong>🖥 本体エミュレータ</strong><br><br>公開サイトをまだ読み込んでいません。</div></div>
-          <iframe id="fullEmuFrame" title="The競馬 EV分析 丸ごと本体エミュレータ" loading="eager" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+        <div class="inline-engine-shell" id="fullEmuFrameShell">
+          <div class="inline-engine-head"><div><div class="inline-engine-title">Canonical Prediction Pipeline</div><div class="inline-engine-sub">外部iframeを使わず、現在の設定とローカルDBを直接読み取って予想候補を生成します。</div></div><span class="badge good" id="inlineEngineReadyBadge">READY</span></div>
+          <div class="inline-engine-body">
+            <div class="inline-engine-flow"><div class="inline-engine-step"><small>1 INPUT</small><strong>race_id・馬柱・オッズ</strong></div><div class="inline-engine-step"><small>2 SCORE</small><strong>確率・EV・AI</strong></div><div class="inline-engine-step"><small>3 FILTER</small><strong>券種・閾値・NoForceFill</strong></div><div class="inline-engine-step"><small>4 BUDGET</small><strong>日次予算・点数配分</strong></div><div class="inline-engine-step"><small>5 LEDGER</small><strong>予想台帳・確定後検証</strong></div></div>
+            <div class="inline-engine-grid"><div class="inline-engine-kpi"><small>エンジン</small><strong id="inlineEngineName">v5.18.297</strong></div><div class="inline-engine-kpi"><small>DB</small><strong id="inlineEngineDb">確認中</strong></div><div class="inline-engine-kpi"><small>設定権限</small><strong id="inlineEngineAuthority">正本</strong></div><div class="inline-engine-kpi"><small>外部HTML</small><strong class="good">不要</strong></div></div>
+            <div class="code-box inline-engine-config" id="inlineEngineConfig">設定を読み込んでいます。</div>
+          </div>
         </div>
+        <div id="fullEmuCover" hidden></div>
       </div>
     </section>
 
@@ -697,7 +712,7 @@ input,select,textarea{font-size:16px}
               <div class="pi-sub">8つの正規化テーブルを、仕様書として調査・検索・比較・集計できるプロダクトUIです。欠損率、重複リスク、数値分布、カテゴリ構成、保存ビュー、調査メモを一画面で管理します。</div>
               <div class="pi-badges"><span class="pi-badge good">● Local-first DB</span><span class="pi-badge">8 normalized tables</span><span class="pi-badge">3段フィルター</span><span class="pi-badge">2段ソート</span></div>
             </div>
-            <div class="toolbar" style="margin:0"><button class="btn primary" id="piResearchBtn">リサーチ実行</button><button class="btn" id="piExportBtn">結果CSV</button><a class="btn" href="https://takuya-20f.pages.dev/" target="_blank" rel="noopener">↗ RDB</a></div>
+            <div class="toolbar" style="margin:0"><button class="btn primary" id="piResearchBtn">リサーチ実行</button><button class="btn" id="piExportBtn">結果CSV</button><button class="btn" id="piOpenInternalRdbBtn" type="button" title="このHTML内のRDBレコード画面を開く">▤ 内蔵RDB</button></div>
           </div>
         </section>
 
@@ -799,7 +814,7 @@ input,select,textarea{font-size:16px}
 
       <div id="dbTabRecords" class="db-tab-panel" hidden>
         <div class="card dbms-card">
-          <div class="toolbar"><h3 style="margin:0 auto 0 0">takuya-20f RDB互換レコード</h3><a class="btn small" id="recordConsoleLink" href="https://takuya-20f.pages.dev/" target="_blank" rel="noopener">↗ RDB画面</a></div>
+          <div class="toolbar"><h3 style="margin:0 auto 0 0">takuya-20f RDB互換レコード</h3><button class="btn small good" id="recordConsoleLink" type="button" title="外部リンクを使わず、このHTML内のRDBレコードを表示">● 内蔵RDB接続済み</button></div>
           <div class="form-grid">
             <div class="field"><label>レコードテーブル</label><select id="recordTableSelect"><option value="races">races</option><option value="entries">entries</option><option value="predictionLedger">predictionLedger</option><option value="horses">horses</option><option value="jockeys">jockeys</option><option value="trainers">trainers</option><option value="results">results</option><option value="payouts">payouts</option><option value="bets">bets</option></select></div>
             <div class="field wide"><label>レコード検索</label><input id="recordSearch" placeholder="race_id・馬名・開催場・券種など"></div>
@@ -848,7 +863,7 @@ Userscript利用時はWorker URLを空欄にできます。取得失敗Rは1回�
       <div class="card prediction-hero">
         <div class="toolbar"><h3 style="margin:0 auto 0 0">単レース予想・購入判定</h3><span class="badge good" id="predEngineBadge">内蔵本体エミュ</span><span class="badge" id="predIntegrityBadge"><span class="status-dot on"></span>確定結果を計算に使用しない</span></div>
         <div class="form-grid">
-          <div class="field wide"><label>予想エンジン</label><select id="predEngineSelector" disabled><option id="fullEmuEngineOption" value="full-site-emulator" selected>内蔵本体エミュ（公開最新版・正本）</option></select></div>
+          <div class="field wide"><label>予想エンジン</label><select id="predEngineSelector" disabled><option value="full-site-emulator" selected>完全内蔵本体エミュ v5.18.297-inline（正本）</option></select></div>
           <div class="field wide"><label>対象レース</label><select id="predRaceSelector"></select></div>
           <div class="field wide" id="predStrategyField" hidden><label>使用戦略</label><select id="predStrategySelector"></select></div>
           <div class="field"><label>&nbsp;</label><button class="btn" id="predUseCurrentBtn">馬柱のレース</button></div>
@@ -1009,7 +1024,7 @@ Userscript利用時はWorker URLを空欄にできます。取得失敗Rは1回�
   このHTMLはFilesアプリのプレビューではなく、GitHub Pagesへ置いてSafariで開いてください。
   ホーム画面へ追加するとアプリのように起動できます。D1とWorkerの設定はCloudflareのWeb画面だけで行えます。
 </div>
-<div class="field wide"><label>D1 Worker API URL</label><input type="url" id="d1ApiUrl" placeholder="https://example.workers.dev"></div><div class="field wide"><label>D1 API Token 任意</label><input type="password" id="d1ApiToken" autocomplete="off" placeholder="WorkerにAPI_TOKENを設定した場合だけ入力"></div><div class="field wide"><label>RDB画面 URL</label><input type="url" id="rdbConsoleUrl" value="https://takuya-20f.pages.dev/"></div>
+<div class="field wide"><label>D1 Worker API URL</label><input type="url" id="d1ApiUrl" placeholder="https://example.workers.dev"></div><div class="field wide"><label>D1 API Token 任意</label><input type="password" id="d1ApiToken" autocomplete="off" placeholder="WorkerにAPI_TOKENを設定した場合だけ入力"></div><div class="field wide"><label>RDB画面</label><input type="text" id="rdbConsoleUrl" value="internal://rdb" readonly><small class="muted">外部ページではなく、このHTML内のD1互換レコード画面を使用します。</small></div>
           <div class="field"><label>D1自動同期</label><select id="d1AutoSync"><option value="on">ON</option><option value="off">OFF</option></select></div>
           <div class="field"><label>送信バッチ件数</label><input id="d1BatchSize" type="number" min="25" max="400" step="25" value="250"></div>
           <div class="field"><label>通信タイムアウト秒</label><input id="d1TimeoutSec" type="number" min="5" max="60" value="20"></div>
@@ -1037,6 +1052,13 @@ Userscript利用時はWorker URLを空欄にできます。取得失敗Rは1回�
       </div>
     </div>
     <iframe id="splitFrame" title="競馬アプリ 多角収支分析" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <template id="inlineAnalysisTemplate"><!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+:root{--bg:#07111f;--panel:#0f1d2e;--panel2:#17283d;--line:#2a405a;--text:#f5f7fb;--muted:#9fb0c5;--good:#38d27a;--bad:#ff6474;--accent:#42b8ff}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI",sans-serif}body{padding:12px}.head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}.head h1{font-size:18px;margin:0}.sub{font-size:11px;color:var(--muted);margin-top:4px}.badge{padding:5px 8px;border:1px solid var(--line);border-radius:999px;font-size:11px;font-weight:900;background:var(--panel2)}.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.kpi,.card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:11px}.kpi small{display:block;color:var(--muted);font-size:10px}.kpi strong{display:block;font-size:19px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.good{color:var(--good)}.bad{color:var(--bad)}.card{margin-top:10px}.card h2{font-size:14px;margin:0 0 8px}.chart{width:100%;height:230px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bars{display:grid;gap:6px}.bar{display:grid;grid-template-columns:minmax(70px,1fr) 2fr 78px;gap:7px;align-items:center;font-size:11px}.track{height:8px;background:var(--bg);border-radius:999px;overflow:hidden}.track i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--good))}.num{text-align:right;font-variant-numeric:tabular-nums}.table{overflow:auto;max-height:360px;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:720px}th,td{padding:8px;border-bottom:1px solid var(--line);font-size:11px;text-align:center;white-space:nowrap}th{position:sticky;top:0;background:var(--panel2)}.empty{padding:40px;text-align:center;color:var(--muted)}@media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.grid .kpi:last-child{grid-column:1/-1}.two{grid-template-columns:1fr}.chart{height:200px}}
+</style></head><body><div class="head"><div><h1>📊 内蔵・多角収支分析</h1><div class="sub">左側SIMから同一HTML内で直接同期</div></div><span class="badge" id="status">待機中</span></div><div class="grid"><div class="kpi"><small>購入R</small><strong id="races">0</strong></div><div class="kpi"><small>投資</small><strong id="bet">0円</strong></div><div class="kpi"><small>払戻</small><strong id="pay">0円</strong></div><div class="kpi"><small>収支</small><strong id="profit">0円</strong></div><div class="kpi"><small>ROI</small><strong id="roi">0%</strong></div></div><div class="card"><h2>資金曲線</h2><canvas class="chart" id="chart"></canvas></div><div class="two"><div class="card"><h2>開催場別</h2><div class="bars" id="venue"></div></div><div class="card"><h2>券種別</h2><div class="bars" id="ticket"></div></div></div><div class="card"><h2>購入明細</h2><div class="table"><table><thead><tr><th>日付</th><th>開催</th><th>R</th><th>券種</th><th>投資</th><th>払戻</th><th>収支</th><th>ROI</th></tr></thead><tbody id="rows"></tbody></table></div></div><script>
+(()=>{'use strict';const $=id=>document.getElementById(id),n=v=>Number(v||0),yen=v=>Math.round(n(v)).toLocaleString()+'円',esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let last=null;function theme(t){const light=t==='light',r=document.documentElement.style,p=light?{bg:'#eef3f8',panel:'#fff',p2:'#e8f0f7',line:'#cbd8e5',text:'#152235',muted:'#5f7188',good:'#11884c',bad:'#c83245',accent:'#006fbe'}:{bg:'#07111f',panel:'#0f1d2e',p2:'#17283d',line:'#2a405a',text:'#f5f7fb',muted:'#9fb0c5',good:'#38d27a',bad:'#ff6474',accent:'#42b8ff'};for(const[k,v]of Object.entries(p))r.setProperty('--'+(k==='p2'?'panel2':k),v);draw(last?.data?.収支明細||[])}function group(rows,key){const m=new Map;for(const x of rows){const k=String(x[key]||'不明'),a=m.get(k)||{label:k,bet:0,pay:0,count:0};a.bet+=n(x.投資);a.pay+=n(x.払戻);a.count++;m.set(k,a)}return[...m.values()].sort((a,b)=>(b.pay-b.bet)-(a.pay-a.bet))}function bars(id,list){const max=Math.max(1,...list.map(x=>Math.abs(x.pay-x.bet)));$(id).innerHTML=list.slice(0,12).map(x=>{const p=x.pay-x.bet,w=Math.max(2,Math.abs(p)/max*100);return `<div class="bar"><span>${esc(x.label)}</span><span class="track"><i style="width:${w}%"></i></span><span class="num ${p>=0?'good':'bad'}">${p>=0?'+':''}${yen(p)}</span></div>`}).join('')||'<div class="empty">データなし</div>'}function draw(rows){const c=$('chart'),rect=c.getBoundingClientRect();if(rect.width<10)return;const dpr=Math.max(1,devicePixelRatio||1),w=Math.round(rect.width),h=Math.round(rect.height);c.width=w*dpr;c.height=h*dpr;const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);const css=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();x.fillStyle=css('--bg');x.fillRect(0,0,w,h);let bank=0,vals=[0];for(const r of rows){bank+=n(r.収支);vals.push(bank)}const min=Math.min(0,...vals),max=Math.max(0,...vals),range=Math.max(1,max-min),pad={l:46,r:12,t:14,b:26};x.strokeStyle=css('--line');x.lineWidth=1;for(let i=0;i<5;i++){const y=pad.t+(h-pad.t-pad.b)*i/4;x.beginPath();x.moveTo(pad.l,y);x.lineTo(w-pad.r,y);x.stroke()}x.strokeStyle=css('--accent');x.lineWidth=3;x.beginPath();vals.forEach((v,i)=>{const px=pad.l+(w-pad.l-pad.r)*(i/Math.max(1,vals.length-1)),py=pad.t+(h-pad.t-pad.b)*(1-(v-min)/range);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();x.fillStyle=css('--muted');x.font='11px sans-serif';x.fillText(`${yen(min)} ～ ${yen(max)}`,8,h-8)}function apply(box){last=box;const d=box?.data||{},g=d.集計||{},rows=Array.isArray(d.収支明細)?d.収支明細:[];$('races').textContent=n(g.購入R||rows.length)+'R';$('bet').textContent=yen(g.投資);$('pay').textContent=yen(g.払戻);const p=n(g.収支);$('profit').textContent=(p>=0?'+':'')+yen(p);$('profit').className=p>=0?'good':'bad';$('roi').textContent=n(g.ROI).toFixed(1)+'%';$('roi').className=n(g.ROI)>=100?'good':'bad';$('status').textContent=`同期済 ${rows.length}件`;$('rows').innerHTML=rows.slice().reverse().map(r=>`<tr><td>${esc(r.日付)}</td><td>${esc(r.場||r.開催場)}</td><td>${esc(r.R)}</td><td>${esc(r.券種)}</td><td>${yen(r.投資)}</td><td>${yen(r.払戻)}</td><td class="${n(r.収支)>=0?'good':'bad'}">${n(r.収支)>=0?'+':''}${yen(r.収支)}</td><td>${n(r.ROI).toFixed(0)}%</td></tr>`).join('')||'<tr><td colspan="8" class="empty">SIM結果を待っています</td></tr>';bars('venue',group(rows,'場'));bars('ticket',group(rows,'券種'));requestAnimationFrame(()=>draw(rows));try{parent.postMessage({type:'keibaProfitGraphLiveAck',count:rows.length},'*')}catch(_){}}window.__keibaGraphApplyLive=apply;addEventListener('message',e=>{const d=e.data;if(d?.type==='keibaProfitGraphLive')apply(d.box);if(d?.type==='TheKeibaThemeSyncV1')theme(d.theme)});addEventListener('resize',()=>draw(last?.data?.収支明細||[]));try{theme(localStorage.getItem('TheKeibaSharedThemeV2')||document.documentElement.dataset.theme)}catch(_){}setTimeout(()=>parent.postMessage({type:'keibaProfitGraphLiveHello'},'*'),60)})();
+</script>
+
+</body></html></template>
   </section>
 </div>
 
@@ -1256,7 +1278,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="2.0.0-full-emulator-product-r2";
+const APP_VERSION="2.2.0-link-repaired-onefile";
 const NAV_ITEMS=[["dashboard","◉","予想中核"],["prediction","◎","本体予想"],["race","🏇","馬柱"],["site-emulator","▣","本体エミュ"],["simulation","▥","SIM検証"],["emulator","⌁","期間横断"],["forward","⏱","運用"],["analytics","↗","分析"],["calendar","📅","開催"],["search","⌕","検索"],["strategies","⚙","研究"],["database","▤","DB"],["bridge","⇄","Bridge"],["live","▦","ライブ"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -1277,7 +1299,7 @@ const DB_STORES={
   predictionLedger:{keyPath:"race_id",indexes:[["date","date"],["source","source"],["status","status"],["ticketType","ticketType"],["createdAt","createdAt"],["updatedAt","updatedAt"]]},
   strategies:{keyPath:"id"},simulations:{keyPath:"id",autoIncrement:true},snapshots:{keyPath:"id",autoIncrement:true,indexes:[["race_id","race_id"]]},favorites:{keyPath:"id"},settings:{keyPath:"key"},researchViews:{keyPath:"id",indexes:[["name","name"],["table","table"],["updatedAt","updatedAt"]]},researchNotes:{keyPath:"id",indexes:[["table","table"],["updatedAt","updatedAt"]]},backups:{keyPath:"id",indexes:[["name","name"],["scope","scope"],["createdAt","createdAt"],["updatedAt","updatedAt"]]}
 };
-const state={db:null,currentRaceId:"",searchResult:[],simResult:[],analyticsRows:[],currentAnalyticsDimension:"day",currentStrategyId:"default-win",calendarMonth:new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelected:"",settings:{theme:"dark",defaultPredictionMode:"custom",defaultBudgetMode:"sequential",defaultDailyRankBasis:"ev",defaultMinEv:1,defaultMinAi:80,defaultBudget:2000,defaultUnit:100,aiStrength:1,cloneCompatEnabled:true,cloneMode:"roi100",cloneAllAgreeBaseMode:"roi100",cloneNar:false,cloneTicketType:"all",cloneMinAi:68,settingsAlgorithmAuthority:true,cloneDailyLimit:2000,clonePointAmount:100,cloneTicketPriority:"normal",cloneAllocationMode:"per_race",cloneDailyRankMetric:"ev",cloneDailyRankMinRoi:120,cloneNarLearningMode:"prior_only",cloneProxyUrl:"https://takuya.nitta-katsuhiko.workers.dev/",cloneMinEvWin:1.08,cloneMinEvPlace:1.08,cloneMinEvBracket:1.15,cloneMinEvWide:1.10,cloneMinEvQuinella:1.15,cloneMinEvExacta:1.20,cloneMinEvTrio:1.25,cloneMinEvTrifecta:1.50,cloneRaceBudget:500,cloneTopN:3,cloneMaxTickets:6,cloneMaxRaces:6,cloneMinOdds:1,cloneMaxOdds:999,cloneMinReturnRate:120,cloneAvoidToragami:true,cloneUseBracket:true,cloneUseTrioTrifecta:true,cloneUseWideQuinella:true,cloneOffTicketPolicy:"ticketOnly",cloneNagoyaMode:false,cloneNarMoveAdjust:true,cloneNarMoveLearn:false,cloneSkipDebut:true,cloneReserveMain:false,cloneMainRaceNo:11,cloneMainReserve:600,cloneForceFill:false,settingProfiles:[],activeSettingProfileId:"",bridgeUrl:"",bridgeMode:"auto",dbmsMode:"auto",d1ApiUrl:"https://keiba-rdb-api.nitta-katsuhiko.workers.dev",d1ApiToken:"",d1AutoSync:true,d1BatchSize:250,d1TimeoutSec:20,rdbConsoleUrl:"https://takuya-20f.pages.dev/",liveCount:2,livePanels:[]},learningRecommendation:null,simSelectedPlaces:[]};
+const state={db:null,currentRaceId:"",searchResult:[],simResult:[],analyticsRows:[],currentAnalyticsDimension:"day",currentStrategyId:"default-win",calendarMonth:new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelected:"",settings:{theme:"dark",defaultPredictionMode:"custom",defaultBudgetMode:"sequential",defaultDailyRankBasis:"ev",defaultMinEv:1,defaultMinAi:80,defaultBudget:2000,defaultUnit:100,aiStrength:1,cloneCompatEnabled:true,cloneMode:"roi100",cloneAllAgreeBaseMode:"roi100",cloneNar:false,cloneTicketType:"all",cloneMinAi:68,settingsAlgorithmAuthority:true,cloneDailyLimit:2000,clonePointAmount:100,cloneTicketPriority:"normal",cloneAllocationMode:"per_race",cloneDailyRankMetric:"ev",cloneDailyRankMinRoi:120,cloneNarLearningMode:"prior_only",cloneProxyUrl:"https://takuya.nitta-katsuhiko.workers.dev/",cloneMinEvWin:1.08,cloneMinEvPlace:1.08,cloneMinEvBracket:1.15,cloneMinEvWide:1.10,cloneMinEvQuinella:1.15,cloneMinEvExacta:1.20,cloneMinEvTrio:1.25,cloneMinEvTrifecta:1.50,cloneRaceBudget:500,cloneTopN:3,cloneMaxTickets:6,cloneMaxRaces:6,cloneMinOdds:1,cloneMaxOdds:999,cloneMinReturnRate:120,cloneAvoidToragami:true,cloneUseBracket:true,cloneUseTrioTrifecta:true,cloneUseWideQuinella:true,cloneOffTicketPolicy:"ticketOnly",cloneNagoyaMode:false,cloneNarMoveAdjust:true,cloneNarMoveLearn:false,cloneSkipDebut:true,cloneReserveMain:false,cloneMainRaceNo:11,cloneMainReserve:600,cloneForceFill:false,settingProfiles:[],activeSettingProfileId:"",bridgeUrl:"",bridgeMode:"auto",dbmsMode:"auto",d1ApiUrl:"https://keiba-rdb-api.nitta-katsuhiko.workers.dev",d1ApiToken:"",d1AutoSync:true,d1BatchSize:250,d1TimeoutSec:20,rdbConsoleUrl:"internal://rdb",liveCount:2,livePanels:[]},learningRecommendation:null,simSelectedPlaces:[]};
 const $=id=>document.getElementById(id);const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));const yen=v=>Math.round(Number(v||0)).toLocaleString("ja-JP")+"円";const pct=v=>Number(v||0).toFixed(1)+"%";const compactDate=v=>String(v||"").replaceAll("-","");const displayDate=v=>{const s=String(v||"");return s.length===8?`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`:s};const isoToday=()=>new Date().toISOString().slice(0,10);const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 function requestPromise(req){return new Promise((ok,ng)=>{req.onsuccess=()=>ok(req.result);req.onerror=()=>ng(req.error)})}function txDone(tx){return new Promise((ok,ng)=>{tx.oncomplete=ok;tx.onerror=()=>ng(tx.error);tx.onabort=()=>ng(tx.error||new Error("Transaction aborted"))})}
 async function openDB(){return new Promise((ok,ng)=>{const req=indexedDB.open("TheKeibaUltimateNEXTComplete");req.onupgradeneeded=e=>{const db=e.target.result;for(const [name,cfg] of Object.entries(DB_STORES)){let store;if(!db.objectStoreNames.contains(name))store=db.createObjectStore(name,{keyPath:cfg.keyPath,autoIncrement:cfg.autoIncrement||false});else store=e.target.transaction.objectStore(name);for(const idx of cfg.indexes||[])if(!store.indexNames.contains(idx[0]))store.createIndex(idx[0],idx[1],{unique:false})}};req.onsuccess=()=>{state.db=req.result;state.db.onversionchange=()=>{state.db.close();console.warn("DB version changed. Reload this page.")};ok(state.db)};req.onblocked=()=>console.warn("IndexedDB upgrade blocked. Close older app tabs and reload.");req.onerror=()=>ng(req.error)})}
@@ -2634,7 +2656,7 @@ async function bridgeSyncDay(){
   }catch(e){bridgeLog("同期失敗: "+e.message);updateBridgeDiagnostics("同期失敗","bad");return{total:0,success:0,failed:1,failures:[{error:e.message}]}}
 }
 async function refreshAll(){await Promise.all([renderDashboard(),refreshRaceSelector(),renderDbCounts(),refreshStrategySelect()]);if(document.querySelector("#view-calendar.active"))await renderCalendar();if(document.querySelector("#view-simulation.active"))await renderSimPlaceOptions(state.simSelectedPlaces)}
-const SPLIT_ANALYSIS_URL="https://yamase-takiyoshi.github.io/-TheKeiba-Ultimate-NEXT/keiba_profit_spec_chart_switcher_candle_v22_dark_light.html?src=bridge2";
+const SPLIT_ANALYSIS_URL="inline:multi-analysis";
 const PROFIT_GRAPH_BRIDGE_KEY="keibaProfitGraphBridge_v1";
 const PROFIT_GRAPH_CHANNEL_NAME="keibaProfitGraphLive_v1";
 let profitGraphChannel=null,profitGraphSyncBusy=false,profitGraphLastSignature="";
@@ -2754,19 +2776,22 @@ function toggleSplitMenuAutoHide(){
   localStorage.setItem("TheKeibaSplitAutoHideMenu",next?"1":"0");
   applySplitMenuAutoHide();
 }
+function ensureInlineAnalysisFrame(force=false){
+  const frame=$("splitFrame"),tpl=$("inlineAnalysisTemplate");if(!frame||!tpl)return false;
+  if(force||frame.dataset.inlineReady!=="1"){
+    frame.dataset.inlineReady="1";frame.removeAttribute("src");frame.srcdoc=tpl.innerHTML;
+  }
+  return true
+}
 function setSplitOpen(open){
   const shell=document.querySelector(".app-shell"),frame=$("splitFrame"),btn=$("splitToggleBtn");
   if(!shell||!frame||!btn)return;
-  shell.classList.toggle("split-open",!!open);
-  btn.classList.toggle("active",!!open);
-  btn.textContent=open?"◧ 分析画面 ON":"◫ 分析画面";
-  if(open&&!frame.src)frame.src=SPLIT_ANALYSIS_URL;
-  if(open)setTimeout(()=>syncSimulationToAnalysis({reason:"分析画面を開く"}),250);
-  localStorage.setItem("TheKeibaSplitOpen",open?"1":"0");
-  applySplitMenuAutoHide();
+  shell.classList.toggle("split-open",!!open);btn.classList.toggle("active",!!open);btn.textContent=open?"◧ 分析画面 ON":"◫ 分析画面";
+  if(open){ensureInlineAnalysisFrame();setTimeout(()=>syncSimulationToAnalysis({reason:"内蔵分析画面を開く"}),250)}
+  localStorage.setItem("TheKeibaSplitOpen",open?"1":"0");applySplitMenuAutoHide()
 }
 function toggleSplit(){setSplitOpen(!document.querySelector(".app-shell")?.classList.contains("split-open"))}
-function refreshSplit(){const f=$("splitFrame");if(f){f.src="about:blank";setTimeout(()=>{f.src=SPLIT_ANALYSIS_URL+(SPLIT_ANALYSIS_URL.includes("?")?"&":"?")+"reload="+Date.now()},40)}}
+function refreshSplit(){if(ensureInlineAnalysisFrame(true))setTimeout(()=>syncSimulationToAnalysis({force:true,reason:"内蔵分析画面再構築"}),180)}
 async function repairMalformedRaceNames(){
   const races=await getAll("races");let fixed=0;
   for(const r of races){
@@ -2790,7 +2815,7 @@ function wireTabs(){
   document.querySelectorAll("[data-ana]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-ana]").forEach(x=>x.classList.toggle("active",x===b));state.currentAnalyticsDimension=b.dataset.ana;renderAnalyticsTable(state.currentAnalyticsDimension)});
   document.querySelectorAll("[data-dbtab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-dbtab]").forEach(x=>x.classList.toggle("active",x===b));for(const [key,id] of [["manage","dbTabManage"],["target","dbTabTarget"],["records","dbTabRecords"],["research","dbTabResearch"],["raceedit","dbTabRaceedit"],["entryedit","dbTabEntryedit"],["resultedit","dbTabResultedit"]])$(id).hidden=b.dataset.dbtab!==key;if(b.dataset.dbtab==="records"){window.d1RecordWire?.();window.d1RecordRender?.()}if(b.dataset.dbtab==="target")window.targetRdbInit?.()})
 }
-function wireEvents(){$("themeBtn").onclick=toggleTheme;$("splitToggleBtn").onclick=toggleSplit;$("splitSyncBtn").onclick=()=>syncSimulationToAnalysis({force:true,reason:"手動同期"});$("splitFrame").addEventListener("load",()=>setTimeout(()=>syncSimulationToAnalysis({force:true,reason:"分析画面読込完了"}),180));$("splitMenuAutoBtn").onclick=toggleSplitMenuAutoHide;$("splitCloseBtn").onclick=()=>setSplitOpen(false);$("splitRefreshBtn").onclick=refreshSplit;$("splitExternalBtn").onclick=()=>window.open(SPLIT_ANALYSIS_URL,"_blank","noopener");$("headerRealSyncBtn").onclick=syncRealDataNow;$("dashRefreshBtn").onclick=renderDashboard;$("calPrevBtn").onclick=()=>{state.calendarMonth.setMonth(state.calendarMonth.getMonth()-1);renderCalendar()};$("calNextBtn").onclick=()=>{state.calendarMonth.setMonth(state.calendarMonth.getMonth()+1);renderCalendar()};$("calTodayBtn").onclick=()=>{state.calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);renderCalendar()};$("raceSelector").onchange=()=>openRace($("raceSelector").value);$("openRaceBtn").onclick=()=>openRace($("raceIdDirect").value.trim());$("raceRecalcBtn").onclick=async()=>{const e=await getByIndex("entries","race_id",state.currentRaceId);recalcEntryScores(e);await putMany("entries",e);await openRace(state.currentRaceId)};$("raceSnapshotBtn").onclick=saveSnapshot;$("raceFavoriteBtn").onclick=toggleFavorite;$("replayRefreshBtn").onclick=renderReplayList;$("searchRunBtn").onclick=runSearch;$("searchResetBtn").onclick=resetSearch;$("searchSaveBtn").onclick=saveSearch;$("searchLoadBtn").onclick=loadSearch;$("searchCsvBtn").onclick=exportSearchCsv;$("pivotRunBtn").onclick=runPivot;$("simPlaceAll").onchange=()=>{if($("simPlaceAll").checked)document.querySelectorAll('#simPlaceOptions input[type="checkbox"]').forEach(x=>x.checked=true);updateSimPlaceSummary()};$("simPlaceSelectAllBtn").onclick=()=>{$("simPlaceAll").checked=true;document.querySelectorAll('#simPlaceOptions input[type="checkbox"]').forEach(x=>x.checked=true);updateSimPlaceSummary()};$("simPlaceClearBtn").onclick=()=>{$("simPlaceAll").checked=false;document.querySelectorAll('#simPlaceOptions input[type="checkbox"]').forEach(x=>x.checked=false);updateSimPlaceSummary()};$("simStart").onchange=()=>renderSimPlaceOptions(state.simSelectedPlaces);$("simEnd").onchange=()=>renderSimPlaceOptions(state.simSelectedPlaces);$("simType").onchange=()=>renderSimPlaceOptions(state.simSelectedPlaces);$("simDataMode").onchange=()=>updateSimDataModeUi();$("simPredictionMode").onchange=()=>applyPredictionModeToSim($("simPredictionMode").value);$("simBudgetMode").onchange=updateModeUi;$("simDailyRankBasis").onchange=updateModeUi;$("defaultPredictionMode").onchange=updateModeUi;$("defaultBudgetMode").onchange=updateModeUi;$("defaultDailyRankBasis").onchange=updateModeUi;$("simSyncBtn").onclick=syncBacktestPeriod;$("simStopSyncBtn").onclick=()=>{BACKTEST_SYNC.stop=true;$("simStopSyncBtn").textContent="停止処理中…";$("simStopSyncBtn").disabled=true;setSimSyncStatus("停止要求を受け付けました。現在の通信は最長タイムアウト後に終了し、安全に停止します")};$("simRunBtn").onclick=runSimulation;$("simCsvBtn").onclick=exportSimulationCsv;$("simSaveStrategyBtn").onclick=saveSimAsStrategy;$("simStrategy").onchange=()=>applyStrategyToSim($("simStrategy").value);$("analyticsRunBtn").onclick=()=>runAnalytics();$("analyticsRaceIdLookupBtn").onclick=lookupAnalyticsRaceIds;$("analyticsDiagnoseBtn").onclick=diagnoseAnalyticsUnknowns;$("newStrategyBtn").onclick=newStrategy;$("duplicateStrategyBtn").onclick=duplicateStrategy;$("deleteStrategyBtn").onclick=deleteStrategy;$("saveStrategyBtn").onclick=saveStrategy;$("applyStrategyBtn").onclick=()=>applyStrategyToSim();$("learningRunBtn").onclick=runLearning;$("learningCreateBtn").onclick=createRecommendedStrategy;$("liveApplyBtn").onclick=renderLivePanels;$("liveSaveBtn").onclick=saveLiveLayout;$("realSyncBtn").onclick=syncRealDataNow;$("backupSaveBtn").onclick=saveNamedBackup;$("backupOverwriteBtn").onclick=overwriteNamedBackup;$("backupRestoreBtn").onclick=restoreNamedBackup;$("backupExportBtn").onclick=exportNamedBackup;$("backupJsonOverwriteBtn").onclick=overwriteNamedBackupJson;$("backupImportBtn").onclick=()=>$("backupImportFile").click();$("backupDeleteBtn").onclick=deleteNamedBackup;$("backupRefreshBtn").onclick=()=>renderNamedBackups();$("backupSelect").onchange=renderSelectedBackupMeta;$("backupImportFile").onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{backupStatus("バックアップJSONを読込中…");await importNamedBackupFile(file)}catch(err){backupStatus("読込失敗: "+err.message,"bad")}e.target.value=""};$("exportBtn").onclick=exportDatabase;$("importBtn").onclick=()=>$("importFile").click();$("clearBtn").onclick=clearAllData;$("importFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;try{await importPayload(JSON.parse(await file.text()))}catch(err){alert("読込失敗: "+err.message)}e.target.value=""};$("pasteImportBtn").onclick=async()=>{try{await importPayload(JSON.parse($("jsonPaste").value))}catch(e){alert("JSONエラー: "+e.message)}};$("saveRaceEditBtn").onclick=saveRaceEditor;$("loadRaceEditBtn").onclick=loadRaceEditor;$("deleteRaceEditBtn").onclick=deleteRaceEditor;$("saveEntryEditBtn").onclick=saveEntryEditor;$("loadEntryEditBtn").onclick=loadEntryEditor;$("deleteEntryEditBtn").onclick=deleteEntryEditor;$("saveResultEditBtn").onclick=saveResultEditor;$("loadResultEditBtn").onclick=loadResultEditor;$("deleteResultEditBtn").onclick=async()=>{await deleteOne("results",$("edResultRaceId").value.trim());await refreshAll()};$("bridgeUrl").addEventListener("input",()=>{state.settings.bridgeUrl=$("bridgeUrl").value.trim();state.settings.bridgeMode="auto"});$("bridgeSaveBtn").onclick=async()=>{await getBridgeBase(true);state.settings.bridgeMode="auto";await putOne("settings",{key:"app",value:state.settings});bridgeLog("Bridge URL保存・自動判定待ち")};$("bridgePingBtn").onclick=bridgePing;$("bridgeListBtn").onclick=bridgeLoadList;$("bridgeRaceBtn").onclick=()=>bridgeLoadBundle(undefined,false,false,true);$("bridgeSyncDayBtn").onclick=bridgeSyncDay;$("settingsModeSaveBtn").onclick=saveAppSettings;$("settingsSaveBtn").onclick=saveAppSettings;$("ridGenerateBtn").onclick=()=>{const d=compactDate($("ridDate").value),t=$("ridType").value==="JRA"?"1":"2";if(!d)return alert("日付を選択");$("ridResult").value=d+t+String($("ridPlaceCode").value).padStart(2,"0")+String($("ridRaceNo").value).padStart(2,"0")}}
+function wireEvents(){$("themeBtn").onclick=toggleTheme;$("splitToggleBtn").onclick=toggleSplit;$("splitSyncBtn").onclick=()=>syncSimulationToAnalysis({force:true,reason:"手動同期"});$("splitFrame").addEventListener("load",()=>setTimeout(()=>syncSimulationToAnalysis({force:true,reason:"分析画面読込完了"}),180));$("splitMenuAutoBtn").onclick=toggleSplitMenuAutoHide;$("splitCloseBtn").onclick=()=>setSplitOpen(false);$("splitRefreshBtn").onclick=refreshSplit;$("splitExternalBtn").onclick=()=>showView("analytics");$("headerRealSyncBtn").onclick=syncRealDataNow;$("dashRefreshBtn").onclick=renderDashboard;$("calPrevBtn").onclick=()=>{state.calendarMonth.setMonth(state.calendarMonth.getMonth()-1);renderCalendar()};$("calNextBtn").onclick=()=>{state.calendarMonth.setMonth(state.calendarMonth.getMonth()+1);renderCalendar()};$("calTodayBtn").onclick=()=>{state.calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);renderCalendar()};$("raceSelector").onchange=()=>openRace($("raceSelector").value);$("openRaceBtn").onclick=()=>openRace($("raceIdDirect").value.trim());$("raceRecalcBtn").onclick=async()=>{const e=await getByIndex("entries","race_id",state.currentRaceId);recalcEntryScores(e);await putMany("entries",e);await openRace(state.currentRaceId)};$("raceSnapshotBtn").onclick=saveSnapshot;$("raceFavoriteBtn").onclick=toggleFavorite;$("replayRefreshBtn").onclick=renderReplayList;$("searchRunBtn").onclick=runSearch;$("searchResetBtn").onclick=resetSearch;$("searchSaveBtn").onclick=saveSearch;$("searchLoadBtn").onclick=loadSearch;$("searchCsvBtn").onclick=exportSearchCsv;$("pivotRunBtn").onclick=runPivot;$("simPlaceAll").onchange=()=>{if($("simPlaceAll").checked)document.querySelectorAll('#simPlaceOptions input[type="checkbox"]').forEach(x=>x.checked=true);updateSimPlaceSummary()};$("simPlaceSelectAllBtn").onclick=()=>{$("simPlaceAll").checked=true;document.querySelectorAll('#simPlaceOptions input[type="checkbox"]').forEach(x=>x.checked=true);updateSimPlaceSummary()};$("simPlaceClearBtn").onclick=()=>{$("simPlaceAll").checked=false;document.querySelectorAll('#simPlaceOptions input[type="checkbox"]').forEach(x=>x.checked=false);updateSimPlaceSummary()};$("simStart").onchange=()=>renderSimPlaceOptions(state.simSelectedPlaces);$("simEnd").onchange=()=>renderSimPlaceOptions(state.simSelectedPlaces);$("simType").onchange=()=>renderSimPlaceOptions(state.simSelectedPlaces);$("simDataMode").onchange=()=>updateSimDataModeUi();$("simPredictionMode").onchange=()=>applyPredictionModeToSim($("simPredictionMode").value);$("simBudgetMode").onchange=updateModeUi;$("simDailyRankBasis").onchange=updateModeUi;$("defaultPredictionMode").onchange=updateModeUi;$("defaultBudgetMode").onchange=updateModeUi;$("defaultDailyRankBasis").onchange=updateModeUi;$("simSyncBtn").onclick=syncBacktestPeriod;$("simStopSyncBtn").onclick=()=>{BACKTEST_SYNC.stop=true;$("simStopSyncBtn").textContent="停止処理中…";$("simStopSyncBtn").disabled=true;setSimSyncStatus("停止要求を受け付けました。現在の通信は最長タイムアウト後に終了し、安全に停止します")};$("simRunBtn").onclick=runSimulation;$("simCsvBtn").onclick=exportSimulationCsv;$("simSaveStrategyBtn").onclick=saveSimAsStrategy;$("simStrategy").onchange=()=>applyStrategyToSim($("simStrategy").value);$("analyticsRunBtn").onclick=()=>runAnalytics();$("analyticsRaceIdLookupBtn").onclick=lookupAnalyticsRaceIds;$("analyticsDiagnoseBtn").onclick=diagnoseAnalyticsUnknowns;$("newStrategyBtn").onclick=newStrategy;$("duplicateStrategyBtn").onclick=duplicateStrategy;$("deleteStrategyBtn").onclick=deleteStrategy;$("saveStrategyBtn").onclick=saveStrategy;$("applyStrategyBtn").onclick=()=>applyStrategyToSim();$("learningRunBtn").onclick=runLearning;$("learningCreateBtn").onclick=createRecommendedStrategy;$("liveApplyBtn").onclick=renderLivePanels;$("liveSaveBtn").onclick=saveLiveLayout;$("realSyncBtn").onclick=syncRealDataNow;$("backupSaveBtn").onclick=saveNamedBackup;$("backupOverwriteBtn").onclick=overwriteNamedBackup;$("backupRestoreBtn").onclick=restoreNamedBackup;$("backupExportBtn").onclick=exportNamedBackup;$("backupJsonOverwriteBtn").onclick=overwriteNamedBackupJson;$("backupImportBtn").onclick=()=>$("backupImportFile").click();$("backupDeleteBtn").onclick=deleteNamedBackup;$("backupRefreshBtn").onclick=()=>renderNamedBackups();$("backupSelect").onchange=renderSelectedBackupMeta;$("backupImportFile").onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{backupStatus("バックアップJSONを読込中…");await importNamedBackupFile(file)}catch(err){backupStatus("読込失敗: "+err.message,"bad")}e.target.value=""};$("exportBtn").onclick=exportDatabase;$("importBtn").onclick=()=>$("importFile").click();$("clearBtn").onclick=clearAllData;$("importFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;try{await importPayload(JSON.parse(await file.text()))}catch(err){alert("読込失敗: "+err.message)}e.target.value=""};$("pasteImportBtn").onclick=async()=>{try{await importPayload(JSON.parse($("jsonPaste").value))}catch(e){alert("JSONエラー: "+e.message)}};$("saveRaceEditBtn").onclick=saveRaceEditor;$("loadRaceEditBtn").onclick=loadRaceEditor;$("deleteRaceEditBtn").onclick=deleteRaceEditor;$("saveEntryEditBtn").onclick=saveEntryEditor;$("loadEntryEditBtn").onclick=loadEntryEditor;$("deleteEntryEditBtn").onclick=deleteEntryEditor;$("saveResultEditBtn").onclick=saveResultEditor;$("loadResultEditBtn").onclick=loadResultEditor;$("deleteResultEditBtn").onclick=async()=>{await deleteOne("results",$("edResultRaceId").value.trim());await refreshAll()};$("bridgeUrl").addEventListener("input",()=>{state.settings.bridgeUrl=$("bridgeUrl").value.trim();state.settings.bridgeMode="auto"});$("bridgeSaveBtn").onclick=async()=>{await getBridgeBase(true);state.settings.bridgeMode="auto";await putOne("settings",{key:"app",value:state.settings});bridgeLog("Bridge URL保存・自動判定待ち")};$("bridgePingBtn").onclick=bridgePing;$("bridgeListBtn").onclick=bridgeLoadList;$("bridgeRaceBtn").onclick=()=>bridgeLoadBundle(undefined,false,false,true);$("bridgeSyncDayBtn").onclick=bridgeSyncDay;$("settingsModeSaveBtn").onclick=saveAppSettings;$("settingsSaveBtn").onclick=saveAppSettings;$("ridGenerateBtn").onclick=()=>{const d=compactDate($("ridDate").value),t=$("ridType").value==="JRA"?"1":"2";if(!d)return alert("日付を選択");$("ridResult").value=d+t+String($("ridPlaceCode").value).padStart(2,"0")+String($("ridRaceNo").value).padStart(2,"0")}}
 async function init(){buildNavigation();wireTabs();wireEvents();$("simStart").value=isoToday().slice(0,8)+"01";$("simEnd").value=isoToday();$("bridgeDate").value=isoToday();$("ridDate").value=isoToday();await openDB();await loadAppSettings();await ensureDefaultStrategies();const removed=await purgeSampleData(),invalidRemoved=await removeInvalidRaceRecords(),nameFixed=await repairMalformedRaceNames();$("dbStatus").innerHTML='<span class="status-dot on"></span>IndexedDB接続済み'+(removed?`・サンプル${removed}R削除済み`:'・実データ専用')+(invalidRemoved?`・誤レース${invalidRemoved}R削除済み`:'')+(nameFixed?`・レース名${nameFixed}件修正済み`:'');await refreshAll();await loadStrategyEditor(state.currentStrategyId);$("liveCount").value=String(state.settings.liveCount||2);renderLivePanels();renderSystemInfo();setSplitOpen(localStorage.getItem("TheKeibaSplitOpen")==="1");applySplitMenuAutoHide();await renderSimPlaceOptions();try{const savedMode=localStorage.getItem("TheKeibaSimDataMode");if($("simDataMode")&&["sync","stored"].includes(savedMode))$("simDataMode").value=savedMode}catch(_){ }await updateSimDataModeUi();getProfitGraphChannel();setTimeout(()=>autoLoadRealRaceList(),400);setTimeout(()=>repairLatestRaceNamesFromBridge(),1800);if(localStorage.getItem("TheKeibaSplitOpen")==="1")setTimeout(()=>syncSimulationToAnalysis({reason:"起動時同期"}),700)}
 window.addEventListener("DOMContentLoaded",()=>init().catch(e=>{console.error(e);alert("初期化エラー: "+e.message)}));
 </script>
@@ -2844,7 +2869,7 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
    ============================================================ */
 (function(){
   "use strict";
-  const CONSOLE_DEFAULT="https://takuya-20f.pages.dev/";
+  const CONSOLE_DEFAULT="internal://rdb";
   const TABLES={
     races:{store:"races",label:"races レース",fields:["race_id","kind","date","year","venueCode","venueName","kai","day","raceNo","raceName","grade","surface","distance","direction","trackCond","weather","headcount","updatedAt"],types:{race_id:"TEXT PK",kind:"TEXT",date:"TEXT",year:"INTEGER",venueCode:"TEXT",venueName:"TEXT",kai:"INTEGER",day:"INTEGER",raceNo:"INTEGER",raceName:"TEXT",grade:"TEXT",surface:"TEXT",distance:"INTEGER",direction:"TEXT",trackCond:"TEXT",weather:"TEXT",headcount:"INTEGER",updatedAt:"TEXT"}},
     entries:{store:"entries",label:"entries 出走馬",fields:["id","race_id","horseNo","frame","horseId","horseName","sex","age","jockeyId","jockeyName","trainerId","trainerName","weightCarry","bodyWeight","oddsWin","popularity"],types:{id:"TEXT PK",race_id:"TEXT FK",horseNo:"INTEGER",frame:"INTEGER",horseId:"TEXT",horseName:"TEXT",sex:"TEXT",age:"INTEGER",jockeyId:"TEXT",jockeyName:"TEXT",trainerId:"TEXT",trainerName:"TEXT",weightCarry:"REAL",bodyWeight:"INTEGER",oddsWin:"REAL",popularity:"INTEGER"}},
@@ -3300,7 +3325,7 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
     if($("d1ApiUrl"))state.settings.d1ApiUrl=String($("d1ApiUrl").value||DBMS_DEFAULT_D1).trim().replace(/\/+$/,"");if($("d1ApiToken"))state.settings.d1ApiToken=String($("d1ApiToken").value||"").trim();
     if($("d1AutoSync"))state.settings.d1AutoSync=$("d1AutoSync").value!=="off";
     if($("d1BatchSize"))state.settings.d1BatchSize=batchSize();
-    if($("d1TimeoutSec"))state.settings.d1TimeoutSec=Math.max(5,Math.min(60,Number($("d1TimeoutSec").value||20)));if($("rdbConsoleUrl"))state.settings.rdbConsoleUrl=String($("rdbConsoleUrl").value||"https://takuya-20f.pages.dev/").trim();if($("recordConsoleLink"))$("recordConsoleLink").href=state.settings.rdbConsoleUrl;
+    if($("d1TimeoutSec"))state.settings.d1TimeoutSec=Math.max(5,Math.min(60,Number($("d1TimeoutSec").value||20)));if($("rdbConsoleUrl"))state.settings.rdbConsoleUrl=String($("rdbConsoleUrl").value||"internal://rdb").trim();if($("recordConsoleLink"))$("recordConsoleLink").href=state.settings.rdbConsoleUrl;
     await baseSaveSettings();await refreshStatus();if(autoEnabled())scheduleSync()
   };
 
@@ -3309,7 +3334,7 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
       `Version: ${APP_VERSION}`,
       `IndexedDB: ${DBMS_DB_NAME} v${state.db?.version||DBMS_DB_VERSION}`,
       `DBMS mode: ${state.settings.dbmsMode||"auto"}`,
-      `D1 API: ${d1Url()||"未設定"}`,`RDB console: ${state.settings.rdbConsoleUrl||"https://takuya-20f.pages.dev/"}`,
+      `D1 API: ${d1Url()||"未設定"}`,`RDB console: ${state.settings.rdbConsoleUrl||"internal://rdb"}`,
       `D1 auto sync: ${autoEnabled()?"ON":"OFF"}`,
       `UserAgent: ${navigator.userAgent}`,
       `Online: ${navigator.onLine}`,
@@ -3339,7 +3364,7 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
     state.settings.d1ApiUrl=state.settings.d1ApiUrl||DBMS_DEFAULT_D1;state.settings.d1ApiToken=state.settings.d1ApiToken||"";
     state.settings.d1AutoSync=state.settings.d1AutoSync!==false;
     state.settings.d1BatchSize=Number(state.settings.d1BatchSize||250);
-    state.settings.d1TimeoutSec=Number(state.settings.d1TimeoutSec||20);state.settings.rdbConsoleUrl=state.settings.rdbConsoleUrl||"https://takuya-20f.pages.dev/";
+    state.settings.d1TimeoutSec=Number(state.settings.d1TimeoutSec||20);state.settings.rdbConsoleUrl=state.settings.rdbConsoleUrl||"internal://rdb";
     applySettings(false);wireDbms();runtime.ready=true;await refreshStatus();
     const bootstrap=await metaGet("bootstrapVersion");
     if(!bootstrap?.value&&mode()!=="local")setTimeout(()=>queueAllLocal().catch(e=>addLog(`初回差分登録失敗: ${e.message}`,"error")),1800);
@@ -4714,7 +4739,7 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
 
 
 <script id="liveConfirmedResultGraphPatch">
-/* v2.0.0-r1 確定結果を同期中に暫定集計して資金曲線へ反映。同期開始時は保存済みOFFを自動復旧する。 */
+/* v1.2.11 確定結果を同期中に暫定集計して資金曲線へ反映 */
 (function(){
   "use strict";
   const KEY="TheKeibaLiveConfirmedGraphV1";
@@ -4735,13 +4760,6 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
     btn.textContent=LIVE.enabled?"📈 結果ライブ ON":"📉 結果ライブ OFF";
     btn.classList.toggle("active",LIVE.enabled);btn.setAttribute("aria-pressed",LIVE.enabled?"true":"false");
     if(!LIVE.enabled)setStatus("停止中","off");else if(!LIVE.busy)setStatus("待機中","on");
-  }
-  function enableLive(reason="リアルタイム同期"){
-    LIVE.enabled=true;
-    try{localStorage.setItem(KEY,"1")}catch(_){}
-    updateToggle();
-    if(reason)setStatus(`${reason}・準備中`,"busy");
-    return true
   }
   function filteredRaces(races,c){
     const debutRe=/(?:新馬|メイクデビュー|デビュー|初出走|能検)/i;
@@ -4800,18 +4818,14 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
     const prev=bridgeLoadBundle;
     bridgeLoadBundle=async function(...args){
       const ok=await prev(...args);
-      if(ok&&typeof BACKTEST_SYNC!=="undefined"&&BACKTEST_SYNC.running){
-        if(!LIVE.enabled)enableLive("同期中の結果ライブ");
-        scheduleLiveGraph("同期中の確定結果を反映",true)
-      }
+      if(ok&&LIVE.enabled&&typeof BACKTEST_SYNC!=="undefined"&&BACKTEST_SYNC.running)scheduleLiveGraph("同期中の確定結果を反映");
       return ok;
     };
   }
   if(typeof syncBacktestPeriod==="function"){
     const prev=syncBacktestPeriod;
     syncBacktestPeriod=async function(...args){
-      enableLive("同期開始");
-      await refreshLiveGraph("同期開始時点",true);
+      if(LIVE.enabled)await refreshLiveGraph("同期開始時点",true);
       const out=await prev(...args);
       if(LIVE.enabled)await refreshLiveGraph(BACKTEST_SYNC.stop?"同期停止時点":"同期完了",true);
       return out;
@@ -4821,18 +4835,9 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
     const prev=runSimulation;
     runSimulation=async function(...args){const out=await prev(...args);if(LIVE.enabled){LIVE.lastResultCount=Array.isArray(state.simResult)?state.simResult.length:LIVE.lastResultCount;setStatus(`確定集計 ${LIVE.lastResultCount}R`,"ok");const foot=byId("simLiveGraphFoot");if(foot)foot.textContent=typeof isSimStoredMode==="function"&&isSimStoredMode()?"同期なしバックテストの確定表示です。保存済みデータのみを使用し、通信や元データの上書きは行っていません。":"バックテスト確定表示です。次回の自動分割バッチ同期では、確定結果の増加に合わせて再びライブ更新します。"}return out};
   }
-  window.__THEKEIBA_LIVE_CONFIRMED_GRAPH__={
-    enable:async(reason="本体エミュLIVE",options={})=>{enableLive(reason);if(options.refresh===false)return true;return refreshLiveGraph(reason,true)},
-    refresh:(reason="外部更新",force=true)=>refreshLiveGraph(reason,force),
-    schedule:(reason="外部更新",force=true)=>scheduleLiveGraph(reason,force),
-    state:LIVE
-  };
   function wire(){
-    if(byId("fullEmuLiveSync")?.checked)enableLive("本体エミュLIVE待機");else updateToggle();
-    byId("simLiveGraphBtn")?.addEventListener("click",async()=>{
-      if(typeof BACKTEST_SYNC!=="undefined"&&BACKTEST_SYNC.running){enableLive("同期中の結果ライブ");await refreshLiveGraph("同期中の手動更新",true);return}
-      LIVE.enabled=!LIVE.enabled;try{localStorage.setItem(KEY,LIVE.enabled?"1":"0")}catch(_){}updateToggle();if(LIVE.enabled)await refreshLiveGraph("手動ライブ開始",true)
-    });
+    updateToggle();
+    byId("simLiveGraphBtn")?.addEventListener("click",async()=>{LIVE.enabled=!LIVE.enabled;try{localStorage.setItem(KEY,LIVE.enabled?"1":"0")}catch(_){}updateToggle();if(LIVE.enabled)await refreshLiveGraph("手動ライブ開始",true)});
     for(const id of ["simStart","simEnd","simType","simDataMode","simStrategy","simTicket","simDailyBudget","simUnit","simTopN","simMaxTickets","simMaxRace","simMinEv","simMinAi","simMinOdds","simMaxOdds","simPriority","simAgreement","simBudgetMode","simDailyRankBasis"]){byId(id)?.addEventListener("change",()=>{if(LIVE.enabled&&!BACKTEST_SYNC.running)scheduleLiveGraph("SIM条件変更",true)})}
     if(LIVE.enabled)setTimeout(()=>refreshLiveGraph("保存済み確定結果",true),1100);
   }
@@ -6034,844 +6039,74 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
 
 
 
-<script>
-/* v1.2.41 Full Site Live Emulator / fresh public core / JRA range guard / realtime SIM mirror */
+<script id="completeOneFileCanonicalEngine">
+/* v2.2.0 LINK-REPAIRED ONEFILE: canonical prediction engine captured before product-ledger overrides */
 (function(){
   "use strict";
-  const DEFAULT_URL="https://yamase-takiyoshi.github.io/takuya/";
-  const PUBLIC_CORE_MIN_VERSION="5.18.302",PUBLIC_CORE_REFRESH_KEY="_product_core";
-  const KEY_URL="TheKeibaFullEmulatorUrlV1",KEY_AUTO="TheKeibaFullEmulatorAutoV1",KEY_VIEW="TheKeibaFullEmulatorViewportV1";
-  const KEY_LIVE="TheKeibaFullEmulatorLiveSyncV1",CONFIRMED_LIVE_KEY="TheKeibaLiveConfirmedGraphV1";
-  const SHARED_THEME_KEY="TheKeibaSharedThemeV2",LEGACY_THEME_KEY="TheKeibaTheme",THEME_CHANNEL_NAME="TheKeibaThemeSyncV1";
-  const LIVE_MESSAGE="TheKeibaFullEmuSimLiveV1";
-  const byId=id=>document.getElementById(id);
-  const n=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
-  const clone=v=>{try{return structuredClone(v)}catch(_){try{return JSON.parse(JSON.stringify(v))}catch(__){return v}}};
-  let loadedUrl="",loading=false,bridgeInjected=false,liveHookInjected=false,runtimeCoreVersion=PUBLIC_CORE_MIN_VERSION;
-  let liveTimer=null,lastLiveSignature="",lastRowsSignature="",lastLivePacketAt=0,analysisTimer=null;
-  let themeChannel=null,profitChannelListenerInstalled=false;
-
-  function cleanUrl(raw){
-    const value=String(raw||"").trim()||DEFAULT_URL;
-    const u=new URL(value,location.href);
-    if(!/^https?:$/.test(u.protocol))throw new Error("http または https のURLだけ使用できます");
-    return u.href;
-  }
-  function sameOrigin(url){try{return new URL(url,location.href).origin===location.origin}catch(_){return false}}
-  function freshCoreUrl(url,reason="load"){
-    const u=new URL(url,location.href);
-    u.searchParams.set(PUBLIC_CORE_REFRESH_KEY,`${PUBLIC_CORE_MIN_VERSION}-${reason}-${Date.now()}`);
-    return u.href
-  }
-  function childVersionInfo(child){
-    let raw="";
-    try{raw=String(child?.APP_VERSION||child?.document?.title||"")}catch(_){}
-    const match=raw.match(/v?(\d+\.\d+\.\d+)(?:\s+([^|]+))?/i),number=match?.[1]||PUBLIC_CORE_MIN_VERSION;
-    const suffix=String(match?.[2]||"").replace(/^[-–—:\s]+|\s+$/g,"");
-    return{number,label:`v${number}${suffix?` ${suffix}`:""}`}
-  }
-  function syncChildVersion(child){
-    const info=childVersionInfo(child);runtimeCoreVersion=info.number;
-    setBadge("fullEmuVersionBadge",`公開版 ${info.label}`,"same");
-    const heading=byId("fullEmuHeading");if(heading)heading.textContent=`The競馬 EV分析 ${info.label} ライブ同期型`;
-    const option=byId("fullEmuEngineOption");if(option)option.textContent=`内蔵本体エミュ ${info.label}（正本）`;
-    return info
-  }
-  function normalizeTheme(v){return /^(?:light|white|ライト|ホワイト)$/i.test(String(v||""))?"light":"dark"}
-  function currentTheme(){
-    let v=document.documentElement.dataset.theme||"";
-    try{v=v||localStorage.getItem(SHARED_THEME_KEY)||localStorage.getItem(LEGACY_THEME_KEY)||""}catch(_){}
-    return normalizeTheme(v)
-  }
-  function setBadge(id,text,kind=""){
-    const el=byId(id);if(!el)return;el.textContent=text;
-    el.classList.toggle("same",kind==="same");el.classList.toggle("cross",kind==="cross");
-    el.classList.toggle("good",kind==="good");el.classList.toggle("bad",kind==="bad");
-  }
-  function setState(text,on=false){const el=byId("fullEmuStateBadge");if(!el)return;el.innerHTML=`<span class="status-dot ${on?"on":""}"></span>${text}`}
-  function status(text,kind=""){
-    const el=byId("fullEmuStatus");if(!el)return;el.textContent=String(text||"");
-    el.classList.toggle("ok",kind==="ok");el.classList.toggle("warn",kind==="warn");el.classList.toggle("bad",kind==="bad");
-  }
-  function persist(){
-    try{
-      localStorage.setItem(KEY_URL,byId("fullEmuUrl")?.value||DEFAULT_URL);
-      localStorage.setItem(KEY_AUTO,byId("fullEmuAuto")?.checked?"1":"0");
-      localStorage.setItem(KEY_VIEW,byId("fullEmuViewport")?.value||"full");
-      localStorage.setItem(KEY_LIVE,byId("fullEmuLiveSync")?.checked?"1":"0");
-    }catch(_){}
-  }
-  function liveEnabled(){return byId("fullEmuLiveSync")?.checked!==false}
-  function forceParentConfirmedLive(reason="本体エミュLIVE"){
-    try{localStorage.setItem(CONFIRMED_LIVE_KEY,"1")}catch(_){}
-    try{
-      const ready=typeof state!=="undefined"&&!!state?.db;
-      const out=window.__THEKEIBA_LIVE_CONFIRMED_GRAPH__?.enable?.(reason,{refresh:ready});
-      Promise.resolve(out).catch(()=>{})
-    }catch(_){}
-  }
-  function forceChildConfirmedLive(child,reason="親SIMへリアルタイム転送"){
-    if(!child)return false;
-    let touched=false;
-    try{child.localStorage.setItem(CONFIRMED_LIVE_KEY,"1");touched=true}catch(_){}
-    try{
-      const api=child.__THEKEIBA_LIVE_CONFIRMED_GRAPH__;
-      if(api?.enable){const out=api.enable(reason);Promise.resolve(out).catch(()=>{});touched=true}
-    }catch(_){}
-    try{
-      const btn=child.document?.getElementById("simLiveGraphBtn"),status=child.document?.getElementById("simLiveGraphStatus");
-      const buttonText=String(btn?.textContent||""),statusText=String(status?.textContent||"");
-      if(btn&&(/OFF/i.test(buttonText)||(!/ON/i.test(buttonText)&&/停止中/.test(statusText)))){btn.click();touched=true}
-    }catch(_){}
-    return touched
-  }
-  function applyViewport(){
-    const shell=byId("fullEmuFrameShell"),mode=byId("fullEmuViewport")?.value||"full";if(!shell)return;
-    shell.classList.toggle("tablet",mode==="tablet");shell.classList.toggle("mobile",mode==="mobile");persist();
-  }
-  function updateOrigin(url){
-    const same=sameOrigin(url);
-    setBadge("fullEmuOriginBadge",same?"同一オリジン：DB・保存値共有":"別オリジン：表示のみ共有",same?"same":"cross");
-    return same;
-  }
-
-  function themeChannelInstance(){
-    if(themeChannel)return themeChannel;
-    try{themeChannel=new BroadcastChannel(THEME_CHANNEL_NAME)}catch(_){themeChannel=null}
-    return themeChannel
-  }
-  function themePalette(theme){
-    theme=normalizeTheme(theme);
-    return theme==="light"?{
-      bg:"#eef3f8",bg2:"#f8fbfd",soft:"#e7eef6",panel:"#ffffff",panel2:"#e8f0f7",panel3:"#dce8f3",card:"#edf4f9",line:"#cbd8e5",text:"#152235",muted:"#5f7188",chart:"#f8fbfd",chartText:"#20324a"
-    }:{
-      bg:"#07111f",bg2:"#0b1324",soft:"#0a1626",panel:"#0f1d2e",panel2:"#17283d",panel3:"#20344d",card:"#1b2f4d",line:"#2a405a",text:"#f5f7fb",muted:"#9fb0c5",chart:"#08111f",chartText:"#dbeafe"
-    }
-  }
-  function applyThemeDirectlyToFrame(frame,theme){
-    theme=normalizeTheme(theme);if(!frame)return false;
-    try{
-      const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc)return false;
-      const root=doc.documentElement,body=doc.body,p=themePalette(theme);
-      root.dataset.theme=theme;root.setAttribute("data-theme",theme);root.style.colorScheme=theme;
-      root.classList.toggle("light-mode",theme==="light");root.classList.toggle("dark-mode",theme==="dark");
-      if(body){body.dataset.theme=theme;body.setAttribute("data-theme",theme);body.classList.toggle("light-mode",theme==="light");body.classList.toggle("dark-mode",theme==="dark")}
-      for(const [name,value] of Object.entries({
-        "--bg":p.bg,"--bg2":p.bg2,"--bg-soft":p.soft,"--panel":p.panel,"--panel2":p.panel2,"--panel3":p.panel3,
-        "--card":p.card,"--line":p.line,"--text":p.text,"--muted":p.muted,"--chart-bg":p.chart,"--chart-text":p.chartText
-      }))root.style.setProperty(name,value);
-      let style=doc.getElementById("theKeibaParentThemeFallbackV2");
-      if(!style){style=doc.createElement("style");style.id="theKeibaParentThemeFallbackV2";(doc.head||root).appendChild(style)}
-      style.textContent=`
-        html,body{color-scheme:${theme}!important;background:var(--bg)!important;color:var(--text)!important}
-        body,.app,.app-shell,.main,.view{color:var(--text)}
-        .app-header,.sidebar,.mobile-nav,.card,.panel,.stat,.strategy-card,.modal-card,.full-emu-frame-shell{border-color:var(--line)}
-        input,select,textarea{background:var(--bg)!important;color:var(--text)!important;border-color:var(--line)!important}
-        table,th,td{border-color:var(--line)!important} th{background:var(--panel2)!important;color:var(--text)!important}
-      `;
-      try{win.localStorage.setItem(SHARED_THEME_KEY,theme);win.localStorage.setItem(LEGACY_THEME_KEY,theme)}catch(_){}
-      try{if(win.state?.settings)win.state.settings.theme=theme}catch(_){}
-      try{const meta=doc.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==="light"?p.bg:"#07111f"}catch(_){}
-      try{const sel=doc.getElementById("themeSelect");if(sel)sel.value=theme}catch(_){}
-      try{const btn=doc.getElementById("themeBtn");if(btn)btn.textContent=theme==="dark"?"🌙":"☀️"}catch(_){}
-      try{if(typeof win.__keibaApplySharedTheme==="function")win.__keibaApplySharedTheme(theme)}catch(_){}
-      return true
-    }catch(_){return false}
-  }
-  function syncThemeToFrames(theme=currentTheme(),reason="theme"){
-    theme=normalizeTheme(theme);
-    try{localStorage.setItem(SHARED_THEME_KEY,theme);localStorage.setItem(LEGACY_THEME_KEY,theme)}catch(_){}
-    const payload={type:"TheKeibaThemeSyncV1",theme,reason,at:new Date().toISOString()};
-    for(const id of ["fullEmuFrame","splitFrame"]){
-      const frame=byId(id);if(!frame)continue;
-      try{frame.style.backgroundColor=themePalette(theme).bg}catch(_){}
-      try{frame.contentWindow?.postMessage(payload,"*")}catch(_){}
-      try{applyThemeDirectlyToFrame(frame,theme)}catch(_){}
-      try{
-        const direct=frame.contentWindow?.__keibaApplySharedTheme;
-        if(typeof direct==="function")direct(theme)
-      }catch(_){}
-    }
-    try{themeChannelInstance()?.postMessage(payload)}catch(_){}
-    setBadge("fullEmuThemeBadge",theme==="light"?"本体エミュ自体：ライト":"本体エミュ自体：ダーク","same");
-  }
-
-  function childHookBootstrap(){
-    "use strict";
-    if(window.__THEKEIBA_PARENT_LIVE_HOOK_V1__){
-      try{window.__THEKEIBA_PARENT_LIVE_HOOK_V1__.emit("reconnect",true)}catch(_){}
-      return
-    }
-    const MESSAGE="TheKeibaFullEmuSimLiveV1";
-    const clone=v=>{try{return structuredClone(v)}catch(_){try{return JSON.parse(JSON.stringify(v))}catch(__){return v}}};
-    const num=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
-    const normalizeTheme=v=>/^(?:light|white|ライト|ホワイト)$/i.test(String(v||""))?"light":"dark";
-    let lastSignature="",timer=null;
-
-    function rowsNow(){
-      try{if(typeof state!=="undefined"&&Array.isArray(state.simResult)&&state.simResult.length)return state.simResult}catch(_){}
-      try{if(Array.isArray(window.simResult)&&window.simResult.length)return window.simResult}catch(_){}
-      try{if(Array.isArray(window.__THEKEIBA_PERIOD_SIM_ROWS__)&&window.__THEKEIBA_PERIOD_SIM_ROWS__.length)return window.__THEKEIBA_PERIOD_SIM_ROWS__}catch(_){}
-      try{
-        const raw=localStorage.getItem("keibaProfitGraphBridge_v1");
-        if(raw){const box=JSON.parse(raw),rows=box?.data?.収支明細;if(Array.isArray(rows))return rows}
-      }catch(_){}
-      try{if(typeof state!=="undefined"&&Array.isArray(state.simResult))return state.simResult}catch(_){}
-      return[]
-    }
-    function configNow(){
-      try{if(typeof readSimConfig==="function")return readSimConfig()}catch(_){}
-      return{}
-    }
-    function summaryNow(rows){
-      let totalBet=0,totalPay=0,candidateHits=0,purchaseHits=0,missHits=0,boughtCount=0;
-      for(const row of rows||[]){
-        const bet=num(row?.invest??row?.bet??row?.投資),pay=num(row?.pay??row?.payout??row?.払戻);
-        totalBet+=bet;totalPay+=pay;if(bet>0)boughtCount++;
-        if(row?.candidateHit||row?.候補的中)candidateHits++;
-        if(row?.purchaseHit||row?.購入的中)purchaseHits++;
-        if(row?.miss)missHits++
-      }
-      return{raceCount:(rows||[]).length,boughtCount,candidateHits,purchaseHits,missHits,totalBet,totalPay,profit:totalPay-totalBet,roi:totalBet?totalPay/totalBet*100:0}
-    }
-    function runningNow(){
-      try{if(typeof BACKTEST_SYNC!=="undefined"&&BACKTEST_SYNC?.running)return true}catch(_){}
-      const stop=document.getElementById("simStopSyncBtn"),run=document.getElementById("simRunBtn"),sync=document.getElementById("simSyncBtn");
-      return !!((stop&&!stop.disabled)||(run&&run.disabled)||(sync&&sync.disabled))
-    }
-    function progressNow(){
-      const text=id=>String(document.getElementById(id)?.textContent||"").trim();
-      return{
-        percent:text("simSyncProgressPercent"),days:text("simSyncDays"),race:text("simSyncRace"),
-        current:text("simSyncCurrentTask")||text("simSyncStatus")||"処理状況を確認中",
-        status:text("simSyncLiveStatus")
-      }
-    }
-    function signature(rows,progress,running){
-      let bet=0,pay=0,last="";
-      for(const row of rows||[]){bet+=num(row?.invest??row?.bet??row?.投資);pay+=num(row?.pay??row?.payout??row?.払戻)}
-      const tail=(rows||[]).at?.(-1)||(rows||[])[(rows||[]).length-1]||{};
-      const race=tail.race||tail;
-      last=[race?.race_id||tail?.race_id||"",race?.date||tail?.date||"",race?.placeName||tail?.place||tail?.場||"",race?.raceNo||tail?.raceNo||tail?.R||"",num(tail?.profit??tail?.収支)].join(":");
-      return[(rows||[]).length,Math.round(bet),Math.round(pay),last,progress?.percent||"",progress?.current||"",running?1:0].join("|")
-    }
-    function applyTheme(theme){
-      theme=normalizeTheme(theme);
-      const root=document.documentElement,body=document.body;
-      const p=theme==="light"?{
-        bg:"#eef3f8",bg2:"#f8fbfd",soft:"#e7eef6",panel:"#ffffff",panel2:"#e8f0f7",panel3:"#dce8f3",card:"#edf4f9",line:"#cbd8e5",text:"#152235",muted:"#5f7188",chart:"#f8fbfd",chartText:"#20324a"
-      }:{
-        bg:"#07111f",bg2:"#0b1324",soft:"#0a1626",panel:"#0f1d2e",panel2:"#17283d",panel3:"#20344d",card:"#1b2f4d",line:"#2a405a",text:"#f5f7fb",muted:"#9fb0c5",chart:"#08111f",chartText:"#dbeafe"
-      };
-      root.dataset.theme=theme;root.setAttribute("data-theme",theme);root.style.colorScheme=theme;
-      root.classList.toggle("light-mode",theme==="light");root.classList.toggle("dark-mode",theme==="dark");
-      if(body){body.dataset.theme=theme;body.setAttribute("data-theme",theme);body.classList.toggle("light-mode",theme==="light");body.classList.toggle("dark-mode",theme==="dark")}
-      for(const [name,value] of Object.entries({
-        "--bg":p.bg,"--bg2":p.bg2,"--bg-soft":p.soft,"--panel":p.panel,"--panel2":p.panel2,"--panel3":p.panel3,
-        "--card":p.card,"--line":p.line,"--text":p.text,"--muted":p.muted,"--chart-bg":p.chart,"--chart-text":p.chartText
-      }))root.style.setProperty(name,value);
-      let style=document.getElementById("theKeibaParentThemeFallbackV2");
-      if(!style){style=document.createElement("style");style.id="theKeibaParentThemeFallbackV2";(document.head||root).appendChild(style)}
-      style.textContent=`
-        html,body{color-scheme:${theme}!important;background:var(--bg)!important;color:var(--text)!important}
-        body,.app,.app-shell,.main,.view{color:var(--text)}
-        .app-header,.sidebar,.mobile-nav,.card,.panel,.stat,.strategy-card,.modal-card{border-color:var(--line)}
-        input,select,textarea{background:var(--bg)!important;color:var(--text)!important;border-color:var(--line)!important}
-        table,th,td{border-color:var(--line)!important} th{background:var(--panel2)!important;color:var(--text)!important}
-      `;
-      try{localStorage.setItem("TheKeibaSharedThemeV2",theme);localStorage.setItem("TheKeibaTheme",theme)}catch(_){}
-      try{
-        if(typeof state!=="undefined"&&state?.settings)state.settings.theme=theme;
-        if(typeof applySettings==="function")applySettings(false)
-      }catch(_){}
-      try{const sel=document.getElementById("themeSelect");if(sel)sel.value=theme}catch(_){}
-      try{const btn=document.getElementById("themeBtn");if(btn)btn.textContent=theme==="dark"?"🌙":"☀️"}catch(_){}
-      const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==="light"?p.bg:"#07111f";
-      return theme
-    }
-    function emit(reason="poll",force=false){
-      const rows=rowsNow(),progress=progressNow(),running=runningNow(),sig=signature(rows,progress,running);
-      if(!force&&sig===lastSignature)return false;lastSignature=sig;
-      const packet={type:MESSAGE,version:1,reason,running,signature:sig,rows:clone(rows),summary:summaryNow(rows),config:clone(configNow()),progress,source:location.href,title:document.title,at:new Date().toISOString()};
-      try{
-        const direct=window.parent&&window.parent!==window&&window.parent.__THEKEIBA_ACCEPT_FULL_EMU_LIVE_V1__;
-        if(typeof direct==="function")direct(clone(packet))
-      }catch(_){}
-      try{window.parent?.postMessage(packet,"*")}catch(_){}
-      try{window.opener&&!window.opener.closed&&window.opener.postMessage(packet,"*")}catch(_){}
-      return true
-    }
-    function wrap(name){
-      try{
-        const fn=window[name];if(typeof fn!=="function"||fn.__theKeibaLiveWrapped)return;
-        const wrapped=function(){const out=fn.apply(this,arguments);Promise.resolve(out).finally(()=>setTimeout(()=>emit(name,true),0));return out};
-        wrapped.__theKeibaLiveWrapped=true;window[name]=wrapped
-      }catch(_){}
-    }
-    window.addEventListener("message",ev=>{
-      const d=ev?.data;if(!d||typeof d!=="object")return;
-      if(d.type==="TheKeibaThemeSyncV1")applyTheme(d.theme);
-      if(d.type==="TheKeibaFullEmuRequestLiveV1")emit("parent-request",true)
-    });
-    window.__keibaApplySharedTheme=applyTheme;
-    window.__THEKEIBA_PARENT_LIVE_HOOK_V1__={emit,applyTheme,rowsNow,summaryNow,version:2};
-    wrap("renderSimulation");wrap("runSimulation");wrap("runSimulationCore");wrap("syncSimulationToAnalysis");
-    wrap("bridgeLoadBundle");wrap("refreshLiveGraph");wrap("syncBacktestPeriod");
-    try{
-      const themeChannel=new BroadcastChannel("TheKeibaThemeSyncV1");
-      themeChannel.addEventListener("message",ev=>{const d=ev?.data;if(d?.type==="TheKeibaThemeSyncV1")applyTheme(d.theme)});
-      window.addEventListener("pagehide",()=>{try{themeChannel.close()}catch(_){}},{once:true})
-    }catch(_){}
-    window.addEventListener("storage",ev=>{if(ev.key==="TheKeibaSharedThemeV2"||ev.key==="TheKeibaTheme")applyTheme(ev.newValue)});
-    const themeObserver=new MutationObserver(()=>{
-      let expected="";try{expected=localStorage.getItem("TheKeibaSharedThemeV2")||localStorage.getItem("TheKeibaTheme")||""}catch(_){}
-      expected=normalizeTheme(expected);if(normalizeTheme(document.documentElement.dataset.theme)!==expected)applyTheme(expected)
-    });
-    themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:["data-theme","class"]});
-    timer=setInterval(()=>emit("interval",false),650);
-    window.addEventListener("pagehide",()=>{try{clearInterval(timer);themeObserver.disconnect()}catch(_){}},{once:true});
-    try{applyTheme(localStorage.getItem("TheKeibaSharedThemeV2")||localStorage.getItem("TheKeibaTheme")||document.documentElement.dataset.theme)}catch(_){}
-    setTimeout(()=>emit("hook-ready",true),80)
-  }
-
-  function fullEmuBridgeDescriptor(raw){
-    const source=String(raw?.url||raw||"").trim();
-    let outer=null,target=source;
-    try{
-      outer=new URL(source,location.href);
-      const inner=outer.searchParams.get("url");
-      if(inner)target=inner
-    }catch(_){}
-    let targetUrl=null;
-    try{targetUrl=new URL(target,location.href)}catch(_){}
-    const host=String(targetUrl?.hostname||"").toLowerCase(),path=String(targetUrl?.pathname||"");
-    const queryRace=targetUrl?.searchParams?.get("race_id")||targetUrl?.searchParams?.get("raceId")||"";
-    const pathRace=path.match(/\/race\/((?:19|20)\d{10,12})(?:\/|$)/)?.[1]||"";
-    const raceId=String(queryRace||pathRace||"").replace(/\D/g,"").slice(0,14);
-    let kind=/^(?:nar|nar\.sp)\.netkeiba\.com$/i.test(host)?"NAR":/^(?:race|race\.sp|db|db\.sp)\.netkeiba\.com$/i.test(host)?"JRA":"";
-    if(raceId&&typeof raceKindFromId==="function")try{
-      const inferred=raceKindFromId(raceId);
-      if(!kind||/^(?:db|db\.sp)\.netkeiba\.com$/i.test(host))kind=inferred
-    }catch(_){}
-    let type="";
-    if(/(?:^|\/)odds(?:\/|$)|odds\/index\.html/i.test(path))type="odds";
-    else if(/result|race_result|db\.netkeiba|db\.sp\.netkeiba/i.test(path+" "+host))type="result";
-    else if(/shutuba|entry/i.test(path))type="shutuba";
-    const isList=/race[_-]?list|TodayRaceInfo\/RaceList/i.test(path);
-    return{source,outer,target,targetUrl,host,path,raceId,kind,type,isList}
-  }
-  function fullEmuBridgeTextOk(desc,text){
-    const html=typeof unwrapBridgeHtml==="function"?unwrapBridgeHtml(text):String(text||"");
-    if(!html||html.length<40)return false;
-    if(desc.type&&typeof bridgePageLooksUseful==="function")return bridgePageLooksUseful(desc.type,html);
-    return !/(?:upstream returned HTTP 400|race_id\/type or url required|access denied|forbidden)/i.test(html)
-  }
-  async function fullEmuModernBridgeRequest(raw,options={}){
-    const desc=fullEmuBridgeDescriptor(raw),timeout=Math.max(3000,Number(options?.timeout||22000)),errors=[];
-    const workerReady=!!String(document.getElementById("bridgeUrl")?.value||state?.settings?.bridgeUrl||"").trim();
-    if(desc.raceId&&desc.type&&desc.kind&&workerReady&&typeof bridgeLegacyType==="function"){
-      try{
-        const text=await bridgeLegacyType(desc.type,desc.raceId,desc.kind,{timeout});
-        if(fullEmuBridgeTextOk(desc,text))return{status:200,text:String(text||""),error:"",route:`typed:${desc.kind}:${desc.type}`};
-        errors.push(`type/race_id ${desc.type} 内容不正`)
-      }catch(e){errors.push(`type/race_id ${e.message}`)}
-    }
-    let target=desc.target;
-    try{
-      const u=new URL(target,location.href);
-      if(desc.kind==="NAR"&&desc.isList&&u.hostname==="nar.netkeiba.com"){
-        u.hostname="nar.sp.netkeiba.com";target=u.href
-      }
-    }catch(_){}
-    try{
-      let text="";
-      if(typeof residentialBridgeText==="function"&&hasResidentialBridge())text=await residentialBridgeText(target,{timeout});
-      else if(typeof bridgeLegacyUrl==="function")text=await bridgeLegacyUrl(target,{timeout});
-      else throw new Error("親Bridge取得関数がありません");
-      if(fullEmuBridgeTextOk({...desc,target},text)||(!desc.type&&String(text||"").length>40))return{status:200,text:String(text||""),error:"",route:"direct-url"};
-      errors.push("URL取得 内容不正")
-    }catch(e){errors.push(`URL取得 ${e.message}`)}
-    return{status:502,text:JSON.stringify({ok:false,error:errors.join(" / "),target:desc.target}),error:errors.join(" / ")||"Bridge取得失敗",route:"failed"}
-  }
-  function installChildFetchUpgrade(child){
-    if(!child||child.__THEKEIBA_FETCH_TYPED_UPGRADE_V140__)return;
-    const original=typeof child.fetch==="function"?child.fetch.bind(child):null;if(!original)return;
-    child.fetch=async function(input,init){
-      let requestUrl="";
-      try{requestUrl=typeof input==="string"?input:(input?.url||String(input||""))}catch(_){}
-      let outer=null,inner="";
-      try{outer=new URL(requestUrl,child.location.href);inner=outer.searchParams.get("url")||""}catch(_){}
-      if(inner&&/(?:netkeiba\.com|keiba\.go\.jp)/i.test(inner)){
-        const result=await fullEmuModernBridgeRequest(inner,{timeout:22000});
-        const ResponseCtor=child.Response||Response;
-        return new ResponseCtor(result.text,{status:result.status||200,statusText:result.status>=400?"Bridge Error":"OK",headers:{"content-type":/^\s*[\[{]/.test(result.text)?"application/json;charset=utf-8":"text/html;charset=utf-8","x-thekeiba-bridge-route":result.route||"parent"}})
-      }
-      return original(input,init)
-    };
-    child.__THEKEIBA_FETCH_TYPED_UPGRADE_V140__=true
-  }
-
-  // v1.2.41: v5.18.301以前のJRA一覧経路と、空HTMLを「開催なし」と誤認する判定を親側で補強する。
-  // レースが0件のHTMLは到達成功として扱わず、既存の開催回プローブへ確実にフォールバックさせる。
-  function installJraRangeGuard(child){
-    if(!child)return false;
-    if(child.__THEKEIBA_JRA_RANGE_GUARD_V200_R2__)return true;
-    let installed=false;
-    try{
-      const originalUrls=child.jraRaceListUrls;
-      if(typeof originalUrls==="function"&&!originalUrls.__theKeibaProductFreshSp){
-        const freshUrls=function(date){
-          const compact=String(date||"").replace(/\D/g,"").slice(0,8);
-          const sp=compact?`https://race.sp.netkeiba.com/?pid=race_list&kaisai_date=${compact}`:"";
-          let existing=[];try{existing=originalUrls.apply(this,arguments)||[]}catch(_){}
-          return [...new Set([sp,...(Array.isArray(existing)?existing:[])].filter(Boolean))]
-        };
-        freshUrls.__theKeibaProductFreshSp=true;freshUrls.__previous=originalUrls;child.jraRaceListUrls=freshUrls;installed=true
-      }
-    }catch(e){console.warn("JRA SP一覧補強",e)}
-    try{
-      const originalFetch=child.fetchFirstUsefulJraListHtml;
-      if(typeof originalFetch==="function"&&!originalFetch.__theKeibaProductEmptyGuard){
-        const guardedFetch=async function(){
-          const got=await originalFetch.apply(this,arguments),races=Array.isArray(got?.races)?got.races:[];
-          if(races.length)return got;
-          // HTMLシェル・遮断ページ・解析失敗を「開催なし」の証拠にしない。
-          return{...(got||{}),html:"",races:[],productEmptyReason:"JRA一覧0件のため開催回探索へフォールバック"}
-        };
-        guardedFetch.__theKeibaProductEmptyGuard=true;guardedFetch.__previous=originalFetch;child.fetchFirstUsefulJraListHtml=guardedFetch;installed=true
-      }
-    }catch(e){console.warn("JRA空一覧判定補強",e)}
-    child.__THEKEIBA_JRA_RANGE_GUARD_V200_R2__=installed;
-    return installed
-  }
-
-  function installBridgeAdapter(){
-    const frame=byId("fullEmuFrame");
-    if(!frame||!loadedUrl||!sameOrigin(loadedUrl)){setBadge("fullEmuBridgeBadge","Bridge：別オリジンのため独立","cross");return false}
-    try{
-      const child=frame.contentWindow;if(!child)throw new Error("本体画面へ接続できません");
-      const direct=typeof window.__narBridgeDirect==="function"?window.__narBridgeDirect:null;
-      const fetcher=typeof window.__narBridgeFetch==="function"?window.__narBridgeFetch:direct;
-      const workerConfigured=!!String(document.getElementById("bridgeUrl")?.value||state?.settings?.bridgeUrl||"").trim();
-      const upgraded=(url,options={})=>fullEmuModernBridgeRequest(url,options);
-      child.__narBridgeDirect=upgraded;child.__narBridgeFetch=upgraded;child.__narBridgeHasDirect=true;
-      child.__narBridgeVersion=`${window.__narBridgeVersion||"parent"}+typed-v1.2.40`;
-      installChildFetchUpgrade(child);
-      if(window.__NAR_BRIDGE_READY__||direct||workerConfigured){
-        child.__NAR_BRIDGE_READY__=true;
-        child.document?.documentElement?.setAttribute("data-nar-bridge-ready",String(window.__narBridgeVersion||"parent-adapter"))
-      }
-      try{child.__theKeibaBridgeHandshake?.()}catch(_){}
-      try{child.dispatchEvent(new Event("online"));child.dispatchEvent(new Event("focus"))}catch(_){}
-      bridgeInjected=!!(direct||fetcher||workerConfigured);
-      setBadge("fullEmuBridgeBadge",bridgeInjected?"Bridge：type/race_id優先・旧url自動変換":"Bridge：親画面で未接続",bridgeInjected?"same":"cross");
-      return bridgeInjected
-    }catch(e){
-      bridgeInjected=false;setBadge("fullEmuBridgeBadge","Bridge接続失敗","cross");
-      status(`本体画面は読み込めましたが、Bridgeアダプタを接続できませんでした。\n${e.message}`,"warn");return false
-    }
-  }
-
-  function installLiveHook(){
-    const frame=byId("fullEmuFrame");
-    if(!frame||!loadedUrl||!sameOrigin(loadedUrl)){
-      liveHookInjected=false;setBadge("fullEmuLiveBadge","LIVE：同一オリジンが必要","cross");return false
-    }
-    try{
-      const child=frame.contentWindow,doc=frame.contentDocument;if(!child||!doc)throw new Error("本体フレームへ接続できません");
-      forceChildConfirmedLive(child,"本体エミュLIVE接続");
-      if(child.__THEKEIBA_PARENT_LIVE_HOOK_V1__){
-        liveHookInjected=true;
-        try{child.__THEKEIBA_PARENT_LIVE_HOOK_V1__.applyTheme(currentTheme())}catch(_){}
-        try{child.__THEKEIBA_PARENT_LIVE_HOOK_V1__.emit("reconnect",true)}catch(_){}
-      }else{
-        const script=doc.createElement("script");
-        script.id="theKeibaParentLiveHookV1";
-        script.textContent=`(${childHookBootstrap.toString()})();`;
-        (doc.head||doc.documentElement).appendChild(script);
-        script.remove();
-        liveHookInjected=!!child.__THEKEIBA_PARENT_LIVE_HOOK_V1__
-      }
-      setBadge("fullEmuLiveBadge",liveHookInjected?(liveEnabled()?"LIVE：SIMへ自動転送":"LIVE：転送OFF"):"LIVE：接続待ち",liveHookInjected?"same":"cross");
-      syncThemeToFrames(currentTheme(),"hook-installed");
-      ensureMonitor();
-      return liveHookInjected
-    }catch(e){
-      liveHookInjected=false;setBadge("fullEmuLiveBadge","LIVE接続失敗","cross");
-      status(`本体画面は動作しますが、SIMリアルタイム転送を接続できませんでした。\n${e.message}`,"warn");return false
-    }
-  }
-
-  function frameInfo(){
-    const frame=byId("fullEmuFrame");if(!frame)return"";
-    try{return frame.contentDocument?.title||"The競馬 EV分析"}catch(_){return"The競馬 EV分析"}
-  }
-  function runtimeStatus(){
-    const frame=byId("fullEmuFrame"),configured=loadedUrl||byId("fullEmuUrl")?.value||DEFAULT_URL,same=sameOrigin(configured);let child=null,apiReady=false,title=`The競馬 EV分析 v${runtimeCoreVersion}`;
-    try{child=frame?.contentWindow;title=frame?.contentDocument?.title||title;runtimeCoreVersion=childVersionInfo(child).number;apiReady=!!(child&&typeof child.buildSimulationCandidate==="function"&&typeof child.readSimConfig==="function"&&typeof child.allocateSequentialCandidates==="function"&&typeof child.allocateDailyRankCandidates==="function")}catch(_){}
-    return{ready:!!loadedUrl&&!loading&&same&&apiReady,sameOrigin:same,apiReady,bridgeReady:bridgeInjected,title,url:configured,version:runtimeCoreVersion,error:!same?"本体エミュと同一オリジンで公開してください":apiReady?"":"本体エミュ予想APIを待っています"}
-  }
-  function delay(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
-  async function ensureReady({forceReload=false,timeout=30000}={}){
-    let url="";try{url=cleanUrl(byId("fullEmuUrl")?.value||DEFAULT_URL)}catch(e){throw e}
-    if(!sameOrigin(url))throw new Error("内蔵本体エミュは同一オリジン配置が必要です。公開先と本体サイトURLのドメインを揃えてください");
-    if(forceReload){if(loadedUrl)reload();else load(true)}else if(!loadedUrl)load(false);
-    const started=Date.now();let last=runtimeStatus();
-    while(Date.now()-started<timeout){
-      last=runtimeStatus();
-      if(last.ready){installBridgeAdapter();installLiveHook();setState("予想API接続済み",true);return runtimeStatus()}
-      await delay(120)
-    }
-    throw new Error(last.error||"内蔵本体エミュの起動がタイムアウトしました")
-  }
-  function mergeCanonicalConfig(canonical={},parent={}){
-    const transport={start:parent.start,end:parent.end,type:parent.type,places:Array.isArray(parent.places)?clone(parent.places):[],dataMode:parent.dataMode};
-    const out={...clone(canonical),...Object.fromEntries(Object.entries(transport).filter(([,v])=>v!==undefined)),canonicalEngine:"full-site-emulator",settingsAuthority:true,emulatorSourceVersion:runtimeCoreVersion};
-    out.unit=Math.max(100,n(out.unit??out.pointAmount??parent.unit,100));out.dailyBudget=Math.max(0,n(out.dailyBudget??out.dailyLimit??parent.dailyBudget,2000));out.maxRaces=Math.max(0,n(out.maxRaces??out.maxRace??parent.maxRaces,6));out.maxTickets=Math.max(0,n(out.maxTickets??parent.maxTickets,6));out.topN=Math.max(1,n(out.topN??parent.topN,3));out.ticketType=String(out.ticketType||parent.ticketType||"all");
+  const byId=id=>document.getElementById(id),clone=v=>{try{return structuredClone(v)}catch(_){try{return JSON.parse(JSON.stringify(v))}catch(__){return v}}};
+  const core={
+    readConfig:typeof readSimConfig==="function"?readSimConfig:null,
+    buildCandidate:typeof buildSimulationCandidate==="function"?buildSimulationCandidate:null,
+    allocateSequential:typeof allocateSequentialCandidates==="function"?allocateSequentialCandidates:null,
+    allocateDailyRank:typeof allocateDailyRankCandidates==="function"?allocateDailyRankCandidates:null,
+    computeRows:typeof computeSimulationRows==="function"?computeSimulationRows:null
+  };
+  let liveEnabled=true,ready=false,lastError="";
+  function num(v,d=0){return Number.isFinite(Number(v))?Number(v):d}
+  function setBadge(id,text,kind=""){const el=byId(id);if(!el)return;el.textContent=text;el.classList.toggle("same",kind==="same");el.classList.toggle("cross",kind==="cross");el.classList.toggle("good",kind==="good");el.classList.toggle("bad",kind==="bad")}
+  function setState(text,on=true){const el=byId("fullEmuStateBadge");if(el)el.innerHTML=`<span class="status-dot ${on?"on":""}"></span>${text}`}
+  function setStatus(text,kind=""){const el=byId("fullEmuStatus");if(!el)return;el.textContent=String(text||"");el.classList.toggle("ok",kind==="ok");el.classList.toggle("warn",kind==="warn");el.classList.toggle("bad",kind==="bad")}
+  function mergeConfig(canonical={},parent={}){
+    const out={...clone(canonical),canonicalEngine:"inline-full-site-emulator",settingsAuthority:true,emulatorSourceVersion:"5.18.297-inline"};
+    for(const k of ["start","end","type","places","dataMode"])if(parent[k]!==undefined)out[k]=clone(parent[k]);
+    out.unit=Math.max(100,num(out.unit??out.pointAmount??parent.unit,100));out.dailyBudget=Math.max(0,num(out.dailyBudget??out.dailyLimit??parent.dailyBudget,2000));out.maxRaces=Math.max(0,num(out.maxRaces??out.maxRace??parent.maxRaces,6));out.maxTickets=Math.max(0,num(out.maxTickets??parent.maxTickets,6));out.topN=Math.max(1,num(out.topN??parent.topN,3));out.ticketType=String(out.ticketType||parent.ticketType||"all");
     if(out.noForceFill===undefined)out.noForceFill=out.forceFill===true||out.cloneForceFill===true?false:true;
     return out
   }
-  async function ensureChildRaceData(child,race,entries){
-    const rid=String(race?.race_id||"");if(!rid)throw new Error("本体エミュへ渡す race_id がありません");
-    const canWrite=typeof child.putOne==="function"&&typeof child.putMany==="function";
-    const write=async()=>{
-      if(typeof child.putOne==="function")await child.putOne("races",clone(race));
-      if(entries.length&&typeof child.putMany==="function")await child.putMany("entries",clone(entries));
-    };
+  function configText(c){
+    const labels=typeof TICKET_LABELS!=="undefined"?TICKET_LABELS:{};
+    return [
+      `予想正本: 完全内蔵 Canonical Engine v5.18.297-inline`,
+      `券種: ${labels[c.ticketType]||c.ticketType||"全券種"} / 予想モード: ${c.predictionMode||"custom"}`,
+      `日次予算: ${num(c.dailyBudget).toLocaleString()}円 / 1点: ${num(c.unit).toLocaleString()}円 / 最大: ${num(c.maxTickets)}点・${num(c.maxRaces)}R`,
+      `上位頭数: ${num(c.topN)} / EV: ${num(c.minEv)}以上 / AI: ${num(c.minAi)}以上 / オッズ: ${num(c.minOdds)}〜${num(c.maxOdds)}`,
+      `優先順位: ${c.priority||"-"} / 予算配分: ${c.budgetMode||"sequential"} / NoForceFill: ${c.noForceFill===false?"OFF":"ON"}`,
+      `DB: TheKeibaUltimateNEXTComplete / 予想台帳: predictionLedger / 外部本体HTML: 不要`
+    ].join("\n")
+  }
+  async function refreshUi(reason="初期化"){
     try{
-      if(canWrite){await write();return}
-      const existing=typeof child.getByIndex==="function"?await child.getByIndex("entries","race_id",rid):[];
-      if(!Array.isArray(existing)||!existing.length)throw new Error("本体エミュ側へ馬柱を同期できません")
-    }catch(firstError){
-      if(canWrite&&typeof child.openDB==="function"){await child.openDB();await write()}else throw firstError
-    }
+      const c=await readConfig({});ready=true;lastError="";setState("内蔵接続済み",true);setBadge("fullEmuOriginBadge","完全内蔵：外部依存なし","same");setBadge("fullEmuBridgeBadge",typeof hasResidentialBridge==="function"&&hasResidentialBridge()?"Bridge：住宅IP接続済":"Bridge：必要時に設定","same");setBadge("fullEmuLiveBadge",liveEnabled?"LIVE：親SIM直結":"LIVE：OFF",liveEnabled?"same":"cross");setBadge("fullEmuThemeBadge","テーマ共通","same");setBadge("fullEmuVersionBadge","inline v5.18.297","same");
+      if(byId("inlineEngineConfig"))byId("inlineEngineConfig").textContent=configText(c);if(byId("inlineEngineDb"))byId("inlineEngineDb").textContent=state?.db?`接続済 v${state.db.version}`:"接続待ち";
+      setStatus(`${reason}完了。予想・予算配分・SIM・予想台帳をこのHTML内で直接実行します。\n外部サイトiframeは使用しません。`,"ok");return c
+    }catch(e){ready=false;lastError=e.message;setState("内蔵初期化失敗",false);setStatus(`内蔵エンジン初期化失敗\n${e.message}`,"bad");throw e}
   }
-  async function buildCanonicalCandidate(race,{parentConfig={},entries=null}={}){
-    const info=await ensureReady(),frame=byId("fullEmuFrame"),child=frame?.contentWindow;
-    if(!child)throw new Error("内蔵本体エミュへ接続できません");
-    const sourceEntries=Array.isArray(entries)?entries:await getByIndex("entries","race_id",race.race_id);
-    if(!sourceEntries.length)throw new Error("出馬表がありません。先に馬柱・オッズを同期してください");
-    await ensureChildRaceData(child,race,sourceEntries);
-    try{if(child.__THEKEIBA_EV_EMULATOR__?.prepare)await child.__THEKEIBA_EV_EMULATOR__.prepare({quiet:true})}catch(e){console.warn("本体エミュ設定準備",e)}
-    const canonical=child.readSimConfig(),config=mergeCanonicalConfig(canonical,parentConfig);
-    const item=await child.buildSimulationCandidate(clone(race),null,config);
-    if(!item||!Array.isArray(item.candidateTickets))throw new Error("本体エミュが予想候補を返しませんでした");
-    item.race=clone(race);item.result=null;if(!Array.isArray(item.entries)||!item.entries.length)item.entries=clone(sourceEntries);
-    return{item:clone(item),config:clone(config),info}
+  async function ensureReady(){if(!core.readConfig||!core.buildCandidate||!core.allocateSequential||!core.allocateDailyRank)throw new Error("統合前予想APIの捕捉に失敗しました");if(!ready)await refreshUi("初期化");return status()}
+  function status(){return{ready:ready&&!!core.buildCandidate,sameOrigin:true,apiReady:!!core.buildCandidate,bridgeReady:typeof hasResidentialBridge==="function"&&hasResidentialBridge(),title:"The競馬 EV分析 Canonical Engine",url:"inline://TheKeiba-Canonical-Engine-v5.18.297",version:"5.18.297-inline",error:lastError}}
+  async function readConfig(parentConfig={}){if(!core.readConfig)throw new Error("内蔵設定APIがありません");return mergeConfig(core.readConfig(),parentConfig)}
+  async function buildCandidate(race,{parentConfig={},entries=null}={}){
+    await ensureReady();const config=await readConfig(parentConfig);if(!race?.race_id)throw new Error("race_id がありません");
+    if(Array.isArray(entries)&&entries.length&&typeof putMany==="function"){const missing=await getByIndex("entries","race_id",race.race_id);if(!missing?.length)await putMany("entries",clone(entries))}
+    const item=await core.buildCandidate(clone(race),null,config);if(!item||!Array.isArray(item.candidateTickets))throw new Error("内蔵エンジンが予想候補を返しませんでした");item.race=clone(race);item.result=null;if(Array.isArray(entries)&&entries.length&&(!Array.isArray(item.entries)||!item.entries.length))item.entries=clone(entries);return{item:clone(item),config:clone(config),info:status()}
   }
-  async function readCanonicalConfig(parentConfig={}){
-    await ensureReady();const child=byId("fullEmuFrame")?.contentWindow;if(!child||typeof child.readSimConfig!=="function")throw new Error("内蔵本体エミュの設定APIへ接続できません");
-    return mergeCanonicalConfig(child.readSimConfig(),parentConfig)
-  }
-  function allocateCandidates(items,config,mode="sequential"){
-    const child=byId("fullEmuFrame")?.contentWindow,fn=mode==="dailyRank"?child?.allocateDailyRankCandidates:child?.allocateSequentialCandidates;
-    if(typeof fn!=="function")throw new Error("内蔵本体エミュの予算配分APIへ接続できません");
-    fn(items,config);return items
-  }
-  async function predictRace(race,{parentConfig={},entries=null}={}){
-    const built=await buildCanonicalCandidate(race,{parentConfig,entries}),items=[built.item];
-    allocateCandidates(items,built.config,built.config.budgetMode==="dailyRank"?"dailyRank":"sequential");
-    return{...built,item:items[0]}
-  }
-  function load(force=false){
-    const frame=byId("fullEmuFrame"),cover=byId("fullEmuCover");if(!frame||loading)return;
-    let url;try{url=cleanUrl(byId("fullEmuUrl")?.value)}catch(e){status(e.message,"bad");return}
-    byId("fullEmuUrl").value=url;persist();updateOrigin(url);loading=true;bridgeInjected=false;liveHookInjected=false;
-    if(liveEnabled())forceParentConfirmedLive("本体エミュ起動");
-    setState("読込中");status(`公開サイトを丸ごと読み込んでいます。\n${url}`);
-    if(cover)cover.hidden=true;
-    const target=freshCoreUrl(url,force?"reload":"load");
-    frame.src=target;loadedUrl=url
-  }
-  function reload(){
-    const frame=byId("fullEmuFrame");if(!frame||!loadedUrl)return load(true);
-    loading=false;bridgeInjected=false;liveHookInjected=false;setState("再読込中");status("公開サイトの最新版を再読込しています。");
-    load(true)
-  }
-  function home(){byId("fullEmuUrl").value=DEFAULT_URL;load(false)}
-  function openTab(){let url;try{url=cleanUrl(byId("fullEmuUrl")?.value)}catch(e){return status(e.message,"bad")}window.open(url,"_blank","noopener")}
-  function requestLiveNow(){
-    if(!liveEnabled()){setBadge("fullEmuLiveBadge","LIVE：転送OFF","cross");return false}
-    const frame=byId("fullEmuFrame");
-    try{
-      if(!frame?.contentWindow?.__THEKEIBA_PARENT_LIVE_HOOK_V1__)installLiveHook();
-      const hook=frame?.contentWindow?.__THEKEIBA_PARENT_LIVE_HOOK_V1__;
-      hook?.emit("manual",true);
-      frame?.contentWindow?.postMessage({type:"TheKeibaFullEmuRequestLiveV1"},"*");
-      let accepted=false;
-      try{
-        const rows=hook?.rowsNow?.();
-        if(Array.isArray(rows)&&rows.length)accepted=acceptLiveRows(rows,{at:new Date().toISOString(),running:true,reason:"manual-direct",progress:{current:`今すぐ転送 ${rows.length}R`}},"今すぐ転送")||accepted
-      }catch(_){}
-      try{
-        const raw=frame?.contentWindow?.localStorage?.getItem(PROFIT_GRAPH_BRIDGE_KEY);
-        if(!accepted&&raw)accepted=acceptBridgeBox(JSON.parse(raw),"今すぐ転送 bridge")||accepted
-      }catch(_){}
-      setBadge("fullEmuLiveBadge",accepted?"LIVE：今すぐ反映済":"LIVE：転送要求済",accepted?"same":"cross");
-      if(accepted)status(`本体エミュの期間横断結果をSIMへ即時反映しました。
-${lastRowsSignature||"受信済み"}`,"ok");
-      return true
-    }catch(e){status(`今すぐ転送失敗
-${e.message}`,"bad");return false}
-  }
-  function onFrameLoad(){
-    if(!loadedUrl)return;loading=false;
-    const same=updateOrigin(loadedUrl),child=same?byId("fullEmuFrame")?.contentWindow:null;
-    if(child)syncChildVersion(child);
-    const rangeGuard=child?installJraRangeGuard(child):false,bridged=installBridgeAdapter(),live=same?installLiveHook():false;
-    setState("起動中",true);syncThemeToFrames(currentTheme(),"frame-load");
-    const emulatorView=byId("view-site-emulator");
-    if(emulatorView)emulatorView.classList.toggle("full-emu-background-running",liveEnabled()&&!emulatorView.classList.contains("active"));
-    const detail=same
-      ?`同一オリジンで起動しました。localStorage・IndexedDBは本体と共有されます。${rangeGuard?" JRA開催日0件の誤判定防壁を適用しました。":" JRA開催日防壁は接続待ちです。"}${bridged?" 親画面Bridgeを継承し、NARはtype/race_id APIを優先します。":" Bridgeは親画面側の接続待ちです。"}${live?" SIMリアルタイム転送を接続しました。":" LIVE転送は接続待ちです。"}`
-      :"別オリジンで起動しました。全画面操作はできますが、親SIMへの直接転送・DB共有・テーマ直結は制限されます。";
-    status(`${frameInfo()}\n${detail}\n本体エミュでSIMを開始後、左メニューの「SIM」へ移動しても計算は継続します。`,same?"ok":"warn")
-  }
-  function bridgeReconnect(){
-    try{window.__theKeibaInstallDomBridge?.();window.__theKeibaBridgeHandshake?.()}catch(_){}
-    setTimeout(()=>{
-      const ok=installBridgeAdapter(),live=installLiveHook();
-      status(ok||live?`再接続しました。Bridge=${ok?"接続":"待機"} / SIM LIVE=${live?"接続":"待機"}`:"親画面側でBridgeまたはLIVE接続を検出できません。Userscriptと同一オリジン配置を確認してください。",ok||live?"ok":"warn")
-    },250)
-  }
-
-  function ticketKey(value){
-    const raw=String(value||"all").trim(),low=raw.toLowerCase();
-    const aliases={
-      "単勝":"win","win":"win","複勝":"place","place":"place","枠連":"bracketQuinella","bracketquinella":"bracketQuinella",
-      "ワイド":"wide","wide":"wide","馬連":"quinella","quinella":"quinella","馬単":"exacta","exacta":"exacta",
-      "3連複":"trio","三連複":"trio","trio":"trio","3連単":"trifecta","三連単":"trifecta","trifecta":"trifecta",
-      "全券種":"all","all":"all"
-    };
-    if(aliases[raw])return aliases[raw];if(aliases[low])return aliases[low];
-    try{for(const [key,label] of Object.entries(TICKET_LABELS||{}))if(String(label)===raw)return key}catch(_){}
-    return raw||"all"
-  }
-  function dateValue(value){
-    const s=String(value||"").trim();const d=s.replace(/\D/g,"");
-    if(d.length>=8)return`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;
-    return s
-  }
-  function placeholderTickets(count,type,breakdown=[]){
-    const list=[];
-    for(const b of Array.isArray(breakdown)?breakdown:[]){
-      list.push({ticketType:ticketKey(b?.券種名||b?.券種||type),key:String(b?.買い目||b?.買目||b?.組番||"")})
-    }
-    while(list.length<Math.max(0,Math.round(n(count))))list.push({ticketType:type,key:""});
-    return list
-  }
-  function normalizeRows(rawRows){
-    const rows=[];let bank=0;
-    for(const source of Array.isArray(rawRows)?rawRows:[]){
-      const raw=clone(source)||{},rr=raw.race||{};
-      const raceId=String(rr.race_id??raw.race_id??raw.raceId??"");
-      const raceNo=n(rr.raceNo??raw.raceNo??raw.race??raw.R??String(raw.R||"").match(/\d+/)?.[0]);
-      const ticket=ticketKey(raw.ticketType??raw.ticket??raw.券種??raw.typeTicket??"all");
-      const breakdown=raw.内訳??raw.breakdown??[];
-      const candidateCount=n(raw.candidate_count??raw.candidateCount??raw.候補点??raw.candidate??raw.candidateTickets?.length);
-      const purchaseCount=n(raw.purchase_count??raw.purchaseCount??raw.購入点??raw.purchase??raw.purchaseTickets?.length??breakdown?.length);
-      const candidateTickets=Array.isArray(raw.candidateTickets)?raw.candidateTickets:placeholderTickets(candidateCount,ticket,[]);
-      const purchaseTickets=Array.isArray(raw.purchaseTickets)?raw.purchaseTickets:placeholderTickets(purchaseCount,ticket,breakdown);
-      const invest=n(raw.invest??raw.bet??raw.stake??raw.投資??raw.購入額);
-      const pay=n(raw.pay??raw.payout??raw.return??raw.ret??raw.払戻??raw.払戻額);
-      const profit=Number.isFinite(Number(raw.profit??raw.net??raw.収支))?n(raw.profit??raw.net??raw.収支):pay-invest;
-      bank+=profit;
-      const candidateHit=!!(raw.candidateHit??raw.candidate_hit??raw.候補的中);
-      const purchaseHit=!!(raw.purchaseHit??raw.purchase_hit??raw.購入的中??raw.的中??(pay>0));
-      const race={
-        ...rr,race_id:raceId,date:dateValue(rr.date??raw.date??raw.日付),
-        type:String(rr.type??raw.category??raw.区分??raw.raceType??""),
-        placeName:String(rr.placeName??raw.placeName??raw.place??raw.venue??raw.場??raw.開催場??""),
-        raceNo:raceNo||0,name:String(rr.name??raw.raceName??raw.レース名??""),
-        className:String(rr.className??raw.className??raw.クラス??""),
-        distance:n(rr.distance??raw.distance??raw.距離),surface:String(rr.surface??raw.surface??raw.馬場??""),
-        trackCondition:String(rr.trackCondition??raw.trackCondition??raw.馬場状態??"")
-      };
-      rows.push({
-        ...raw,race,ticketType:ticket,candidateTickets,purchaseTickets,
-        candidateHit,purchaseHit,miss:raw.miss??(candidateHit&&!purchaseHit),
-        invest,pay,profit,roi:invest?pay/invest*100:n(raw.roi??raw.ROI),bank,
-        entries:Array.isArray(raw.entries)?raw.entries:[],result:raw.result||null
-      })
-    }
-    return rows
-  }
-  function summaryFor(rows){
-    const totalBet=rows.reduce((s,x)=>s+n(x.invest),0),totalPay=rows.reduce((s,x)=>s+n(x.pay),0);
-    return{
-      raceCount:rows.length,boughtCount:rows.filter(x=>n(x.invest)>0).length,
-      candidateHits:rows.filter(x=>x.candidateHit).length,purchaseHits:rows.filter(x=>x.purchaseHit).length,
-      missHits:rows.filter(x=>x.miss).length,totalBet,totalPay,profit:totalPay-totalBet,roi:totalBet?totalPay/totalBet*100:0
-    }
-  }
-  function rowsSignature(rows){
-    const s=summaryFor(rows),tail=rows.at(-1)||{},r=tail.race||{};
-    return[rows.length,s.boughtCount,s.candidateHits,s.purchaseHits,s.missHits,Math.round(s.totalBet),Math.round(s.totalPay),r.race_id||"",r.date||"",r.raceNo||"",Math.round(n(tail.profit))].join("|")
-  }
-  function liveState(text,on=true){
-    const el=byId("fullEmuSimLiveState");if(el)el.innerHTML=`<span class="status-dot ${on?"on":""}"></span>${text}`;
-  }
-  function renderLiveMonitor(rows,summary,packet={}){
-    const card=byId("fullEmuSimLiveCard");if(card)card.hidden=false;
-    if(byId("fullEmuSimLiveRows"))byId("fullEmuSimLiveRows").textContent=`${summary.raceCount}R`;
-    if(byId("fullEmuSimLiveBought"))byId("fullEmuSimLiveBought").textContent=`${summary.boughtCount}R`;
-    if(byId("fullEmuSimLiveBet"))byId("fullEmuSimLiveBet").textContent=Math.round(summary.totalBet).toLocaleString()+"円";
-    if(byId("fullEmuSimLiveProfit")){
-      const el=byId("fullEmuSimLiveProfit");el.textContent=(summary.profit>=0?"+":"")+Math.round(summary.profit).toLocaleString()+"円";el.className=summary.profit>=0?"good":"bad"
-    }
-    const now=packet.at?new Date(packet.at):new Date();
-    if(byId("fullEmuSimLiveAt"))byId("fullEmuSimLiveAt").textContent=isNaN(now)?"受信済":now.toLocaleTimeString("ja-JP");
-    const p=packet.progress||{},task=[p.current,p.percent?`進捗 ${p.percent}`:"",p.days?`日程 ${p.days}`:"",p.race?`当日 ${p.race}`:""].filter(Boolean).join("\n");
-    if(byId("fullEmuSimLiveTask"))byId("fullEmuSimLiveTask").textContent=task||`${summary.raceCount}Rを受信しました。`;
-    liveState(packet.running===false&&rows.length?"完了・表示継続":packet.running?"本体処理中":"リアルタイム受信",true);
-    setBadge("fullEmuLiveCountBadge",`${summary.raceCount}R / ROI ${summary.roi.toFixed(1)}%`,"same");
-    setBadge("fullEmuLiveBadge",packet.running?"LIVE：本体処理中":"LIVE：SIM反映済","same")
-  }
-  function scheduleAnalysisSync(){
-    if(analysisTimer)clearTimeout(analysisTimer);
-    analysisTimer=setTimeout(async()=>{
-      analysisTimer=null;
-      try{if(typeof syncSimulationToAnalysis==="function")await syncSimulationToAnalysis({force:true,reason:"本体エミュLIVE"})}catch(_){}
-    },900)
-  }
-  function renderParentLiveStatus(rows,summary,packet={},source="frame"){
-    const graphState=byId("simLiveGraphStatus");
-    if(graphState){
-      graphState.classList.remove("off","bad");graphState.classList.add(packet.running?"busy":"ok");
-      graphState.innerHTML=`<span class="status-dot on"></span>${packet.running?"本体エミュ処理中":"本体エミュ受信済"} ${rows.length}R`
-    }
-    if(byId("simLiveGraphHelp"))byId("simLiveGraphHelp").textContent="本体エミュの処理を継続したまま、レース結果をリアルタイム反映しています。";
-    const received=packet.at?new Date(packet.at):new Date(),receivedText=isNaN(received)?new Date().toLocaleTimeString("ja-JP"):received.toLocaleTimeString("ja-JP");
-    if(byId("simLiveGraphFoot"))byId("simLiveGraphFoot").textContent=`最終受信 ${receivedText} / 出所 ${source} / 対象 ${rows.length}R / 購入 ${summary.boughtCount}R / 投資 ${Math.round(summary.totalBet).toLocaleString()}円 / 払戻 ${Math.round(summary.totalPay).toLocaleString()}円`
-  }
-  function acceptLiveRows(rawRows,packet={},source="frame"){
-    lastLivePacketAt=Date.now();
-    if(!liveEnabled()){setBadge("fullEmuLiveBadge","LIVE：転送OFF","cross");return false}
-    const rows=normalizeRows(rawRows),summary=summaryFor(rows),sig=rowsSignature(rows);
-    renderLiveMonitor(rows,summary,packet);
-    renderParentLiveStatus(rows,summary,packet,source);
-    lastLiveSignature=String(packet.signature||sig);
-    if(sig===lastRowsSignature)return true;
-    lastRowsSignature=sig;
-    if(typeof state!=="undefined"){
-      state.simResult=rows;state.analyticsRows=rows;
-      try{renderSimulation(summary)}catch(e){console.warn("本体エミュLIVE描画",e)}
-      try{Promise.resolve(window.TheKeibaPredictionLedger?.ingestSimulationRows?.(rows,{source,packet})).catch(e=>console.warn("予想台帳LIVE保存",e))}catch(_){ }
-      scheduleAnalysisSync()
-    }
-    return true
-  }
-  window.__THEKEIBA_ACCEPT_FULL_EMU_LIVE_V1__=packet=>{
-    if(!packet||packet.type!==LIVE_MESSAGE)return false;
-    return acceptLiveRows(packet.rows,packet,"同一画面ダイレクト")
-  };
-  function acceptBridgeBox(box,source="bridge"){
-    const rows=box?.data?.収支明細;
-    if(!Array.isArray(rows))return false;
-    if(!rows.length&&String(box?.meta?.source||"")==="reset")return false;
-    return acceptLiveRows(rows,{at:box.savedAt||new Date().toISOString(),running:true,progress:{current:`ブリッジから${rows.length}件受信`},signature:box.syncId||""},source)
-  }
-  function ensureProfitChannelListener(){
-    if(profitChannelListenerInstalled)return;profitChannelListenerInstalled=true;
-    try{
-      const ch=typeof getProfitGraphChannel==="function"?getProfitGraphChannel():null;
-      ch?.addEventListener?.("message",ev=>{
-        const d=ev?.data;if(d?.type==="data"&&d.box&&loadedUrl)acceptBridgeBox(d.box,"BroadcastChannel")
-      })
-    }catch(_){}
-  }
-  function ensureMonitor(){
-    if(liveTimer)return;
-    liveTimer=setInterval(()=>{
-      if(!liveEnabled()||!loadedUrl)return;
-      if(sameOrigin(loadedUrl)){
-        const frame=byId("fullEmuFrame");
-        try{
-          const hook=frame?.contentWindow?.__THEKEIBA_PARENT_LIVE_HOOK_V1__;
-          if(hook)hook.emit("parent-poll",false);else installLiveHook()
-        }catch(_){}
-      }
-      if(liveHookInjected&&lastLivePacketAt&&Date.now()-lastLivePacketAt>5000)setBadge("fullEmuLiveBadge","LIVE：応答待ち","cross")
-    },1000)
-  }
-  function setLiveEnabled(on){
-    if(byId("fullEmuLiveSync"))byId("fullEmuLiveSync").checked=!!on;persist();
-    setBadge("fullEmuLiveBadge",on?(liveHookInjected?"LIVE：SIMへ自動転送":"LIVE：接続待ち"):"LIVE：転送OFF",on?(liveHookInjected?"same":"cross"):"cross");
-    const emulatorView=byId("view-site-emulator");
-    if(emulatorView)emulatorView.classList.toggle("full-emu-background-running",!!on&&!!loadedUrl&&!emulatorView.classList.contains("active"));
-    if(on){forceParentConfirmedLive("本体エミュLIVE開始");ensureMonitor();installLiveHook();requestLiveNow()}
-  }
-
-  function restore(){
-    try{
-      byId("fullEmuUrl").value=localStorage.getItem(KEY_URL)||DEFAULT_URL;
-      byId("fullEmuAuto").checked=localStorage.getItem(KEY_AUTO)!=="0";
-      byId("fullEmuViewport").value=localStorage.getItem(KEY_VIEW)||"full";
-      byId("fullEmuLiveSync").checked=localStorage.getItem(KEY_LIVE)!=="0"
-    }catch(_){byId("fullEmuUrl").value=DEFAULT_URL}
-    applyViewport();updateOrigin(byId("fullEmuUrl").value||DEFAULT_URL);syncThemeToFrames(currentTheme(),"restore")
-  }
-  function ensureLoaded(){if(byId("fullEmuAuto")?.checked&&!loadedUrl)load(false)}
+  function allocateCandidates(items,config,mode="sequential"){const fn=mode==="dailyRank"?core.allocateDailyRank:core.allocateSequential;if(typeof fn!=="function")throw new Error("内蔵予算配分APIがありません");fn(items,config);return items}
+  async function predictRace(race,opts={}){const built=await buildCandidate(race,opts),items=[built.item];allocateCandidates(items,built.config,built.config.budgetMode==="dailyRank"?"dailyRank":"sequential");return{...built,item:items[0]}}
+  function requestLiveNow(){const rows=Array.isArray(state?.simResult)?state.simResult:[],bet=rows.reduce((a,x)=>a+num(x.invest),0),pay=rows.reduce((a,x)=>a+num(x.pay),0);setBadge("fullEmuLiveCountBadge",`${rows.length}R / ROI ${bet?(pay/bet*100).toFixed(1):"0.0"}%`,rows.length?"same":"");if(typeof renderSimulation==="function")try{renderSimulation()}catch(_){ }setStatus(`現在のSIM結果 ${rows.length}R を内蔵分析へ反映しました。`,"ok");try{syncSimulationToAnalysis({force:true,reason:"完全一枚物・内蔵エンジン"})}catch(_){ }return true}
+  function setLiveEnabled(on){liveEnabled=!!on;if(byId("fullEmuLiveSync"))byId("fullEmuLiveSync").checked=liveEnabled;setBadge("fullEmuLiveBadge",liveEnabled?"LIVE：親SIM直結":"LIVE：OFF",liveEnabled?"same":"cross");return liveEnabled}
+  function syncThemeToFrames(){setBadge("fullEmuThemeBadge",document.documentElement.dataset.theme==="light"?"テーマ共通：ライト":"テーマ共通：ダーク","same");return true}
+  function load(){return refreshUi("内蔵エンジン初期化")}
+  function reload(){ready=false;return refreshUi("設定再読込")}
+  function installBridgeAdapter(){refreshUi("Bridge状態確認").catch(()=>{});return true}
+  function installLiveHook(){setLiveEnabled(byId("fullEmuLiveSync")?.checked!==false);return true}
+  function ensureLoaded(){return load()}
   function wire(){
-    if(!byId("fullEmuFrame"))return;
-    restore();ensureMonitor();ensureProfitChannelListener();
-    if(liveEnabled())forceParentConfirmedLive("本体エミュLIVE待機");
-    byId("fullEmuLoadBtn").onclick=()=>load(false);
-    byId("fullEmuReloadBtn").onclick=reload;byId("fullEmuHomeBtn").onclick=home;
-    byId("fullEmuBridgeBtn").onclick=bridgeReconnect;byId("fullEmuOpenBtn").onclick=openTab;
-    byId("fullEmuViewport").onchange=applyViewport;byId("fullEmuAuto").onchange=persist;
-    byId("fullEmuLiveSync").onchange=e=>setLiveEnabled(e.target.checked);
-    byId("fullEmuUrl").onchange=()=>{persist();updateOrigin(byId("fullEmuUrl").value)};
-    byId("fullEmuFrame").addEventListener("load",onFrameLoad);
-    byId("fullEmuShowSimBtn").onclick=async()=>{await showView("simulation");requestLiveNow()};
-    byId("fullEmuSyncNowBtn").onclick=requestLiveNow;
-    byId("fullEmuLiveSyncNowBtn").onclick=requestLiveNow;
-    byId("fullEmuBackBtn").onclick=()=>showView("site-emulator");
-    document.querySelectorAll('[data-view="site-emulator"]').forEach(btn=>btn.addEventListener("click",()=>setTimeout(ensureLoaded,60)));
-
-    window.addEventListener("message",ev=>{
-      const d=ev?.data;if(!d||typeof d!=="object")return;
-      const frame=byId("fullEmuFrame");
-      if(d.type===LIVE_MESSAGE&&(!frame||ev.source===frame.contentWindow))acceptLiveRows(d.rows,d,"postMessage");
-      if(d.type==="TheKeibaThemeRequestV1"&&frame&&ev.source===frame.contentWindow){
-        const requested=normalizeTheme(d.theme);
-        try{
-          if(typeof state!=="undefined"&&state?.settings){
-            state.settings.theme=requested;
-            if(typeof putOne==="function")Promise.resolve(putOne("settings",{key:"app",value:state.settings})).catch(()=>{});
-          }
-          if(typeof applySettings==="function")applySettings(false);else document.documentElement.dataset.theme=requested;
-        }catch(_){document.documentElement.dataset.theme=requested}
-        syncThemeToFrames(requested,"本体エミュから切替");
-      }
-      if(d.type==="TheKeibaThemeHelloV1"||d.type==="TheKeibaThemeHello")syncThemeToFrames(currentTheme(),"hello");
-      if(d.type==="keibaProfitGraphLive"&&d.box&&frame&&ev.source===frame.contentWindow)acceptBridgeBox(d.box,"postMessage bridge")
-    });
-    window.addEventListener("storage",ev=>{
-      if(ev.key===PROFIT_GRAPH_BRIDGE_KEY&&ev.newValue&&loadedUrl){
-        try{acceptBridgeBox(JSON.parse(ev.newValue),"localStorage") }catch(_){}
-      }
-      if(ev.key===SHARED_THEME_KEY||ev.key===LEGACY_THEME_KEY)syncThemeToFrames(ev.newValue||currentTheme(),"storage")
-    });
-    const observer=new MutationObserver(list=>{
-      if(list.some(x=>x.attributeName==="data-theme"))syncThemeToFrames(currentTheme(),"parent-theme-change")
-    });
-    observer.observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
-    themeChannelInstance();
-    syncThemeToFrames(currentTheme(),"wire")
+    if(!byId("fullEmuLoadBtn"))return;
+    byId("fullEmuLoadBtn").onclick=()=>load();byId("fullEmuReloadBtn").onclick=()=>reload();byId("fullEmuHomeBtn").onclick=()=>showView("dashboard");byId("fullEmuBridgeBtn").onclick=()=>installBridgeAdapter();byId("fullEmuShowSimBtn").onclick=()=>showView("simulation");byId("fullEmuSyncNowBtn").onclick=requestLiveNow;byId("fullEmuOpenBtn").onclick=()=>showView("prediction");byId("fullEmuLiveSync").onchange=e=>setLiveEnabled(e.target.checked);
+    const prev=typeof showView==="function"?showView:null;if(prev){showView=async function(id){const out=await prev(id);if(id==="site-emulator")refreshUi("画面表示").catch(()=>{});return out}}
+    setTimeout(()=>refreshUi("自動初期化").catch(()=>{}),700)
   }
-  if(typeof showView==="function"){
-    const previousShowView=showView;
-    showView=async function(id){
-      const result=await previousShowView(id);
-      const emulatorView=byId("view-site-emulator");
-      if(emulatorView)emulatorView.classList.toggle("full-emu-background-running",id!=="site-emulator"&&liveEnabled()&&!!loadedUrl);
-      if(id==="site-emulator")setTimeout(ensureLoaded,60);
-      if(id==="simulation"&&loadedUrl)setTimeout(requestLiveNow,80);
-      return result
-    }
-  }
-  window.FullSiteEmulator={load,reload,installBridgeAdapter,installJraRangeGuard,installLiveHook,ensureLoaded,ensureReady,status:runtimeStatus,readConfig:readCanonicalConfig,buildCandidate:buildCanonicalCandidate,allocateCandidates,predictRace,requestLiveNow,setLiveEnabled,syncThemeToFrames};
+  window.__THEKEIBA_INLINE_CANONICAL_CORE__=core;
+  window.FullSiteEmulator={load,reload,installBridgeAdapter,installLiveHook,ensureLoaded,ensureReady,status,readConfig,buildCandidate,allocateCandidates,predictRace,requestLiveNow,setLiveEnabled,syncThemeToFrames};
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",wire,{once:true});else wire()
 })();
 </script>
@@ -6883,7 +6118,7 @@ ${e.message}`,"bad");return false}
   const byId=id=>document.getElementById(id);
   const num=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
   const copy=v=>{try{return structuredClone(v)}catch(_){try{return JSON.parse(JSON.stringify(v))}catch(__){return v}}};
-  const STORE="predictionLedger",SOURCE="full-emulator",ENGINE_VERSION="5.18.297";
+  const STORE="predictionLedger",SOURCE="inline-full-emulator",ENGINE_VERSION="5.18.297-inline";
   let ingestQueue=Promise.resolve();
 
   function storeReady(){return!!(state.db?.objectStoreNames?.contains(STORE))}
@@ -6963,7 +6198,7 @@ ${e.message}`,"bad");return false}
     byId("coreTodayCount").textContent=`${todayRows.length}R`;byId("coreBuyCount").textContent=`${todayRows.filter(x=>num(x.invest)>0).length}R`;byId("coreSkipCount").textContent=`${todayRows.filter(x=>!num(x.invest)).length}R`;byId("coreTodayInvest").textContent=yen(todayRows.reduce((s,x)=>s+num(x.invest),0));byId("coreSettledRoi").textContent=pct(bet?pay/bet*100:0);byId("coreLedgerState").textContent=`予想台帳 ${rows.length}R`;byId("coreDbState").textContent=`DB v${state.db.version}`;
     const engine=byId("coreEngineState");if(engine){engine.innerHTML=`<span class="status-dot ${info.ready?"on":""}"></span>${info.ready?"本体エミュ接続済み":"本体エミュ待機"}`;engine.classList.toggle("good",!!info.ready)}
     const latest=[...rows].sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt))).slice(0,8);byId("coreLedgerRows").innerHTML=latest.map(x=>`<tr><td>${dateText(x.date)}</td><td>${esc(x.race?.placeName||"")}</td><td>${num(x.race?.raceNo)}R</td><td><span class="badge ${statusClass(x)}">${statusLabel(x)}</span></td><td>${x.candidateTickets?.length||0}点</td><td>${x.purchaseTickets?.length||0}点</td><td>${yen(x.invest||0)}</td><td class="${num(x.profit)>=0?"good":"bad"}">${x.status==="settled"?yen(x.profit||0):"-"}</td><td>${timeText(x.updatedAt)}</td></tr>`).join("")||`<tr><td colspan="9" class="empty">本体エミュ予想を実行すると、ここへ自動保存されます</td></tr>`;
-    byId("coreStatus").textContent=info.ready?`内蔵本体エミュ v${info.version||ENGINE_VERSION} を正本として使用中です。予想台帳 ${rows.length}R、精算済み ${settled.length}R。`:`本体エミュは初回予想時に自動起動します。公開配置では /takuya/ と同一オリジンで接続します。`
+    byId("coreStatus").textContent=info.ready?`内蔵本体エミュ v${info.version||ENGINE_VERSION} を正本として使用中です。予想台帳 ${rows.length}R、精算済み ${settled.length}R。`:`本体エミュはこのHTML内部で自動初期化されます。外部配置や同一オリジン調整は不要です。`
   }
   async function renderAll(){await Promise.all([renderPredictionLedger(),renderCoreDashboard()])}
   function lockSimulationToCanonical(){
@@ -7012,5 +6247,39 @@ ${e.message}`,"bad");return false}
 })();
 </script>
 
+<script>window.__THEKEIBA_COMPLETE_ONEFILE__={version:"2.2.0",engine:"5.18.297-inline",externalCore:false,inlineAnalysis:true,inlineRdb:true,linkRepair:true,builtAt:"2026-07-24"};</script>
+<script id="internalRdbLinkRepairScript">
+(function(){
+  "use strict";
+  function byId(id){return document.getElementById(id)}
+  async function openInternalRdb(tab="records"){
+    let warning="";
+    try{if(typeof showView==="function")await showView("database")}catch(e){warning=e.message||String(e)}
+    const dbView=byId("view-database");
+    if(dbView){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v===dbView))}
+    const target=document.querySelector(`[data-dbtab="${tab}"]`)||document.querySelector('[data-dbtab="records"]');
+    if(target){
+      document.querySelectorAll("[data-dbtab]").forEach(x=>x.classList.toggle("active",x===target));
+      const panels={manage:"dbTabManage",target:"dbTabTarget",records:"dbTabRecords",research:"dbTabResearch",raceedit:"dbTabRaceedit",entryedit:"dbTabEntryedit",resultedit:"dbTabResultedit"};
+      for(const [key,id] of Object.entries(panels)){const panel=byId(id);if(panel)panel.hidden=key!==target.dataset.dbtab}
+    }
+    const status=byId("recordStatus");
+    if(status)status.textContent=warning?"内蔵RDB画面を開きました。DB初期化後にレコードを更新してください。\n補足: "+warning:"外部RDBリンクを使用せず、このHTML内のRDB互換レコードを表示しています。";
+    setTimeout(()=>{try{if(window.state?.db||typeof state!=="undefined"&&state?.db){window.d1RecordWire?.();window.d1RecordRender?.()}}catch(_){}},80);
+    return true;
+  }
+  window.openInternalRdb=openInternalRdb;
+  function wire(){
+    const research=byId("piOpenInternalRdbBtn");if(research)research.onclick=()=>openInternalRdb("records");
+    const consoleBtn=byId("recordConsoleLink");if(consoleBtn){consoleBtn.removeAttribute("href");consoleBtn.onclick=()=>openInternalRdb("records");}
+    const url=byId("rdbConsoleUrl");if(url){url.value="internal://rdb";url.readOnly=true;}
+    document.querySelectorAll('a[href="internal://rdb"]').forEach(a=>{
+      a.removeAttribute("target");a.removeAttribute("rel");a.href="#internal-rdb";
+      a.addEventListener("click",e=>{e.preventDefault();openInternalRdb("records")});
+    });
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(wire,0),{once:true});else setTimeout(wire,0);
+})();
+</script>
 </body>
 </html>
