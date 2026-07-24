@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.42 NAR想定確率 比較判定選択修正版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.42 NAR想定確率 期間横断SIM対応修正版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -7216,6 +7216,186 @@ function attach(){
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",attach,{once:true});else attach();
 setInterval(install,2000);
+})();
+</script>
+
+
+<script id="narProbabilityPeriodSimulationPatchV4">
+(function(){
+"use strict";
+const FRAME_ID="fullEmuFrame";
+const FLAG="__narProbabilityPeriodSimulationPatchV4";
+
+function inject(){
+  const frame=document.getElementById(FRAME_ID);
+  if(!frame)return false;
+  let win,doc;
+  try{win=frame.contentWindow;doc=frame.contentDocument||win.document}catch(_){return false}
+  if(!win||!doc||win[FLAG])return false;
+  if(!win.TheKeibaNarProbability||typeof win.TheKeibaNarProbability.applyEntries!=="function")return false;
+
+  const code = `
+  (function(){
+    if(window.${FLAG})return;
+    if(typeof buildSimulationCandidate!=="function")return;
+
+    const originalBuildSimulationCandidate=buildSimulationCandidate;
+
+    function narRaceId(v){
+      const m=String(v||"").match(/\\\\d{12}/);
+      return m?m[0]:"";
+    }
+
+    function narConfig(){
+      try{
+        return Object.assign(
+          {mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"},
+          JSON.parse(localStorage.getItem("TheKeibaNarProbabilityConfigV2")||"{}")
+        );
+      }catch(_){
+        return {mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"};
+      }
+    }
+
+    function narData(){
+      try{
+        const d=JSON.parse(localStorage.getItem("TheKeibaNarProbabilityDataV2")||'{"races":{}}');
+        if(!d.races)d.races={};
+        return d;
+      }catch(_){
+        return {races:{}};
+      }
+    }
+
+    buildSimulationCandidate=async function(race,result,c){
+      let entries=await getByIndex("entries","race_id",race.race_id);
+      recalcEntryScores(entries);
+
+      const cfg=narConfig();
+      const rid=narRaceId(race.race_id||race.raceId);
+      const sourceRace=narData().races[rid];
+      const externalMode=cfg.mode!=="standard";
+
+      if(externalMode){
+        if(sourceRace){
+          window.TheKeibaNarProbability.applyEntries(entries);
+        }else{
+          // 過去スナップショットがないレースを購入させない。
+          for(const e of entries){
+            e.narProbabilityUnavailable=true;
+            e.narProbabilityMode=cfg.mode;
+            e.narProbabilitySource="期間横断・想定確率未登録";
+            e.ev=0;
+            e.probWin=0;
+          }
+        }
+      }
+
+      const qualifies=e=>
+        !e.narProbabilityUnavailable &&
+        Number(e.ev)>=Number(c.minEv) &&
+        Number(e.ai)>=Number(c.minAi) &&
+        Number(e.odds)>=Number(c.minOdds) &&
+        Number(e.odds)<=Number(c.maxOdds);
+
+      let candidateEntries=entries.filter(qualifies);
+      const sorters=simulationEntrySorters();
+      candidateEntries.sort(sorters[c.priority]||sorters.ai);
+      candidateEntries=candidateEntries.slice(0,c.topN);
+      const candidateTickets=generateTickets(c.ticketType,candidateEntries,c.maxTickets);
+
+      return{
+        race,result,entries,candidateEntries,candidateTickets,
+        purchaseTickets:[],
+        rankScore:simulationDailyRankScore(candidateEntries,c.dailyRankBasis),
+        narProbabilityMode:cfg.mode,
+        narProbabilitySnapshotAvailable:!!sourceRace,
+        narProbabilitySkipReason:externalMode&&!sourceRace
+          ?"当時のARION／netkeiba想定確率スナップショット未登録"
+          :""
+      };
+    };
+
+    try{
+      const originalRunSimulationCore=runSimulationCore;
+      runSimulationCore=async function(){
+        const cfg=narConfig();
+        if(cfg.mode!=="standard"){
+          const c=readSimConfig();
+          const races=await getRacesInRange(c.start,c.end);
+          const filtered=races.filter(r=>
+            (!c.start||r.date>=c.start)&&
+            (!c.end||r.date<=c.end)&&
+            (!c.type||r.type===c.type)&&
+            (!c.places?.length||c.places.includes(r.placeName))
+          );
+          const d=narData();
+          const covered=filtered.filter(r=>d.races[narRaceId(r.race_id||r.raceId)]).length;
+          const missing=Math.max(0,filtered.length-covered);
+
+          if(typeof setSimSyncStatus==="function"){
+            setSimSyncStatus(
+              "想定確率期間横断SIM："+cfg.mode+
+              "　対象 "+filtered.length+"R　スナップショット登録 "+covered+
+              "R　未登録 "+missing+"R\\\\n未登録レースは購入せず除外します。"
+            );
+          }
+
+          if(!covered){
+            state.simResult=[];
+            renderSimulation({
+              raceCount:0,boughtCount:0,candidateHits:0,purchaseHits:0,
+              missHits:0,totalBet:0,totalPay:0,profit:0,roi:0
+            });
+            alert(
+              "選択期間にはARION／netkeibaの当時スナップショットが登録されていません。\\\\n"+
+              "現在の予測値を過去レースへ流用すると先読みになるため、バックテストを停止しました。\\\\n"+
+              "本体エミュ標準へ戻すか、レース当時に保存した想定確率JSONを読み込んでください。"
+            );
+            return null;
+          }
+        }
+        return originalRunSimulationCore.apply(this,arguments);
+      };
+    }catch(e){
+      console.warn("[NAR Probability V4] runSimulationCore patch failed",e);
+    }
+
+    window.${FLAG}=true;
+    console.log("[NAR Probability V4] period simulation connected");
+  })();`;
+
+  try{
+    win.eval(code);
+    win[FLAG]=true;
+  }catch(e){
+    console.error("[NAR Probability V4] injection failed",e);
+    return false;
+  }
+
+  // SIM画面へ対応状況を明示
+  try{
+    const sim=doc.getElementById("tab-simulation");
+    if(sim&&!doc.getElementById("narProbPeriodNoticeV4")){
+      const n=doc.createElement("div");
+      n.id="narProbPeriodNoticeV4";
+      n.className="notice";
+      n.style.marginBottom="10px";
+      n.innerHTML="<strong>期間横断SIM対応</strong><br><small>ARION／netkeibaの当時スナップショットが登録されたレースだけを購入判定します。未登録の過去レースは自動除外し、現在値を過去へ流用しません。</small>";
+      sim.insertBefore(n,sim.firstChild);
+    }
+  }catch(_){}
+  return true;
+}
+
+function attach(){
+  const f=document.getElementById(FRAME_ID);
+  if(f)f.addEventListener("load",()=>[150,500,1200,3000].forEach(ms=>setTimeout(inject,ms)));
+  [0,600,1800,4000].forEach(ms=>setTimeout(inject,ms));
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",attach,{once:true});
+else attach();
+setInterval(inject,2500);
 })();
 </script>
 
