@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.42-full-integrated-onefile-jra-range-fix">
+<meta name="thekeiba-build" content="v1.2.42-full-integrated-onefile-jra-range-fix-profit-v22-embed">
 <title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.42</title>
 <style>
 :root{
@@ -2594,7 +2594,7 @@ async function bridgeSyncDay(){
   }catch(e){bridgeLog("同期失敗: "+e.message);updateBridgeDiagnostics("同期失敗","bad");return{total:0,success:0,failed:1,failures:[{error:e.message}]}}
 }
 async function refreshAll(){await Promise.all([renderDashboard(),refreshRaceSelector(),renderDbCounts(),refreshStrategySelect()]);if(document.querySelector("#view-calendar.active"))await renderCalendar();if(document.querySelector("#view-simulation.active"))await renderSimPlaceOptions(state.simSelectedPlaces)}
-const SPLIT_ANALYSIS_URL="https://yamase-takiyoshi.github.io/-TheKeiba-Ultimate-NEXT/keiba_profit_spec_chart_switcher_candle_v22_dark_light.html?src=bridge2";
+const SPLIT_ANALYSIS_URL="https://yamase-takiyoshi.github.io/takuya/keiba_profit_spec_chart_switcher_candle_v22.html";
 const PROFIT_GRAPH_BRIDGE_KEY="keibaProfitGraphBridge_v1";
 const PROFIT_GRAPH_CHANNEL_NAME="keibaProfitGraphLive_v1";
 let profitGraphChannel=null,profitGraphSyncBusy=false,profitGraphLastSignature="";
