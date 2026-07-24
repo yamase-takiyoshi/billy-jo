@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.42 NAR想定確率 本体標準比較判定追加版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.44 NAR想定確率 実判定修正版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -6855,11 +6855,7 @@ ${e.message}`,"bad");return false}
       win.TheKeibaNarProbability.modeLabel = modeLabel;
     }
 
-    q("narProbModeV2").addEventListener("change", function(){
-      q("narProbDecisionV2").disabled = false;
-    });
-
-    q("narProbSaveV2").addEventListener("click", function(){
+    async function saveAndRecalculate(reason){
       cfg = {
         mode: q("narProbModeV2").value,
         compareDecision: q("narProbDecisionV2").value,
@@ -6868,13 +6864,29 @@ ${e.message}`,"bad");return false}
       };
       storage.setItem(CONFIG_KEY, JSON.stringify(cfg));
       refresh();
+      let detail="";
+      try{
+        if(typeof win.getAll==="function"&&win.TheKeibaNarProbability?.applyEntries){
+          const entries=await win.getAll("entries");
+          win.TheKeibaNarProbability.applyEntries(entries);
+          if(typeof win.putMany==="function"){
+            const changed=entries.filter(e=>e.narProbabilityMode);
+            if(changed.length)await win.putMany("entries",changed);
+          }
+        }
+        if(typeof win.refreshAll==="function")await win.refreshAll();
+        const a=win.__narProbabilityLastApply||{};
+        detail=`\nrace_id：${a.raceId||"未特定"}／登録：${a.registered?"あり":"なし"}／反映：${a.updated||0}頭／不足：${a.missing||0}頭`;
+      }catch(e){detail="\n再計算警告："+(e?.message||e)}
       q("narProbStatusV2").textContent =
-        "保存しました。\n想定確率：" + modeLabel(cfg) +
+        (reason||"保存しました。")+"\n想定確率：" + modeLabel(cfg) + detail +
         "\nARIONとnetkeibaの確率は混合しません。";
-      try {
-        win.dispatchEvent(new win.CustomEvent("TheKeibaNarProbabilityConfigChanged", {detail: cfg}));
-      } catch (_) {}
+      try {win.dispatchEvent(new win.CustomEvent("TheKeibaNarProbabilityConfigChanged", {detail: cfg}));} catch (_) {}
+    }
+    ["narProbModeV2","narProbDecisionV2","narProbMinEvV2","narProbMissingV2"].forEach(id=>{
+      q(id).addEventListener("change",()=>saveAndRecalculate("設定変更を保存し、再計算しました。"));
     });
+    q("narProbSaveV2").addEventListener("click",()=>saveAndRecalculate("保存して再計算しました。"));
 
     q("narProbExportV2").addEventListener("click", function(){
       const payload = {
@@ -7042,44 +7054,82 @@ function selectedValues(rec,odds,cfg){
   }
   return{prob:null,ev:null,source:"本体標準"};
 }
+function currentRaceId(win,entries){
+  const candidates=[
+    ...(entries||[]).flatMap(e=>[e?.race_id,e?.raceId,e?.race?.race_id,e?.race?.raceId]),
+    win.currentRaceId,win.currentRaceID,win.selectedRaceId,
+    win.currentRace?.race_id,win.currentRace?.raceId,win.currentRace?.id,
+    win.state?.currentRace?.race_id,win.state?.currentRace?.raceId,
+    win.appState?.currentRace?.race_id,win.appState?.currentRace?.raceId
+  ];
+  try{
+    const doc=win.document;
+    ["raceIdPrimaryInput","raceIdInput","raceIdDirect","bridgeRaceId","narProbRaceIdV3"].forEach(id=>{
+      const el=doc.getElementById(id);if(el)candidates.push(el.value);
+    });
+  }catch(_){}
+  for(const v of candidates){const rid=raceId(v);if(rid)return rid}
+  return"";
+}
 function applyRows(win,entries){
+  const list=entries||[];
   const cfg=getCfg(win);
-  if(cfg.mode==="standard")return entries;
+  const rid=currentRaceId(win,list);
   const data=getData(win);
-  for(const e of entries||[]){
-    const rid=raceId(e.race_id||e.raceId);
-    const race=data.races[rid];
-    if(!race)continue;
-    const rec=race.rows.find(x=>Number(x.horseNo)===Number(e.horseNo));
-    const odds=Number(e.odds??e.oddsWin??0);
-    if(!rec){
-      if(cfg.missingAction==="stop"){e.probWin=0;e.ev=0;e.narProbabilityUnavailable=true}
-      continue;
-    }
-    const s=selectedValues(rec,odds,cfg);
-    e.arionProbability=rec.arionProbability;
-    e.netkeibaProbability=rec.netkeibaProbability;
-    e.arionEv=rec.arionProbability!==null?rec.arionProbability*odds:null;
-    e.netkeibaEv=rec.netkeibaProbability!==null?rec.netkeibaProbability*odds:null;
+  const race=rid?data.races[rid]:null;
+  win.__narProbabilityLastApply={mode:cfg.mode,raceId:rid,registered:!!race,total:list.length,updated:0,missing:0,at:new Date().toISOString()};
+  if(cfg.mode==="standard")return list;
+  for(const e of list){
+    const rowRid=raceId(e.race_id||e.raceId)||rid;
+    const rowRace=data.races[rowRid]||race;
     e.narProbabilityMode=cfg.mode;
     e.narProbabilityDecision=cfg.compareDecision;
-    e.narProbabilitySource=s.source;
-    e.narProbabilityCapturedAt=race.capturedAt;
-    e.narProbabilityUnavailable=false;
-    if(s.displayOnly||s.useStandard)continue;
-    if(s.prob===null){
-      if(cfg.missingAction==="stop"){e.probWin=0;e.ev=0;e.narProbabilityUnavailable=true}
+    e.narProbabilityRaceId=rowRid;
+    if(!rowRace){
+      e.narProbabilitySource="想定確率データ未登録";
+      e.narProbabilityUnavailable=true;
+      win.__narProbabilityLastApply.missing++;
+      if(cfg.missingAction==="stop"){e.probWin=0;e.probability=0;e.ev=0}
       continue;
     }
-    e.probWin=s.prob;
-    e.probability=s.prob;
-    e.ev=Number((s.ev??(s.prob*odds)).toFixed(3));
-    if(s.both&&e.ev<Number(cfg.minEv||1)){
-      e.ev=0;
-      e.narBothEvRejected=true;
+    const no=horseNo(e);
+    const rec=(rowRace.rows||[]).find(x=>Number(x.horseNo)===no);
+    const odds=Number(e.odds??e.oddsWin??e.winOdds??0);
+    if(!rec){
+      e.narProbabilitySource="馬番照合失敗";
+      e.narProbabilityUnavailable=true;
+      win.__narProbabilityLastApply.missing++;
+      if(cfg.missingAction==="stop"){e.probWin=0;e.probability=0;e.ev=0}
+      continue;
+    }
+    const sel=selectedValues(rec,odds,cfg);
+    e.standardProbWin=Number(e.probWin??e.probability??0);
+    e.standardEv=Number(e.ev??0);
+    e.arionProbability=rec.arionProbability;
+    e.netkeibaProbability=rec.netkeibaProbability;
+    e.arionEv=rec.arionProbability!==null?Number((rec.arionProbability*odds).toFixed(3)):null;
+    e.netkeibaEv=rec.netkeibaProbability!==null?Number((rec.netkeibaProbability*odds).toFixed(3)):null;
+    e.narProbabilitySource=sel.source;
+    e.narProbabilityCapturedAt=rowRace.capturedAt;
+    e.narProbabilityUnavailable=false;
+    if(sel.displayOnly||sel.useStandard){win.__narProbabilityLastApply.updated++;continue}
+    if(sel.prob===null){
+      e.narProbabilityUnavailable=true;
+      win.__narProbabilityLastApply.missing++;
+      if(cfg.missingAction==="stop"){e.probWin=0;e.probability=0;e.ev=0}
+      continue;
+    }
+    e.probWin=sel.prob;
+    e.probability=sel.prob;
+    e.ev=Number((sel.ev??(sel.prob*odds)).toFixed(3));
+    e.adoptedProbability=sel.prob;
+    e.adoptedEv=e.ev;
+    if(sel.both&&e.ev<Number(cfg.minEv||1)){
+      e.ev=0;e.adoptedEv=0;e.narBothEvRejected=true;
     }else e.narBothEvRejected=false;
+    win.__narProbabilityLastApply.updated++;
   }
-  return entries;
+  return list;
 }
 function patchLogic(win){
   if(!win||win[PATCH_FLAG])return false;
@@ -7198,8 +7248,10 @@ function addSimBadge(win,doc){
     box.style.marginBottom="10px";
     tab.insertBefore(box,tab.firstChild);
   }
-  const cfg=getCfg(win),count=Object.keys(getData(win).races||{}).length;
-  box.innerHTML=`<strong>想定確率：${modeLabel(cfg)}</strong><br><small>登録済み比較データ ${count}レース。SIM候補生成時に自動適用します。ARIONとnetkeibaは混合しません。</small>`;
+  const cfg=getCfg(win),data=getData(win),count=Object.keys(data.races||{}).length;
+  const a=win.__narProbabilityLastApply||{};
+  const state=cfg.mode==="standard"?"本体標準を使用":(!a.raceId?"race_id未特定":(!a.registered?"対象データ未登録":`反映${a.updated||0}頭／不足${a.missing||0}頭`));
+  box.innerHTML=`<strong>想定確率：${modeLabel(cfg)}</strong><br><small>判定状態：${state}　race_id：${a.raceId||"—"}<br>登録済み比較データ ${count}レース。ARIONとnetkeibaは混合しません。</small>`;
 }
 function install(){
   const frame=document.getElementById(FRAME_ID);
