@@ -15,7 +15,7 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="thekeiba-build" content="v1.2.42-full-integrated-onefile-jra-range-fix-profit-v22-embed">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.46</title>
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.48</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.46 NAR想定確率 期間横断SIM実判定修正版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.48 NAR想定確率 ソース完全切替修正版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -7698,5 +7698,316 @@ setInterval(install,2500);
 })();
 </script>
 
+<script id="narProbabilityTrueCorePatchV6">
+(function(){
+'use strict';
+const FLAG='__narProbabilityTrueCoreV6';
+function installCore(w,label){
+  if(!w||w[FLAG]||typeof w.buildSimulationCandidate!=='function'||typeof w.getByIndex!=='function')return false;
+  const original=w.buildSimulationCandidate;
+  const num=(v,d=0)=>{const x=Number(v);return Number.isFinite(x)?x:d};
+  const raceId=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
+  const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.num??e.number),0);
+  const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
+  function config(){try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}}
+  function data(){try{const d=JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityDataV2')||'{"races":{}}');d.races=d.races||{};return d}catch(_){return{races:{}}}}
+  function sourceOf(c){if(c.mode==='arion')return'arion';if(c.mode==='netkeiba')return'netkeiba';if(c.mode==='compare')return c.compareDecision||'none';return'standard'}
+  function probability(rec,source){if(!rec)return NaN;if(source==='arion')return num(rec.arionProbability,NaN);if(source==='netkeiba')return num(rec.netkeibaProbability,NaN);return NaN}
+  async function build(race,result,c){
+    const C=config(),source=sourceOf(C);
+    if(source==='standard')return original.call(this,race,result,c);
+    let entries=await w.getByIndex('entries','race_id',race.race_id);
+    entries=Array.isArray(entries)?entries:[];
+    if(typeof w.recalcEntryScores==='function')w.recalcEntryScores(entries);
+    if(source==='none')return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,reason:'比較のみ'}};
+    const id=raceId(race.race_id||race.raceId||race.id),snapshot=data().races[id];
+    if(!snapshot||!Array.isArray(snapshot.rows))return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId:id,reason:'スナップショット未登録'}};
+    const map=new Map(snapshot.rows.map(r=>[num(r.horseNo??r.horse_no??r.num,0),r]));
+    let updated=0,missing=0;
+    for(const e of entries){
+      const rec=map.get(horseNo(e)),odds=oddsOf(e),pa=probability(rec,'arion'),pn=probability(rec,'netkeiba');
+      e.arionProbability=Number.isFinite(pa)?pa:null;e.netkeibaProbability=Number.isFinite(pn)?pn:null;
+      e.arionEv=Number.isFinite(pa)&&odds>0?pa*odds:null;e.netkeibaEv=Number.isFinite(pn)&&odds>0?pn*odds:null;
+      let p=NaN;
+      if(source==='both'){
+        const threshold=num(C.minEv,1),ok=Number.isFinite(e.arionEv)&&Number.isFinite(e.netkeibaEv)&&e.arionEv>=threshold&&e.netkeibaEv>=threshold;
+        if(ok)p=Math.min(pa,pn);
+      }else p=probability(rec,source);
+      if(!Number.isFinite(p)||p<=0||odds<=0){e.narProbabilityUnavailable=true;e.ev=0;e.probWin=0;e.__narDecisionScore=-Infinity;missing++;continue}
+      e.narProbabilityUnavailable=false;e.narProbabilityMode=C.mode;e.narProbabilityDecision=C.compareDecision;e.narProbabilitySource=source;e.narProbabilityCapturedAt=snapshot.capturedAt||'';
+      e.probWin=p;e.prob=p;e.winProbability=p;e.ev=Number((p*odds).toFixed(6));e.expectedValue=e.ev;
+      // 外部確率選択時の候補順位を本体AIから完全分離する。
+      e.__narDecisionScore=e.ev*1000+p*100;
+      updated++;
+    }
+    if(updated===0||(missing>0&&C.missingAction==='stop'))return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId:id,updated,missing,reason:updated===0?'適用データなし':'不足・照合失敗'}};
+    const qualifies=e=>!e.narProbabilityUnavailable&&num(e.ev)>=num(c.minEv)&&num(e.odds)>=num(c.minOdds)&&num(e.odds)<=num(c.maxOdds);
+    let candidateEntries=entries.filter(qualifies);
+    // 重要：ARION/netkeiba選択時は本体AI優先を使わず、採用EVで必ず並べ直す。
+    candidateEntries.sort((a,b)=>num(b.__narDecisionScore,-Infinity)-num(a.__narDecisionScore,-Infinity)||horseNo(a)-horseNo(b));
+    candidateEntries=candidateEntries.slice(0,Math.max(1,num(c.topN,3)));
+    let candidateTickets=w.generateTickets(c.ticketType,candidateEntries,Math.max(1,num(c.maxTickets,3)));
+    candidateTickets=(candidateTickets||[]).map(t=>{
+      const nums=Array.isArray(t.horses)&&t.horses.length?t.horses:(Array.isArray(t.frames)?t.frames:[]);
+      const selected=candidateEntries.filter(e=>nums.includes(t.ticketType==='bracketQuinella'?num(e.frameNo):horseNo(e)));
+      const externalScore=selected.length?selected.reduce((s,e)=>s+num(e.__narDecisionScore),0)/selected.length:0;
+      return Object.assign({},t,{score:externalScore,narProbabilitySource:source});
+    }).sort((a,b)=>num(b.score)-num(a.score)).slice(0,Math.max(1,num(c.maxTickets,3)));
+    const rankScore=candidateEntries.length?Math.max(...candidateEntries.map(e=>num(e.ev))):-1;
+    return{race,result,entries,candidateEntries,candidateTickets,purchaseTickets:[],rankScore,narProbabilityBlocked:false,narProbabilityStatus:{mode:C.mode,source,raceId:id,updated,missing,capturedAt:snapshot.capturedAt||''}};
+  }
+  build.__narProbabilityTrueCoreV6=true;build.__original=original;
+  w.buildSimulationCandidate=build;try{w.eval('buildSimulationCandidate = window.buildSimulationCandidate')}catch(_){ }
+  // 設定変更後の古い集計を無効化する。
+  try{w.addEventListener('storage',e=>{if(e.key==='TheKeibaNarProbabilityConfigV2'&&w.state){w.state.simResult=[];}})}catch(_){ }
+  w[FLAG]=true;console.log('[NAR Probability TrueCore V6] installed:',label);return true;
+}
+function addNotice(doc){try{const host=doc.getElementById('view-simulation')||doc.getElementById('tab-simulation');if(!host||doc.getElementById('narProbTrueCoreNoticeV6'))return;const box=doc.createElement('div');box.id='narProbTrueCoreNoticeV6';box.className='notice';box.style.marginBottom='10px';const refresh=()=>{let c={};try{c=JSON.parse(localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}')}catch(_){}const s=c.mode==='compare'?(c.compareDecision||'none'):(c.mode||'standard');box.innerHTML='<strong>想定確率・実コア判定 V6</strong><br><small>判定ソース：'+s+'。外部確率時は本体AI順位を使用せず、採用確率×実オッズのEVで候補と最大3点を再生成します。</small>'};refresh();host.insertBefore(box,host.firstChild);setInterval(refresh,1200)}catch(_){}}
+function installAll(){installCore(window,'parent');addNotice(document);const f=document.getElementById('fullEmuFrame');if(f){try{installCore(f.contentWindow,'iframe');addNotice(f.contentDocument||f.contentWindow.document)}catch(_){}}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installAll,{once:true});else installAll();
+const f=document.getElementById('fullEmuFrame');if(f)f.addEventListener('load',()=>[100,500,1500,3500].forEach(ms=>setTimeout(installAll,ms)));
+setInterval(installAll,2000);
+})();
+</script>
+
+
+<script id="narProbabilitySourceIsolationPatchV7">
+(function(){
+'use strict';
+const FRAME_ID='fullEmuFrame';
+const FLAG='__narProbabilitySourceIsolationV7';
+const CFG_KEY='TheKeibaNarProbabilityConfigV2';
+const DATA_KEY='TheKeibaNarProbabilityDataV2';
+const LAST_KEY='TheKeibaNarProbabilityLastRunV7';
+
+function installCore(w,doc,label){
+  if(!w||w[FLAG]||typeof w.recalcEntryScores!=='function')return false;
+
+  const currentRecalc=w.recalcEntryScores;
+  let coreRecalc=currentRecalc;
+  const seen=new Set();
+  while(coreRecalc&&typeof coreRecalc.__original==='function'&&!seen.has(coreRecalc.__original)){
+    seen.add(coreRecalc);
+    coreRecalc=coreRecalc.__original;
+  }
+  if(typeof coreRecalc!=='function')coreRecalc=currentRecalc;
+
+  const num=(v,d=0)=>{const x=Number(v);return Number.isFinite(x)?x:d};
+  const nullable=v=>{const x=Number(v);return Number.isFinite(x)?x:null};
+  const raceId=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
+  const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.horseNumber??e.num??e.number??e['馬番']),0);
+  const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
+
+  function config(){
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
+    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
+  }
+  function data(){
+    try{const d=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');d.races=d.races||{};return d}
+    catch(_){return{races:{}}}
+  }
+  function sourceOf(c){
+    if(c.mode==='arion')return'arion';
+    if(c.mode==='netkeiba')return'netkeiba';
+    if(c.mode==='compare')return c.compareDecision||'none';
+    return'standard';
+  }
+  function sourceLabel(s){
+    return({standard:'本体エミュ標準',arion:'ARION AI単',netkeiba:'netkeiba AI予想オッズ',both:'両方EV以上',none:'比較のみ'})[s]||s;
+  }
+  function signature(){const c=config(),s=sourceOf(c);return JSON.stringify({mode:c.mode,decision:c.compareDecision,source:s,minEv:num(c.minEv,1),missing:c.missingAction||'stop'})}
+  function probability(rec,source){
+    if(!rec)return null;
+    if(source==='arion')return nullable(rec.arionProbability);
+    if(source==='netkeiba')return nullable(rec.netkeibaProbability);
+    return null;
+  }
+  function restoreOne(e){
+    const p=nullable(e.standardProbWin),ev=nullable(e.standardEv),ai=nullable(e.standardAi);
+    if(p!==null){e.probWin=p;e.probability=p;e.prob=p;e.winProbability=p}
+    if(ev!==null){e.ev=ev;e.expectedValue=ev}
+    if(ai!==null)e.ai=ai;
+    e.narProbabilityUnavailable=false;
+    e.narProbabilityFallback=false;
+    e.narBothEvRejected=false;
+    delete e.__narDecisionScore;
+  }
+  function ensureStandard(entries){
+    const list=Array.isArray(entries)?entries:[];
+    const fresh=[];
+    for(const e of list){
+      if(nullable(e.standardProbWin)!==null&&nullable(e.standardEv)!==null){
+        if(nullable(e.standardAi)===null)e.standardAi=num(e.ai,50);
+        restoreOne(e);
+      }else fresh.push(e);
+    }
+    if(fresh.length){
+      for(const e of fresh){
+        // 旧外部確率が残っていて標準値が未保存の場合は、市場・人気・AIから標準値を再構成する。
+        if(e.narProbabilityMode&&e.narProbabilityMode!=='standard'){
+          e.probWin=0;e.probability=0;e.prob=0;e.winProbability=0;e.ev=0;
+        }
+      }
+      try{coreRecalc.call(w,fresh)}catch(err){console.warn('[NAR Probability V7] standard baseline rebuild',err)}
+      for(const e of fresh){
+        e.standardProbWin=num(e.probWin??e.probability,0);
+        e.standardEv=num(e.ev,0);
+        e.standardAi=num(e.ai,50);
+        restoreOne(e);
+      }
+    }
+    return list;
+  }
+  function rowRaceId(e,fallback){return raceId(e&&(e.race_id||e.raceId||e.race?.race_id||e.race?.raceId))||fallback}
+  function currentRaceId(entries){
+    for(const e of entries||[]){const id=rowRaceId(e,'');if(id)return id}
+    const candidates=[w.currentRaceId,w.currentRaceID,w.selectedRaceId,w.currentRace?.race_id,w.currentRace?.raceId];
+    try{['raceIdPrimaryInput','raceIdInput','raceIdDirect','bridgeRaceId','narProbRaceIdV3'].forEach(id=>candidates.push(doc?.getElementById(id)?.value))}catch(_){}
+    for(const v of candidates){const id=raceId(v);if(id)return id}
+    return'';
+  }
+  function fixedApply(entries){
+    const list=ensureStandard(entries);
+    const C=config(),source=sourceOf(C),D=data(),fallbackRid=currentRaceId(list);
+    const stat={mode:C.mode,decision:C.compareDecision,source,raceId:fallbackRid,total:list.length,registered:0,updated:0,missing:0,fallback:0,rejected:0,at:new Date().toISOString()};
+
+    if(source==='standard'){
+      for(const e of list){restoreOne(e);e.narProbabilityMode='standard';e.narProbabilityDecision=C.compareDecision;e.narProbabilitySource='本体エミュ標準'}
+      stat.updated=list.length;stat.registered=list.length?1:0;w.__narProbabilityLastApply=stat;return list;
+    }
+    if(source==='none'){
+      for(const e of list){restoreOne(e);e.narProbabilityMode=C.mode;e.narProbabilityDecision=C.compareDecision;e.narProbabilitySource='比較のみ';e.narProbabilityDisplayOnly=true}
+      stat.updated=list.length;w.__narProbabilityLastApply=stat;return list;
+    }
+
+    for(const e of list){
+      restoreOne(e);
+      const id=rowRaceId(e,fallbackRid),R=D.races[id],rec=R&&Array.isArray(R.rows)?R.rows.find(x=>horseNo(x)===horseNo(e)):null;
+      if(R)stat.registered=1;
+      const odds=oddsOf(e),pa=probability(rec,'arion'),pn=probability(rec,'netkeiba');
+      e.arionProbability=pa;e.netkeibaProbability=pn;
+      e.arionEv=pa!==null&&odds>0?Number((pa*odds).toFixed(6)):null;
+      e.netkeibaEv=pn!==null&&odds>0?Number((pn*odds).toFixed(6)):null;
+      let p=null,missingData=false,rejected=false;
+      if(source==='both'){
+        missingData=pa===null||pn===null||odds<=0;
+        if(!missingData){
+          const ok=e.arionEv>=num(C.minEv,1)&&e.netkeibaEv>=num(C.minEv,1);
+          if(ok)p=Math.min(pa,pn);else rejected=true;
+        }
+      }else{
+        p=probability(rec,source);
+        missingData=p===null||odds<=0;
+      }
+
+      e.narProbabilityMode=C.mode;e.narProbabilityDecision=C.compareDecision;e.narProbabilityRaceId=id;
+      e.narProbabilityCapturedAt=R?.capturedAt||'';
+      if(rejected){
+        e.narProbabilityUnavailable=true;e.narBothEvRejected=true;e.narProbabilitySource='両方EV条件未達';
+        e.probWin=0;e.probability=0;e.prob=0;e.winProbability=0;e.ev=0;e.expectedValue=0;e.__narDecisionScore=-Infinity;
+        stat.rejected++;continue;
+      }
+      if(missingData||p===null||p<=0){
+        stat.missing++;
+        if(C.missingAction==='standard'){
+          restoreOne(e);e.narProbabilityFallback=true;e.narProbabilitySource=sourceLabel(source)+'不足→本体標準';stat.fallback++;stat.updated++;
+        }else{
+          e.narProbabilityUnavailable=true;e.narProbabilitySource=!R?'想定確率データ未登録':'馬番・確率照合失敗';
+          e.probWin=0;e.probability=0;e.prob=0;e.winProbability=0;e.ev=0;e.expectedValue=0;e.__narDecisionScore=-Infinity;
+        }
+        continue;
+      }
+      const ev=Number((p*odds).toFixed(6));
+      e.narProbabilityUnavailable=false;e.narProbabilityFallback=false;e.narProbabilitySource=sourceLabel(source);
+      e.probWin=p;e.probability=p;e.prob=p;e.winProbability=p;e.ev=ev;e.expectedValue=ev;e.adoptedProbability=p;e.adoptedEv=ev;
+      e.__narDecisionScore=ev*1000+p*100;
+      stat.updated++;
+    }
+    w.__narProbabilityLastApply=stat;
+    return list;
+  }
+
+  function stableRecalc(entries){ensureStandard(entries);return fixedApply(entries)}
+  stableRecalc.__original=coreRecalc;
+  stableRecalc.__narProbabilitySourceIsolationV7=true;
+  w.recalcEntryScores=stableRecalc;
+  try{w.eval('recalcEntryScores = window.recalcEntryScores')}catch(_){}
+  w.TheKeibaNarProbability=Object.assign(w.TheKeibaNarProbability||{},
+    {getConfig:config,getData:data,applyEntries:fixedApply,restoreStandard:ensureStandard,sourceOf:()=>sourceOf(config())});
+
+  function zeroSummary(){return{raceCount:0,boughtCount:0,candidateHits:0,purchaseHits:0,missHits:0,totalBet:0,totalPay:0,profit:0,roi:0,initialCapital:0,finalCapital:0,capitalReturn:0,maxDrawdown:0,maxDrawdownPercent:0}}
+  function invalidate(reason){
+    w.__narProbabilitySimulationStale=true;
+    try{w.eval('try{state.simResult=[]}catch(_){}')}catch(_){}
+    try{if(typeof w.renderSimulation==='function')w.renderSimulation(zeroSummary())}catch(_){}
+    try{if(typeof w.setSimSyncStatus==='function')w.setSimSyncStatus('想定確率ソースを変更しました。前回のSIM結果を無効化しました。\n'+reason+'\n期間横断SIMをもう一度実行してください。')}catch(_){}
+    updateNotice();
+  }
+
+  let notice=null;
+  function readLast(){try{return JSON.parse(w.localStorage.getItem(LAST_KEY)||'null')}catch(_){return null}}
+  function updateNotice(){
+    if(!doc)return;
+    const host=doc.getElementById('tab-simulation')||doc.getElementById('view-simulation');
+    if(!host)return;
+    if(!notice){notice=doc.getElementById('narProbSourceIsolationNoticeV7');if(!notice){notice=doc.createElement('div');notice.id='narProbSourceIsolationNoticeV7';notice.className='notice';notice.style.marginBottom='10px';host.insertBefore(notice,host.firstChild)}}
+    const C=config(),s=sourceOf(C),last=readLast(),stale=!!w.__narProbabilitySimulationStale||(last&&last.signature!==signature());
+    notice.style.borderLeftColor=stale?'var(--warn)':'var(--good)';
+    notice.innerHTML='<strong>想定確率ソース完全切替 V7</strong><br><small>現在：'+sourceLabel(s)+'／直近SIM：'+(last?sourceLabel(last.source):'未実行')+'。'+(stale?'設定変更後の旧結果は消去済みです。SIMを再実行してください。':'表示中の結果は現在のソースで再計算済みです。')+'</small>';
+  }
+
+  try{w.addEventListener('TheKeibaNarProbabilityConfigChanged',ev=>{
+    const c=ev?.detail||config(),s=sourceOf(c);invalidate('現在の判定：'+sourceLabel(s));
+    setTimeout(async()=>{try{if(typeof w.getAll==='function'&&typeof w.putMany==='function'){const entries=await w.getAll('entries');fixedApply(entries);if(entries.length)await w.putMany('entries',entries)}}catch(err){console.warn('[NAR Probability V7] config repair',err)}},0);
+  })}catch(_){}
+  try{w.addEventListener('storage',ev=>{if(ev.key===CFG_KEY)invalidate('別タブで想定確率設定が変更されました。')})}catch(_){}
+
+  const oldRun=w.runSimulationCore;
+  if(typeof oldRun==='function'&&!oldRun.__narProbabilitySourceIsolationV7){
+    const wrappedRun=async function(){
+      const C=config(),s=sourceOf(C),sig=signature();
+      const result=await oldRun.apply(this,arguments);
+      if(result!==null&&result!==undefined){
+        const rec={signature:sig,source:s,mode:C.mode,decision:C.compareDecision,completedAt:new Date().toISOString()};
+        try{w.localStorage.setItem(LAST_KEY,JSON.stringify(rec))}catch(_){}
+        w.__narProbabilitySimulationStale=false;
+        try{if(typeof w.setSimSyncStatus==='function')w.setSimSyncStatus('期間横断SIM完了\n想定確率：'+sourceLabel(s)+'\n設定を変更した場合は旧結果を自動消去します。')}catch(_){}
+        updateNotice();
+      }
+      return result;
+    };
+    wrappedRun.__narProbabilitySourceIsolationV7=true;
+    wrappedRun.__original=oldRun;
+    w.runSimulationCore=wrappedRun;
+    try{w.eval('runSimulationCore = window.runSimulationCore')}catch(_){}
+  }
+
+  // 既存DBの標準値を一度だけ固定し、以後のソース切替で混入させない。
+  setTimeout(async()=>{
+    try{
+      if(typeof w.getAll==='function'&&typeof w.putMany==='function'){
+        const entries=await w.getAll('entries');fixedApply(entries);if(entries.length)await w.putMany('entries',entries);
+      }
+    }catch(err){console.warn('[NAR Probability V7] initial repair',err)}
+  },300);
+
+  w[FLAG]=true;
+  updateNotice();
+  setInterval(updateNotice,1500);
+  console.log('[NAR Probability SourceIsolation V7] installed:',label);
+  return true;
+}
+
+function installAll(){
+  installCore(window,document,'parent');
+  const f=document.getElementById(FRAME_ID);
+  if(f){try{installCore(f.contentWindow,f.contentDocument||f.contentWindow.document,'iframe')}catch(_){}}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installAll,{once:true});else installAll();
+const frame=document.getElementById(FRAME_ID);if(frame)frame.addEventListener('load',()=>[100,500,1500,3500,7000].forEach(ms=>setTimeout(installAll,ms)));
+setInterval(installAll,2500);
+})();
+
+</script>
 </body>
 </html>
