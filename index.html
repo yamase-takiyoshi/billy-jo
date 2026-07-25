@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.52-nar-probability-unified-core-direct-v8-display-repair">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.52</title>
+<meta name="thekeiba-build" content="v1.2.53-nar-probability-all-race-diagnostics-v8">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.53</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.52 NAR想定確率 コア直結・表示完全修復版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.53 NAR想定確率 全レース見送り診断修正版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -8014,5 +8014,335 @@ setInterval(installAll,2500);
 
 <!-- v1.2.51: V8を埋込HTML途中の合成HTML文字列ではなく、実ドキュメント末尾へ安全挿入。CSS崩れ・\n露出・下方ずれを修復。iPadのsrcdoc→公開URL切替も明示クリア。 -->
 <!-- v1.2.52: 埋込HTMLをUTF-8 Base64化し、外側scriptが内側の</script>で途中終了するHTMLパーサ問題を根本修復。 -->
+
+<script id="narProbabilityDiagnosticsPatchV8">
+(function(){
+'use strict';
+const FRAME_ID='fullEmuFrame';
+const CFG_KEY='TheKeibaNarProbabilityConfigV2';
+const DATA_KEY='TheKeibaNarProbabilityDataV2';
+const FLAG='__narProbabilityDiagnosticsV8';
+const DIAG_KEY='TheKeibaNarProbabilityDiagnosticsV8';
+
+function installCore(w,doc,label){
+  if(!w||w[FLAG]||typeof w.buildSimulationCandidate!=='function')return false;
+
+  const oldBuild=w.buildSimulationCandidate;
+  const num=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d};
+  const nullable=v=>{const n=Number(v);return Number.isFinite(n)?n:null};
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const ridOf=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
+  const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.horseNumber??e.num??e.number??e['馬番']),0);
+  const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
+  const dateText=r=>String(r?.date||r?.raceDate||'');
+  const placeText=r=>String(r?.placeName||r?.place||'');
+  const raceNoText=r=>num(r?.raceNo??r?.race_no??r?.number,0);
+
+  function config(){
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
+    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
+  }
+  function data(){
+    try{const d=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');d.races=d.races||{};return d}
+    catch(_){return{races:{}}}
+  }
+  function sourceOf(c){
+    if(c.mode==='arion')return'arion';
+    if(c.mode==='netkeiba')return'netkeiba';
+    if(c.mode==='compare')return c.compareDecision||'none';
+    return'standard';
+  }
+  function sourceLabel(s){
+    return({standard:'本体エミュ標準',arion:'ARION AI単',netkeiba:'netkeiba AI予想オッズ',both:'ARION・netkeiba両方',none:'比較のみ'})[s]||s;
+  }
+  function probability(rec,source){
+    if(!rec)return null;
+    if(source==='arion')return nullable(rec.arionProbability);
+    if(source==='netkeiba')return nullable(rec.netkeibaProbability);
+    return null;
+  }
+  function saveDiagnostics(){
+    try{
+      const arr=Object.values(w.__narProbabilityDiagnosticsV8||{}).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.place).localeCompare(String(b.place))||a.raceNo-b.raceNo);
+      w.localStorage.setItem(DIAG_KEY,JSON.stringify({savedAt:new Date().toISOString(),rows:arr.slice(-1000)}));
+    }catch(_){ }
+  }
+  function diagnosisStore(){
+    if(!w.__narProbabilityDiagnosticsV8)w.__narProbabilityDiagnosticsV8={};
+    return w.__narProbabilityDiagnosticsV8;
+  }
+  function diagnose(race,item,c,startedAt){
+    const entries=Array.isArray(item?.entries)?item.entries:[];
+    const available=entries.filter(e=>!e.narProbabilityUnavailable&&oddsOf(e)>0);
+    const evs=available.map(e=>num(e.ev,NaN)).filter(Number.isFinite);
+    const maxEv=evs.length?Math.max(...evs):0;
+    const avgEv=evs.length?evs.reduce((s,x)=>s+x,0)/evs.length:0;
+    const minEv=num(c?.minEv,1);
+    const minOdds=num(c?.minOdds,0);
+    const maxOdds=num(c?.maxOdds,999999);
+    const evQualified=available.filter(e=>num(e.ev)>=minEv).length;
+    const oddsQualified=available.filter(e=>oddsOf(e)>=minOdds&&oddsOf(e)<=maxOdds).length;
+    const candidateCount=Array.isArray(item?.candidateEntries)?item.candidateEntries.length:0;
+    const ticketCount=Array.isArray(item?.candidateTickets)?item.candidateTickets.length:0;
+    const status=item?.narProbabilityStatus||{};
+    let reason='候補生成';
+    let stage='候補生成';
+    if(item?.narProbabilityBlocked){
+      reason=status.reason||'想定確率判定で停止';stage='想定確率';
+    }else if(!entries.length){
+      reason='出馬表未取得';stage='データ取得';
+    }else if(!available.length){
+      reason='想定確率・オッズ未取得';stage='想定確率';
+    }else if(candidateCount===0){
+      if(maxEv<minEv){reason='EV不足';stage='EV判定'}
+      else if(oddsQualified===0){reason='オッズ範囲外';stage='オッズ判定'}
+      else{reason='候補条件不一致';stage='候補判定'}
+    }else if(ticketCount===0){
+      reason='買い目生成不可';stage='買い目生成';
+    }
+    const rid=ridOf(race?.race_id||race?.raceId||race?.id)||('unknown-'+Date.now());
+    const record={
+      raceId:rid,date:dateText(race),place:placeText(race),raceNo:raceNoText(race),
+      mode:config().mode,source:sourceOf(config()),stage,reason,
+      entries:entries.length,available:available.length,updated:num(status.updated,available.length),missing:num(status.missing,entries.filter(e=>e.narProbabilityUnavailable).length),
+      maxEv:Number(maxEv.toFixed(3)),avgEv:Number(avgEv.toFixed(3)),minEv,evQualified,oddsQualified,
+      candidates:candidateCount,tickets:ticketCount,purchases:0,
+      partialData:!!item?.narProbabilityPartialData,strictBlocked:!!item?.narProbabilityStrictBlocked,
+      elapsedMs:Math.max(0,Math.round(performance.now()-startedAt)),at:new Date().toISOString()
+    };
+    diagnosisStore()[rid]=record;
+    saveDiagnostics();
+    renderPanel();
+  }
+
+  async function buildExternalFixed(race,result,c,C,source){
+    let entries=[];
+    if(typeof w.getByIndex==='function')entries=await w.getByIndex('entries','race_id',race.race_id);
+    entries=Array.isArray(entries)?entries:[];
+    if(typeof w.recalcEntryScores==='function')w.recalcEntryScores(entries);
+    if(source==='none')return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,reason:'比較のみ・購入判定なし',updated:entries.length,missing:0}};
+
+    const id=ridOf(race?.race_id||race?.raceId||race?.id);
+    const snapshot=data().races[id];
+    if(!snapshot||!Array.isArray(snapshot.rows)){
+      return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId:id,reason:'想定確率スナップショット未登録',updated:0,missing:entries.length}};
+    }
+
+    const map=new Map(snapshot.rows.map(r=>[num(r.horseNo??r.horse_no??r.num,0),r]));
+    let updated=0,missing=0,fallback=0,rejected=0;
+    for(const e of entries){
+      const rec=map.get(horseNo(e));
+      const odds=oddsOf(e);
+      const pa=probability(rec,'arion');
+      const pn=probability(rec,'netkeiba');
+      e.arionProbability=pa;e.netkeibaProbability=pn;
+      e.arionEv=pa!==null&&odds>0?Number((pa*odds).toFixed(6)):null;
+      e.netkeibaEv=pn!==null&&odds>0?Number((pn*odds).toFixed(6)):null;
+      let p=null;
+      let isMissing=false;
+      let isRejected=false;
+      if(source==='both'){
+        isMissing=pa===null||pn===null||odds<=0;
+        if(!isMissing){
+          const threshold=num(C.minEv,1);
+          if(e.arionEv>=threshold&&e.netkeibaEv>=threshold)p=Math.min(pa,pn);
+          else isRejected=true;
+        }
+      }else{
+        p=probability(rec,source);
+        isMissing=p===null||odds<=0;
+      }
+
+      e.narProbabilityMode=C.mode;
+      e.narProbabilityDecision=C.compareDecision;
+      e.narProbabilityRaceId=id;
+      e.narProbabilityCapturedAt=snapshot.capturedAt||'';
+
+      if(isRejected){
+        e.narProbabilityUnavailable=true;e.narBothEvRejected=true;e.narProbabilitySource='両方EV条件未達';
+        e.probWin=0;e.probability=0;e.prob=0;e.winProbability=0;e.ev=0;e.expectedValue=0;e.__narDecisionScore=-Infinity;
+        rejected++;continue;
+      }
+      if(isMissing||p===null||p<=0){
+        missing++;
+        if(C.missingAction==='standard'){
+          e.narProbabilityUnavailable=false;e.narProbabilityFallback=true;e.narProbabilitySource=sourceLabel(source)+'不足→本体標準';
+          e.__narDecisionScore=num(e.ev)*1000+num(e.probWin)*100;fallback++;updated++;
+        }else{
+          e.narProbabilityUnavailable=true;e.narProbabilityFallback=false;e.narProbabilitySource=!rec?'馬番・確率照合失敗':'想定確率またはオッズ未取得';
+          e.probWin=0;e.probability=0;e.prob=0;e.winProbability=0;e.ev=0;e.expectedValue=0;e.__narDecisionScore=-Infinity;
+        }
+        continue;
+      }
+      const ev=Number((p*odds).toFixed(6));
+      e.narProbabilityUnavailable=false;e.narProbabilityFallback=false;e.narProbabilitySource=sourceLabel(source);
+      e.probWin=p;e.probability=p;e.prob=p;e.winProbability=p;e.ev=ev;e.expectedValue=ev;e.adoptedProbability=p;e.adoptedEv=ev;
+      e.__narDecisionScore=ev*1000+p*100;
+      updated++;
+    }
+
+    const strict=C.missingAction==='strict';
+    if(updated===0||(strict&&missing>0)){
+      return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStrictBlocked:strict&&missing>0,narProbabilityStatus:{mode:C.mode,source,raceId:id,updated,missing,fallback,rejected,reason:updated===0?'適用できる想定確率なし':'厳格設定：1頭以上のデータ不足'}};
+    }
+
+    const qualifies=e=>!e.narProbabilityUnavailable&&num(e.ev)>=num(c.minEv,1)&&oddsOf(e)>=num(c.minOdds,0)&&oddsOf(e)<=num(c.maxOdds,999999);
+    let candidateEntries=entries.filter(qualifies);
+    candidateEntries.sort((a,b)=>num(b.__narDecisionScore,-Infinity)-num(a.__narDecisionScore,-Infinity)||horseNo(a)-horseNo(b));
+    candidateEntries=candidateEntries.slice(0,Math.max(1,num(c.topN,3)));
+    let candidateTickets=typeof w.generateTickets==='function'?w.generateTickets(c.ticketType,candidateEntries,Math.max(1,num(c.maxTickets,3))):[];
+    candidateTickets=(candidateTickets||[]).map(t=>{
+      const nums=Array.isArray(t.horses)&&t.horses.length?t.horses:(Array.isArray(t.frames)?t.frames:[]);
+      const selected=candidateEntries.filter(e=>nums.includes(t.ticketType==='bracketQuinella'?num(e.frameNo):horseNo(e)));
+      const externalScore=selected.length?selected.reduce((s,e)=>s+num(e.__narDecisionScore),0)/selected.length:0;
+      return Object.assign({},t,{score:externalScore,narProbabilitySource:source});
+    }).sort((a,b)=>num(b.score)-num(a.score)).slice(0,Math.max(1,num(c.maxTickets,3)));
+    const rankScore=candidateEntries.length?Math.max(...candidateEntries.map(e=>num(e.ev))):-1;
+    return{race,result,entries,candidateEntries,candidateTickets,purchaseTickets:[],rankScore,narProbabilityBlocked:false,narProbabilityPartialData:missing>0,narProbabilityStatus:{mode:C.mode,source,raceId:id,updated,missing,fallback,rejected,capturedAt:snapshot.capturedAt||'',reason:missing>0?'不足馬のみ除外して継続':'正常'}};
+  }
+
+  async function fixedBuild(race,result,c){
+    const startedAt=performance.now();
+    const C=config();
+    const source=sourceOf(C);
+    let item;
+    try{
+      if(source==='standard')item=await oldBuild.apply(this,arguments);
+      else item=await buildExternalFixed(race,result,c,C,source);
+      diagnose(race,item,c,startedAt);
+      return item;
+    }catch(err){
+      item={race,result,entries:[],candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,reason:'処理エラー: '+(err?.message||err)}};
+      diagnose(race,item,c,startedAt);
+      throw err;
+    }
+  }
+  fixedBuild.__original=oldBuild;
+  fixedBuild.__narProbabilityDiagnosticsV8=true;
+  w.buildSimulationCandidate=fixedBuild;
+  try{w.eval('buildSimulationCandidate = window.buildSimulationCandidate')}catch(_){ }
+
+  const oldRender=typeof w.renderSimulation==='function'?w.renderSimulation:null;
+  if(oldRender&&!oldRender.__narProbabilityDiagnosticsV8){
+    const wrappedRender=function(){
+      const result=oldRender.apply(this,arguments);
+      try{
+        const rows=Array.isArray(w.state?.simResult)?w.state.simResult:[];
+        const store=diagnosisStore();
+        for(const row of rows){
+          const id=ridOf(row?.race?.race_id||row?.race?.raceId||row?.race?.id);
+          if(!id)continue;
+          const rec=store[id]||{};
+          rec.purchases=Array.isArray(row.purchaseTickets)?row.purchaseTickets.length:0;
+          rec.candidates=Array.isArray(row.candidateTickets)?row.candidateTickets.length:num(rec.candidates,0);
+          if(rec.purchases>0){rec.reason='購入';rec.stage='購入判定'}
+          else if(rec.candidates>0&&rec.reason==='候補生成'){rec.reason=String(row.budgetBlocked||'予算・購入配分で見送り');rec.stage='購入判定'}
+          store[id]=rec;
+        }
+        saveDiagnostics();renderPanel();
+      }catch(_){ }
+      return result;
+    };
+    wrappedRender.__narProbabilityDiagnosticsV8=true;
+    wrappedRender.__original=oldRender;
+    w.renderSimulation=wrappedRender;
+    try{w.eval('renderSimulation = window.renderSimulation')}catch(_){ }
+  }
+
+  function copyText(text){
+    if(w.navigator?.clipboard?.writeText)return w.navigator.clipboard.writeText(text);
+    const ta=doc.createElement('textarea');ta.value=text;doc.body.appendChild(ta);ta.select();doc.execCommand('copy');ta.remove();return Promise.resolve();
+  }
+  function allRows(){
+    const store=diagnosisStore();
+    return Object.values(store).filter(x=>x&&x.raceId).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.place).localeCompare(String(b.place))||num(a.raceNo)-num(b.raceNo));
+  }
+  function reportText(rows){
+    const C=config(),s=sourceOf(C);
+    const lines=['The競馬 NAR想定確率 全レース診断 V8','判定ソース: '+sourceLabel(s),'最低EV: '+num(C.minEv,1),'データ不足時: '+({stop:'不足馬だけ除外・有効0頭で停止',strict:'1頭でも不足ならレース停止',standard:'本体標準へフォールバック'}[C.missingAction]||C.missingAction),''];
+    for(const r of rows)lines.push([r.date,r.place,(r.raceNo||'-')+'R',r.reason,'最大EV '+num(r.maxEv).toFixed(3),'候補 '+num(r.candidates),'購入 '+num(r.purchases),'不足 '+num(r.missing)].join('\t'));
+    return lines.join('\n');
+  }
+  function ensurePanel(){
+    if(!doc||!doc.body)return null;
+    let panel=doc.getElementById('narProbDiagnosticsCardV8');
+    if(panel)return panel;
+    const host=doc.getElementById('view-simulation')||doc.getElementById('tab-sim')||doc.getElementById('tab-simulation');
+    if(!host)return null;
+    const style=doc.createElement('style');
+    style.id='narProbDiagnosticsStyleV8';
+    style.textContent='#narProbDiagnosticsCardV8{border:1px solid rgba(245,158,11,.45)} #narProbDiagnosticsCardV8 .npd-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap} #narProbDiagnosticsCardV8 .npd-kpis{display:grid;grid-template-columns:repeat(6,minmax(90px,1fr));gap:8px;margin:10px 0} #narProbDiagnosticsCardV8 .npd-kpi{padding:9px;border:1px solid var(--line,rgba(148,163,184,.25));border-radius:10px;background:rgba(15,23,42,.12)} #narProbDiagnosticsCardV8 .npd-kpi small{display:block;color:var(--muted);font-size:10px} #narProbDiagnosticsCardV8 .npd-kpi strong{font-size:17px} #narProbDiagnosticsCardV8 .npd-alert{padding:10px;border-radius:9px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28);line-height:1.6;font-size:12px} #narProbDiagnosticsCardV8 table{width:100%;border-collapse:collapse} #narProbDiagnosticsCardV8 th,#narProbDiagnosticsCardV8 td{padding:7px 8px;border-bottom:1px solid var(--line,rgba(148,163,184,.18));font-size:11px;white-space:nowrap} #narProbDiagnosticsCardV8 .npd-table{max-height:430px;overflow:auto;margin-top:10px} @media(max-width:800px){#narProbDiagnosticsCardV8 .npd-kpis{grid-template-columns:repeat(2,minmax(110px,1fr))}}';
+    (doc.head||doc.documentElement).appendChild(style);
+    panel=doc.createElement('div');panel.id='narProbDiagnosticsCardV8';panel.className='card';panel.style.marginTop='12px';
+    panel.innerHTML='<div class="npd-head"><div><h3 style="margin:0">🔍 全レース見送り診断 V8</h3><div class="muted" id="narProbDiagSubV8">判定過程を記録します。</div></div><div class="toolbar"><button class="btn" type="button" id="narProbDiagRefreshV8">診断更新</button><button class="btn" type="button" id="narProbDiagCopyV8">診断コピー</button><button class="btn danger" type="button" id="narProbDiagClearV8">履歴消去</button></div></div><div class="npd-kpis"><div class="npd-kpi"><small>処理R</small><strong id="npdProcessedV8">0</strong></div><div class="npd-kpi"><small>購入R</small><strong id="npdBoughtV8">0</strong></div><div class="npd-kpi"><small>候補あり</small><strong id="npdCandidateV8">0</strong></div><div class="npd-kpi"><small>EV不足</small><strong id="npdEvV8">0</strong></div><div class="npd-kpi"><small>データ不足</small><strong id="npdMissingV8">0</strong></div><div class="npd-kpi"><small>最大EV</small><strong id="npdMaxEvV8">0.000</strong></div></div><div class="npd-alert" id="narProbDiagAlertV8">SIM実行後に診断結果を表示します。</div><div class="npd-table"><table><thead><tr><th>日付</th><th>開催</th><th>R</th><th>段階</th><th>判定・理由</th><th>有効/全頭</th><th>最大EV</th><th>基準EV</th><th>候補</th><th>購入</th><th>不足</th></tr></thead><tbody id="narProbDiagRowsV8"><tr><td colspan="11" class="empty">診断履歴なし</td></tr></tbody></table></div>';
+    const firstCard=host.querySelector('.card');
+    if(firstCard&&firstCard.parentNode===host)host.insertBefore(panel,firstCard.nextSibling);else host.insertBefore(panel,host.firstChild);
+    doc.getElementById('narProbDiagRefreshV8')?.addEventListener('click',renderPanel);
+    doc.getElementById('narProbDiagCopyV8')?.addEventListener('click',async()=>{const rows=allRows();await copyText(reportText(rows));const a=doc.getElementById('narProbDiagAlertV8');if(a)a.textContent='診断レポートをコピーしました。'});
+    doc.getElementById('narProbDiagClearV8')?.addEventListener('click',()=>{w.__narProbabilityDiagnosticsV8={};try{w.localStorage.removeItem(DIAG_KEY)}catch(_){}renderPanel()});
+    return panel;
+  }
+  function renderPanel(){
+    const panel=ensurePanel();if(!panel)return;
+    const rows=allRows();
+    const bought=rows.filter(r=>num(r.purchases)>0).length;
+    const candidate=rows.filter(r=>num(r.candidates)>0).length;
+    const evShort=rows.filter(r=>r.reason==='EV不足').length;
+    const missing=rows.filter(r=>/未登録|未取得|照合|不足|適用できる/.test(String(r.reason))||num(r.missing)>0).length;
+    const maxEv=rows.length?Math.max(...rows.map(r=>num(r.maxEv))):0;
+    const C=config(),s=sourceOf(C);
+    const textMap={stop:'不足馬だけ除外・有効0頭で停止',strict:'1頭でも不足ならレース停止',standard:'本体標準へフォールバック'};
+    const set=(id,text)=>{const el=doc.getElementById(id);if(el)el.textContent=text};
+    set('narProbDiagSubV8','現在：'+sourceLabel(s)+'／最低EV '+num(C.minEv,1).toFixed(2)+'／不足時 '+(textMap[C.missingAction]||C.missingAction));
+    set('npdProcessedV8',rows.length);set('npdBoughtV8',bought);set('npdCandidateV8',candidate);set('npdEvV8',evShort);set('npdMissingV8',missing);set('npdMaxEvV8',maxEv.toFixed(3));
+    const alert=doc.getElementById('narProbDiagAlertV8');
+    if(alert){
+      if(!rows.length)alert.textContent='SIM実行後に、各レースの見送り段階と理由を表示します。';
+      else if(bought===0){
+        const counts={};for(const r of rows)counts[r.reason]=(counts[r.reason]||0)+1;
+        const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+        alert.innerHTML='<strong>⚠ 全レース見送り</strong><br>最多原因：'+esc(top?.[0]||'不明')+' '+num(top?.[1])+'R。データ不足時「候補生成を停止」は、V8では不足馬だけを除外し、有効データが0頭のレースだけ停止します。';
+      }else alert.innerHTML='<strong>診断正常</strong><br>購入 '+bought+'R／候補あり '+candidate+'R。見送り理由は下表で確認できます。';
+    }
+    const tbody=doc.getElementById('narProbDiagRowsV8');
+    if(tbody)tbody.innerHTML=rows.slice(-500).map(r=>'<tr><td>'+esc(r.date||'-')+'</td><td>'+esc(r.place||'-')+'</td><td>'+esc((r.raceNo||'-')+'R')+'</td><td>'+esc(r.stage||'-')+'</td><td>'+esc(r.reason||'-')+(r.partialData?'（不足馬のみ除外）':'')+'</td><td>'+num(r.available)+' / '+num(r.entries)+'</td><td class="'+(num(r.maxEv)>=num(r.minEv,1)?'good':'bad')+'">'+num(r.maxEv).toFixed(3)+'</td><td>'+num(r.minEv,1).toFixed(2)+'</td><td>'+num(r.candidates)+'</td><td>'+num(r.purchases)+'</td><td>'+num(r.missing)+'</td></tr>').join('')||'<tr><td colspan="11" class="empty">診断履歴なし</td></tr>';
+  }
+
+  function upgradeMissingSelect(){
+    if(!doc)return;
+    const el=doc.getElementById('narProbMissingV2');
+    if(!el)return;
+    const stop=Array.from(el.options).find(o=>o.value==='stop');
+    if(stop)stop.textContent='有効データ0頭なら停止（不足馬だけ除外・推奨）';
+    if(!Array.from(el.options).some(o=>o.value==='strict')){
+      const opt=doc.createElement('option');opt.value='strict';opt.textContent='1頭でも不足ならレース全体を停止（厳格）';el.appendChild(opt);
+    }
+    const C=config();el.value=C.missingAction||'stop';
+  }
+
+  w[FLAG]=true;
+  try{
+    const saved=JSON.parse(w.localStorage.getItem(DIAG_KEY)||'null');
+    if(saved&&Array.isArray(saved.rows)){w.__narProbabilityDiagnosticsV8={};for(const r of saved.rows)if(r?.raceId)w.__narProbabilityDiagnosticsV8[r.raceId]=r}
+  }catch(_){ }
+  ensurePanel();upgradeMissingSelect();renderPanel();
+  setInterval(()=>{upgradeMissingSelect();renderPanel()},1800);
+  console.log('[NAR Probability Diagnostics V8] installed:',label);
+  return true;
+}
+
+function installAll(){
+  installCore(window,document,'parent');
+  const frame=document.getElementById(FRAME_ID);
+  if(frame){try{installCore(frame.contentWindow,frame.contentDocument||frame.contentWindow.document,'iframe')}catch(_){ }}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installAll,{once:true});else installAll();
+const frame=document.getElementById(FRAME_ID);
+if(frame)frame.addEventListener('load',()=>[100,500,1500,3500,7000].forEach(ms=>setTimeout(installAll,ms)));
+setInterval(installAll,2500);
+})();
+
+</script>
+<!-- v1.2.53: 全レース見送り診断V8を追加。データ不足時は不足馬のみ除外し、有効データ0頭のレースだけ停止。厳格停止も選択可能。 -->
 </body>
 </html>
