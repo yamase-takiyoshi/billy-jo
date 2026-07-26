@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.59-netkeiba-nar-probability">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.59</title>
+<meta name="thekeiba-build" content="v1.2.60-final-odds-fallback">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.60</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.59 netkeiba地方想定確率統合版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.60 確定オッズ代替対応版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -6699,7 +6699,7 @@ ${e.message}`,"bad");return false}
       mode: "standard",
       compareDecision: "none",
       minEv: 1.00,
-      missingAction: "stop"
+      missingAction: "standard"
     };
   }
 
@@ -6978,7 +6978,7 @@ function horseNo(o){
   return Number(o?.horseNo??o?.horse_no??o?.horseNumber??o?.number??o?.["馬番"]??0);
 }
 function defaultCfg(){
-  return{mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"};
+  return{mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"};
 }
 function getCfg(win){
   return Object.assign(defaultCfg(),safeJson(win.localStorage.getItem(CFG_KEY)||"{}",{}));
@@ -7402,11 +7402,11 @@ function inject(){
     function narConfig(){
       try{
         return Object.assign(
-          {mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"},
+          {mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"},
           JSON.parse(localStorage.getItem("TheKeibaNarProbabilityConfigV2")||"{}")
         );
       }catch(_){
-        return {mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"};
+        return {mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"};
       }
     }
 
@@ -7656,8 +7656,8 @@ function install(){
   const horseNo=e=>num(e&&((e.horseNo??e.horse_no??e.num??e.number)),0);
   const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
   function cfg(){
-    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}
-    catch(_){return {mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}
+    catch(_){return {mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}
   }
   function db(){
     try{const x=JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityDataV2')||'{"races":{}}');x.races=x.races||{};return x}
@@ -7808,7 +7808,7 @@ function installCore(w,label){
   const raceId=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
   const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.num??e.number),0);
   const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
-  function config(){try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}}
+  function config(){try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}}
   function data(){try{const d=JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityDataV2')||'{"races":{}}');d.races=d.races||{};return d}catch(_){return{races:{}}}}
   function sourceOf(c){if(c.mode==='arion')return'arion';if(c.mode==='netkeiba')return'netkeiba';if(c.mode==='compare')return c.compareDecision||'none';return'standard'}
   function probability(rec,source){if(!rec)return NaN;if(source==='arion')return num(rec.arionProbability,NaN);if(source==='netkeiba')return num(rec.netkeibaProbability,NaN);return NaN}
@@ -7904,8 +7904,8 @@ function installCore(w,doc,label){
   const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
 
   function config(){
-    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
-    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
+    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}
   }
   function data(){
     try{const d=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');d.races=d.races||{};return d}
@@ -8228,8 +8228,8 @@ function installCore(w,doc,label){
   const raceNoText=r=>num(r?.raceNo??r?.race_no??r?.number,0);
 
   function config(){
-    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
-    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
+    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}
   }
   function data(){
     try{const d=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');d.races=d.races||{};return d}
@@ -8276,7 +8276,9 @@ function installCore(w,doc,label){
     const status=item?.narProbabilityStatus||{};
     let reason='候補生成';
     let stage='候補生成';
-    if(item?.narProbabilityBlocked){
+    if(item?.usesFinalOddsFallback||status.oddsSource==='final'){
+      reason='確定オッズ代替';stage='オッズ代替';
+    }else if(item?.narProbabilityBlocked){
       reason=status.reason||'想定確率判定で停止';stage='想定確率';
     }else if(!entries.length){
       reason='出馬表未取得';stage='データ取得';
@@ -8296,7 +8298,7 @@ function installCore(w,doc,label){
       entries:entries.length,available:available.length,updated:num(status.updated,available.length),missing:num(status.missing,entries.filter(e=>e.narProbabilityUnavailable).length),
       maxEv:Number(maxEv.toFixed(3)),avgEv:Number(avgEv.toFixed(3)),minEv,evQualified,oddsQualified,
       candidates:candidateCount,tickets:ticketCount,purchases:0,
-      partialData:!!item?.narProbabilityPartialData,strictBlocked:!!item?.narProbabilityStrictBlocked,
+      partialData:!!item?.narProbabilityPartialData,strictBlocked:!!item?.narProbabilityStrictBlocked,finalOddsFallback:!!item?.usesFinalOddsFallback,
       elapsedMs:Math.max(0,Math.round(performance.now()-startedAt)),at:new Date().toISOString()
     };
     diagnosisStore()[rid]=record;
@@ -8317,16 +8319,32 @@ function installCore(w,doc,label){
       try{const got=await AIRARA.ensure(w,race);if(got&&Array.isArray(got.rows)&&got.rows.length)snapshot=got;}catch(_){}
     }
     if(!snapshot||!Array.isArray(snapshot.rows)){
-      if(C.missingAction==='standard'){
-        const base=await oldBuild.call(w,race,result,c);
-        if(base&&typeof base==='object'){
-          base.narProbabilityBlocked=false;
-          base.narProbabilityWholeRaceFallback=true;
-          base.narProbabilityStatus=Object.assign({mode:C.mode,source,raceId:id,updated:0,missing:(entries||[]).length,fallback:(entries||[]).length,reason:'想定確率スナップショット未登録→本体標準で継続'},base.narProbabilityStatus||{});
+      // 過去のnetkeiba想定オッズは残らないため、登録済みの確定単勝オッズを使う
+      // 本体標準ロジックへ自動フォールバックする。0件停止にはしない。
+      const base=await oldBuild.call(w,race,result,c);
+      if(base&&typeof base==='object'){
+        const baseEntries=Array.isArray(base.entries)?base.entries:entries;
+        for(const e of baseEntries){
+          const o=oddsOf(e);
+          if(o>0){
+            e.oddsSource='final';
+            e.oddsSourceLabel='確定オッズ代替';
+            e.usesPostRaceOdds=true;
+          }
         }
-        return base;
+        base.narProbabilityBlocked=false;
+        base.narProbabilityWholeRaceFallback=true;
+        base.usesFinalOddsFallback=true;
+        base.oddsSource='final';
+        base.oddsSourceLabel='確定オッズ代替';
+        base.narProbabilityStatus=Object.assign({
+          mode:C.mode,source,raceId:id,updated:baseEntries.filter(e=>oddsOf(e)>0).length,
+          missing:0,fallback:baseEntries.length,
+          oddsSource:'final',oddsSourceLabel:'確定オッズ代替',usesPostRaceOdds:true,
+          reason:'想定オッズなし→確定オッズ代替で本体標準計算'
+        },base.narProbabilityStatus||{});
       }
-      return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId:id,reason:'想定確率スナップショット未登録',updated:0,missing:entries.length}};
+      return base;
     }
 
     const map=new Map(snapshot.rows.map(r=>[num(r.horseNo??r.horse_no??r.num,0),r]));
@@ -8460,7 +8478,7 @@ function installCore(w,doc,label){
   }
   function reportText(rows){
     const C=config(),s=sourceOf(C);
-    const lines=['The競馬 NAR想定確率 全レース診断 V8','判定ソース: '+sourceLabel(s),'最低EV: '+num(C.minEv,1),'データ不足時: '+({stop:'不足馬だけ除外・有効0頭で停止',strict:'1頭でも不足ならレース停止',standard:'本体標準へフォールバック'}[C.missingAction]||C.missingAction),''];
+    const lines=['The競馬 NAR想定確率 全レース診断 V8','判定ソース: '+sourceLabel(s),'最低EV: '+num(C.minEv,1),'データ不足時: '+({stop:'不足馬だけ除外・有効0頭で停止',strict:'1頭でも不足ならレース停止',standard:'確定オッズ代替で本体標準計算'}[C.missingAction]||C.missingAction),''];
     for(const r of rows)lines.push([r.date,r.place,(r.raceNo||'-')+'R',r.reason,'最大EV '+num(r.maxEv).toFixed(3),'候補 '+num(r.candidates),'購入 '+num(r.purchases),'不足 '+num(r.missing)].join('\t'));
     return lines.join('\n');
   }
@@ -8492,7 +8510,7 @@ function installCore(w,doc,label){
     const missing=rows.filter(r=>/未登録|未取得|照合|不足|適用できる/.test(String(r.reason))||num(r.missing)>0).length;
     const maxEv=rows.length?Math.max(...rows.map(r=>num(r.maxEv))):0;
     const C=config(),s=sourceOf(C);
-    const textMap={stop:'不足馬だけ除外・有効0頭で停止',strict:'1頭でも不足ならレース停止',standard:'本体標準へフォールバック'};
+    const textMap={stop:'不足馬だけ除外・有効0頭で停止',strict:'1頭でも不足ならレース停止',standard:'確定オッズ代替で本体標準計算'};
     const set=(id,text)=>{const el=doc.getElementById(id);if(el)el.textContent=text};
     set('narProbDiagSubV8','現在：'+sourceLabel(s)+'／最低EV '+num(C.minEv,1).toFixed(2)+'／不足時 '+(textMap[C.missingAction]||C.missingAction));
     set('npdProcessedV8',rows.length);set('npdBoughtV8',bought);set('npdCandidateV8',candidate);set('npdEvV8',evShort);set('npdMissingV8',missing);set('npdMaxEvV8',maxEv.toFixed(3));
@@ -8514,14 +8532,23 @@ function installCore(w,doc,label){
     const el=doc.getElementById('narProbMissingV2');
     if(!el)return;
     const stop=Array.from(el.options).find(o=>o.value==='stop');
-    if(stop)stop.textContent='有効データ0頭なら停止（不足馬だけ除外・推奨）';
+    if(stop)stop.textContent='有効データ0頭なら停止（非推奨）';
     if(!Array.from(el.options).some(o=>o.value==='strict')){
       const opt=doc.createElement('option');opt.value='strict';opt.textContent='1頭でも不足ならレース全体を停止（厳格）';el.appendChild(opt);
     }
-    const C=config();el.value=C.missingAction||'stop';
+    const C=config();el.value=C.missingAction||'standard';
   }
 
   w[FLAG]=true;
+  try{
+    const cfgNow=JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}');
+    if(!cfgNow.missingAction||cfgNow.missingAction==='stop'){
+      cfgNow.missingAction='standard';
+      cfgNow.finalOddsFallback=true;
+      cfgNow.finalOddsFallbackMigratedAt=new Date().toISOString();
+      w.localStorage.setItem(CFG_KEY,JSON.stringify(cfgNow));
+    }
+  }catch(_){ }
   try{
     const saved=JSON.parse(w.localStorage.getItem(DIAG_KEY)||'null');
     if(saved&&Array.isArray(saved.rows)){w.__narProbabilityDiagnosticsV8={};for(const r of saved.rows)if(r?.raceId)w.__narProbabilityDiagnosticsV8[r.raceId]=r}
@@ -8750,5 +8777,7 @@ setInterval(installAll,2500);
   setTimeout(buildUi, 1500);
 })();
 </script>
+
+<!-- v1.2.60: 過去NARの想定オッズ欠落時、確定単勝オッズ代替で本体標準計算へ自動フォールバック。全レース0件停止を防止し、診断に「確定オッズ代替」を明示。 -->
 </body>
 </html>
