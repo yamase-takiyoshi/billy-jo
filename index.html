@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.57-airara-db-match-diag">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.57</title>
+<meta name="thekeiba-build" content="v1.2.58-airara-period-auto">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.58</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.57 AIらら取得テスト搭載版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.58 AIらら期間横断自動統合版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -1218,7 +1218,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="1.2.57-airara-db-match-diag";
+const APP_VERSION="1.2.58-airara-period-auto";
 const NAV_ITEMS=[["dashboard","🏠","ホーム"],["calendar","📅","開催"],["race","🏇","馬柱"],["search","🔍","検索"],["simulation","📊","SIM"],["emulator","🧪","エミュ"],["site-emulator","🖥","本体エミュ"],["analytics","📈","分析"],["strategies","🧠","戦略"],["live","📺","ライブ"],["database","🗄","DB"],["bridge","🔗","Bridge"],["forward","⏱","フォワード"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -8030,6 +8030,91 @@ const DATA_KEY='TheKeibaNarProbabilityDataV2';
 const FLAG='__narProbabilityDiagnosticsV8';
 const DIAG_KEY='TheKeibaNarProbabilityDiagnosticsV8';
 
+// ── AIらら 期間横断 自動取得ヘルパー（共有）──────────────────────────
+// ARION AI単モードで想定確率スナップショットが無いレースを処理する際、
+// その「開催日×開催場」の AIらら前日予想データ記事を WordPress API で1回だけ取得し
+// (同一開催日×場はキャッシュ)、各馬の勝率%を DATA_KEY スナップショットへ流し込む。
+// 失敗時は null を返し、呼び出し側は従来の未取得時挙動へ安全に落ちる。
+const AIRARA=(function(){
+  const cache={};                       // key: "YYYY-MM-DD|場" -> {ok,byR} または Promise
+  const N=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d;};
+  function bridge(w){return w.__narBridgeFetch||(w.top&&w.top.__narBridgeFetch)||(w.parent&&w.parent.__narBridgeFetch)||null;}
+  function autoOn(w){try{return (w.localStorage.getItem('airaraAuto')||'1')!=='0';}catch(_){return true;}}
+  function baseVenue(pn){return String(pn||'').replace(/[（(].*$/,'').replace(/\s+/g,'').trim();}
+  function respText(r){return typeof r==='string'?r:(r&&r.text)||'';}
+  function nextDay(d){try{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+1);return x.toISOString().slice(0,10);}catch(_){return d;}}
+  function prevDay(d,n){try{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()-(n||1));return x.toISOString().slice(0,10);}catch(_){return d;}}
+  function titleDate(d){const m=String(d).match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(m[1].slice(2)+'.'+m[2]+'.'+m[3]):'';}
+  // 前日予想データ記事HTML→ {R番号: [{no,pct,prob}]}
+  function parseByR(html){
+    const out={};let doc;
+    try{doc=new DOMParser().parseFromString(String(html||''),'text/html');}catch(_){return out;}
+    const tables=doc.querySelectorAll('table');let seq=0;
+    tables.forEach(function(table){
+      const rows=table.rows?[].slice.call(table.rows):[];
+      let hIdx=-1,cW=-1,cNo=-1;
+      for(let i=0;i<rows.length;i++){
+        const cells=[].slice.call(rows[i].cells||[]);let w2=-1,n2=-1;
+        cells.forEach(function(c,ci){const t=(c.textContent||'').replace(/\s/g,'');if(t==='勝率')w2=ci;if(t==='馬番'||t==='馬 番')n2=ci;});
+        if(w2>=0&&n2>=0){hIdx=i;cW=w2;cNo=n2;break;}
+      }
+      if(hIdx<0)return;
+      const horses=[];
+      for(let j=hIdx+1;j<rows.length;j++){
+        const cs=[].slice.call(rows[j].cells||[]);if(cs.length<=Math.max(cW,cNo))continue;
+        const nm=(cs[cNo].textContent||'').match(/\d+/),wm=(cs[cW].textContent||'').match(/[\d.]+/);
+        if(!nm||!wm)continue;const no=parseInt(nm[0],10),pct=parseFloat(wm[0]);
+        if(!no||!isFinite(pct))continue;horses.push({no:no,pct:pct,prob:pct/100});
+      }
+      if(!horses.length)return;
+      let detected=0,el=table,hops=0;
+      while(el&&hops<8){el=el.previousElementSibling||(el.parentElement&&el.parentElement!==doc.body?el.parentElement.previousElementSibling:null);hops++;if(!el)continue;const tx=(el.textContent||'').replace(/\s/g,'');if(!tx)continue;const m=tx.match(/(?:^|[^0-9])(\d{1,2})R(?![0-9])/)||tx.match(/R(\d{1,2})(?![0-9])/);if(m){detected=parseInt(m[1],10);break;}}
+      seq++;const r=(detected>=1&&detected<=16)?detected:seq;
+      if(!out[r])out[r]=horses;
+    });
+    return out;
+  }
+  async function fetchVenueDay(w,date,venue){
+    const fn=bridge(w);if(!fn)return{ok:false};
+    const dt=titleDate(date);
+    const rest='https://haro-blog.com/wp-json/wp/v2/posts?search='+encodeURIComponent('前日予想データ '+venue)
+      +'&after='+prevDay(date,2)+'T00:00:00&before='+nextDay(date)+'T23:59:59&per_page=30&_fields=id,link,title,content';
+    try{
+      const arr=JSON.parse(respText(await fn(rest,{timeout:30000})));
+      if(!Array.isArray(arr))return{ok:false};
+      const hit=arr.find(function(p){const t=(p&&p.title&&p.title.rendered)||'';return /前日予想データ/.test(t)&&t.indexOf(venue)>=0&&(!dt||t.indexOf(dt)>=0);})
+              ||arr.find(function(p){const t=(p&&p.title&&p.title.rendered)||'';return /前日予想データ/.test(t)&&t.indexOf(venue)>=0;});
+      if(!hit)return{ok:false};
+      let content=hit.content&&hit.content.rendered;
+      if((!content||content.indexOf('勝率')<0)&&hit.link){content=respText(await fn(hit.link,{timeout:30000}));}
+      const byR=parseByR(content||'');
+      return Object.keys(byR).length?{ok:true,byR:byR,link:hit.link||''}:{ok:false};
+    }catch(_){return{ok:false};}
+  }
+  async function ensure(w,race){
+    try{
+      if(!autoOn(w))return null;
+      let date=String((race&&(race.date||race.raceDate))||'');const dm=date.match(/(\d{4})-?(\d{2})-?(\d{2})/);if(!dm)return null;date=dm[1]+'-'+dm[2]+'-'+dm[3];
+      const venue=baseVenue(race&&(race.placeName||race.place||race.venue));if(!venue)return null;
+      const rid=(String((race&&(race.race_id||race.raceId||race.id))||'').match(/\d{8,}/)||[])[0];if(!rid)return null;
+      const key=date+'|'+venue;
+      if(!cache[key])cache[key]=fetchVenueDay(w,date,venue);
+      const res=await cache[key];cache[key]=res;
+      if(!res||!res.ok)return null;
+      const rn=N(race&&(race.raceNo!=null?race.raceNo:(race.race_no!=null?race.race_no:race.number)),0);
+      const horses=res.byR[rn];if(!horses||!horses.length)return null;
+      let store;try{store=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');}catch(_){store={races:{}};}
+      store.races=store.races||{};
+      store.races[rid]={raceId:rid,capturedAt:new Date().toISOString(),source:'airara-auto',
+        rows:horses.map(function(h){return{horseNo:h.no,arionWinPercent:h.pct,arionProbability:h.prob,netkeibaPredictedOdds:null,netkeibaProbability:null};})};
+      try{w.localStorage.setItem(DATA_KEY,JSON.stringify(store));}catch(_){}
+      return store.races[rid];
+    }catch(_){return null;}
+  }
+  return{ensure:ensure};
+})();
+// ─────────────────────────────────────────────────────────────
+
 function installCore(w,doc,label){
   if(!w||w[FLAG]||typeof w.buildSimulationCandidate!=='function')return false;
 
@@ -8129,7 +8214,10 @@ function installCore(w,doc,label){
     if(source==='none')return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,reason:'比較のみ・購入判定なし',updated:entries.length,missing:0}};
 
     const id=ridOf(race?.race_id||race?.raceId||race?.id);
-    const snapshot=data().races[id];
+    let snapshot=data().races[id];
+    if(!snapshot||!Array.isArray(snapshot.rows)){
+      try{const got=await AIRARA.ensure(w,race);if(got&&Array.isArray(got.rows)&&got.rows.length)snapshot=got;}catch(_){}
+    }
     if(!snapshot||!Array.isArray(snapshot.rows)){
       if(C.missingAction==='standard'){
         const base=await oldBuild.call(w,race,result,c);
@@ -8534,9 +8622,10 @@ setInterval(installAll,2500);
     modal.id = 'airaraModal';
     modal.style.cssText = 'display:none;position:fixed;left:14px;bottom:58px;z-index:99999;width:min(560px,92vw);max-height:72vh;overflow:auto;background:#0b1220;color:#e2e8f0;border:1px solid rgba(148,163,184,.35);border-radius:14px;padding:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);flex-direction:column;gap:8px';
     modal.innerHTML =
-      '<div style="display:flex;align-items:center;gap:8px"><strong style="margin-right:auto">🧪 AIらら 取得テスト <span style="opacity:.6;font-weight:400">v1.2.57</span></strong>'
+      '<div style="display:flex;align-items:center;gap:8px"><strong style="margin-right:auto">🧪 AIらら 取得テスト <span style="opacity:.6;font-weight:400">v1.2.58</span></strong>'
       + '<button type="button" id="airaraClose" style="background:none;border:0;color:#94a3b8;font-size:18px;cursor:pointer">×</button></div>'
       + '<div style="font-size:12px;opacity:.8;line-height:1.5">前日予想データ記事のURLを入れて取得→各馬の勝率%を解析。まず届くか・解析できるかを確認します。合っていればDBと突合してスナップショット書込。</div>'
+      + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;background:#0f172a;border:1px solid rgba(148,163,184,.3);border-radius:8px;padding:8px 10px"><input type="checkbox" id="airaraAutoChk"> <b>期間横断で想定確率を自動取得（AIらら）</b><span style="opacity:.6;font-size:11px;margin-left:auto">ARION AI単で回すと自動で埋めます</span></label>'
       + '<label style="font-size:12px">前日予想データ記事URL</label>'
       + '<input id="airaraUrl" placeholder="https://haro-blog.com/archives/641704" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(148,163,184,.35);background:#0f172a;color:#e2e8f0">'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
@@ -8551,6 +8640,10 @@ setInterval(installAll,2500);
     document.body.appendChild(modal);
     document.getElementById('airaraClose').onclick = function(){ modal.style.display='none'; };
     document.getElementById('airaraPreview').onclick = doPreview;
+    try{
+      var chk=document.getElementById('airaraAutoChk');
+      if(chk){ chk.checked=(localStorage.getItem('airaraAuto')||'1')!=='0'; chk.onchange=function(){ try{ localStorage.setItem('airaraAuto', chk.checked?'1':'0'); }catch(_){} }; }
+    }catch(_){}
     document.getElementById('airaraWrite').onclick = doWrite;
   }
 
