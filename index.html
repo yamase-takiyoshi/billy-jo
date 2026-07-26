@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.58-airara-period-auto">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.58</title>
+<meta name="thekeiba-build" content="v1.2.59-netkeiba-nar-probability">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.59</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.58 AIらら期間横断自動統合版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.59 netkeiba地方想定確率統合版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -7179,6 +7179,7 @@ function addDataUi(win,doc){
     <textarea id="narProbInputV3" style="width:100%;min-height:145px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px"
       placeholder='{"raceId":"202607240501","rows":[{"horseNo":1,"horseName":"馬名","arionWinPercent":18.5,"netkeibaPredictedOdds":6.8}]}'></textarea>
     <div class="nar-prob-actions">
+      <button class="btn-sm" id="narProbNetkeibaFetchV3" type="button">🌐 netkeiba想定オッズ取得</button>
       <button class="btn-sm" id="narProbPasteV3" type="button">📋 貼付</button>
       <button class="btn-sm" id="narProbImportV3" type="button">✅ 取込・正規化</button>
       <button class="btn-sm" id="narProbApplyDbV3" type="button">🔄 現在DBへ反映</button>
@@ -7202,6 +7203,103 @@ function addDataUi(win,doc){
       <td style="text-align:right">${r.netkeibaProbability>0?(1/r.netkeibaProbability).toFixed(2):"—"}</td>
       </tr>`).join("")}</tbody></table>`;
   }
+  async function fetchNetkeibaNarPredictedOdds(rid){
+    rid=raceId(rid);
+    if(!rid)throw new Error("12桁race_idを入力してください。");
+    const urls=[
+      `https://nar.netkeiba.com/race/shutuba.html?race_id=${rid}`,
+      `https://nar.sp.netkeiba.com/race/shutuba.html?race_id=${rid}`,
+      `https://nar.netkeiba.com/race/shutuba_past.html?race_id=${rid}`
+    ];
+    const fetcher=(typeof residentialBridgeText==="function")
+      ? residentialBridgeText
+      : (typeof win.residentialBridgeText==="function"?win.residentialBridgeText:null);
+    if(!fetcher)throw new Error("住宅用Bridgeが未接続です。先にBridge再接続を実行してください。");
+    let lastError="";
+    for(const url of urls){
+      try{
+        let html=await fetcher(url,{timeout:30000});
+        if(typeof unwrapBridgeHtml==="function")html=unwrapBridgeHtml(html);
+        html=String(html||"");
+        if(!/netkeiba|予想オッズ|出馬表/i.test(html))throw new Error("netkeiba出馬表を確認できません");
+        const doc2=new DOMParser().parseFromString(html,"text/html");
+        const pageText=(doc2.body?.textContent||"").replace(/\s+/g," ");
+        if(!/予想オッズ|AI予想オッズ/i.test(pageText+" "+html)){
+          throw new Error("このページには想定オッズがまだ掲載されていません（実オッズは採用しません）");
+        }
+        const rows=[];
+        const used=new Set();
+        const selectors=["tr.HorseList","tr[class*='HorseList']","table tr","li[class*='Horse']"];
+        const nodes=[...new Set(selectors.flatMap(sel=>[...doc2.querySelectorAll(sel)]))];
+        for(const node of nodes){
+          const text=(node.textContent||"").replace(/\s+/g," ").trim();
+          if(!text)continue;
+          const noEl=node.querySelector(".Horse_Num,.Umaban,[class*='Horse_Num'],[class*='Umaban'],td:nth-child(2)");
+          const noMatch=String(noEl?.textContent||text).match(/(?:^|\s)(\d{1,2})(?:\s|$)/);
+          const no=noMatch?Number(noMatch[1]):0;
+          if(!no||no>18||used.has(no))continue;
+          const nameEl=node.querySelector(".Horse_Name,.HorseName,[class*='Horse_Name'],a[href*='/horse/'],a[href*='horse_id=']");
+          const horseName=(nameEl?.textContent||"").replace(/\s+/g," ").trim();
+          const oddsCandidates=[];
+          node.querySelectorAll("[data-odds],[class*='Odds'],[class*='odds']").forEach(el=>{
+            const dv=el.getAttribute("data-odds");if(dv)oddsCandidates.push(dv);
+            oddsCandidates.push(el.textContent||"");
+          });
+          const labeled=text.match(/(?:AI\s*)?予想オッズ\s*[:：]?\s*(\d+(?:\.\d+)?)/i);
+          if(labeled)oddsCandidates.unshift(labeled[1]);
+          let odds=null;
+          for(const c of oddsCandidates){
+            const m=String(c).replace(/,/g,"").match(/(\d+(?:\.\d+)?)/);
+            const n=m?Number(m[1]):NaN;
+            if(Number.isFinite(n)&&n>1&&n<10000){odds=n;break;}
+          }
+          if(odds!==null){used.add(no);rows.push({horseNo:no,horseName,netkeibaPredictedOdds:odds});}
+        }
+        if(rows.length<2){
+          const scripts=[...doc2.scripts].map(x=>x.textContent||"").join("\n");
+          const re=/(?:horse(?:No|_no|Number)|umaban)["']?\s*[:=]\s*["']?(\d{1,2})["']?[\s\S]{0,500}?(?:predictedOdds|predict_odds|yosou_odds|odds)["']?\s*[:=]\s*["']?(\d+(?:\.\d+)?)/gi;
+          let m;while((m=re.exec(scripts))){const no=Number(m[1]),odds=Number(m[2]);if(no&&odds>1&&!used.has(no)){used.add(no);rows.push({horseNo:no,horseName:"",netkeibaPredictedOdds:odds});}}
+        }
+        rows.sort((a,b)=>a.horseNo-b.horseNo);
+        if(rows.length<2)throw new Error("想定オッズの馬番・数値を抽出できませんでした");
+        return{rid,rows,url};
+      }catch(e){lastError=e?.message||String(e);}
+    }
+    throw new Error(lastError||"netkeiba想定オッズを取得できませんでした。");
+  }
+  q("narProbNetkeibaFetchV3").onclick=async()=>{
+    const btn=q("narProbNetkeibaFetchV3");
+    try{
+      btn.disabled=true;
+      q("narProbDataStatusV3").textContent="netkeiba地方競馬の想定オッズを取得中…";
+      let rid=raceId(q("narProbRaceIdV3").value);
+      if(!rid)rid=currentRaceId(win,[]);
+      if(!rid)throw new Error("race_idを入力するか、本体エミュで対象レースを開いてください。");
+      const got=await fetchNetkeibaNarPredictedOdds(rid);
+      const d=getData(win);
+      const prev=d.races[got.rid];
+      const merged=got.rows.map(r=>{
+        const old=(prev?.rows||[]).find(x=>Number(x.horseNo)===Number(r.horseNo))||{};
+        return Object.assign({},old,r);
+      });
+      d.races[got.rid]=normalizeRace(got.rid,merged);
+      d.races[got.rid].source="netkeiba-nar-predicted-odds";
+      d.races[got.rid].sourceUrl=got.url;
+      saveData(win,d);
+      q("narProbRaceIdV3").value=got.rid;
+      q("narProbInputV3").value=JSON.stringify({raceId:got.rid,source:"netkeiba NAR想定オッズ",rows:got.rows},null,2);
+      preview(got.rid);
+      q("narProbDataStatusV3").textContent=`netkeiba取得完了：${got.rid}／${got.rows.length}頭。逆数をレース内100%へ正規化しました。\n実オッズは採用せず、「予想オッズ」表記のあるページだけを使用します。`;
+      try{
+        const entries=typeof win.getAll==="function"?await win.getAll("entries"):[];
+        applyRows(win,entries);
+        const targets=entries.filter(e=>raceId(e.race_id||e.raceId)===got.rid&&e.narProbabilityMode);
+        if(targets.length&&typeof win.putMany==="function")await win.putMany("entries",targets);
+        if(typeof win.refreshAll==="function")await win.refreshAll();
+      }catch(_){ }
+    }catch(e){q("narProbDataStatusV3").textContent="netkeiba取得失敗："+(e?.message||e)}
+    finally{btn.disabled=false;}
+  };
   q("narProbPasteV3").onclick=async()=>{
     try{q("narProbInputV3").value=await win.navigator.clipboard.readText()}
     catch(_){q("narProbDataStatusV3").textContent="クリップボード貼付を許可してください。"}
