@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.61-netkeiba-secure-login">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.61</title>
+<meta name="thekeiba-build" content="v1.2.62-independent-probability-final-odds-ev">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.62</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -337,7 +337,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.61 netkeiba安全ログイン対応</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.62 独自勝率×確定オッズEV</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -384,7 +384,7 @@ input,select,textarea{font-size:16px}
         <div id="nkMemberRaceTable" style="margin-top:10px"></div>
       </div>
       <div class="tabs"><button class="btn tab active" data-race-tab="entries">出馬表</button><button class="btn tab" data-race-tab="ranking">AI・EV順位</button><button class="btn tab" data-race-tab="result">結果・払戻</button><button class="btn tab" data-race-tab="replay">履歴リプレイ</button></div>
-      <div id="raceTabEntries" class="race-tab-panel"><div class="card"><div class="toolbar"><button class="btn" id="raceRecalcBtn">AI・EV再計算</button><button class="btn" id="raceSnapshotBtn">スナップショット保存</button><button class="btn" id="raceFavoriteBtn">お気に入り</button></div><div class="table-wrap"><table><thead><tr><th>枠</th><th>馬番</th><th>馬名</th><th>性齢</th><th>騎手</th><th>調教師</th><th>斤量</th><th>馬体重</th><th>人気</th><th>単勝</th><th>勝率</th><th>EV</th><th>AI</th><th>判定</th></tr></thead><tbody id="entryRows"></tbody></table></div></div></div>
+      <div id="raceTabEntries" class="race-tab-panel"><div class="card"><div class="toolbar"><button class="btn" id="raceRecalcBtn">勝率・EV再計算</button><button class="btn" id="raceSnapshotBtn">スナップショット保存</button><button class="btn" id="raceFavoriteBtn">お気に入り</button></div><div class="notice" style="margin:10px 0">EV＝本体エミュの独自勝率 × 確定単勝オッズ。市場勝率は確定オッズの逆数をレース内で100%に正規化した比較値で、EV判定には使用しません。</div><div class="table-wrap"><table><thead><tr><th>枠</th><th>馬番</th><th>馬名</th><th>性齢</th><th>騎手</th><th>調教師</th><th>斤量</th><th>馬体重</th><th>人気</th><th>確定単勝</th><th>本体勝率</th><th>市場勝率</th><th>EV<br><small>本体勝率×オッズ</small></th><th>AI</th><th>判定</th></tr></thead><tbody id="entryRows"></tbody></table></div></div></div>
       <div id="raceTabRanking" class="race-tab-panel" hidden><div class="grid"><div class="card span-6"><h3>AIランキング</h3><div id="aiRanking"></div></div><div class="card span-6"><h3>EVランキング</h3><div id="evRanking"></div></div></div></div>
       <div id="raceTabResult" class="race-tab-panel" hidden><div class="card"><div id="resultView" class="empty">結果未登録</div></div></div>
       <div id="raceTabReplay" class="race-tab-panel" hidden><div class="card"><div class="toolbar"><button class="btn" id="replayRefreshBtn">履歴更新</button></div><div id="replayList"></div></div></div>
@@ -812,7 +812,7 @@ input,select,textarea{font-size:16px}
         <div class="card"><h3 id="recordTableTitle">レコードテーブル</h3><div class="record-schema" id="recordSchemaView"></div><div id="recordTableView"><div class="empty">更新を押してください</div></div></div>
       </div>
       <div id="dbTabRaceedit" class="db-tab-panel" hidden><div class="card"><div class="form-grid"><div class="field wide"><label>race_id</label><input id="edRaceId"></div><div class="field"><label>区分</label><select id="edRaceType"><option>JRA</option><option>NAR</option></select></div><div class="field"><label>日付</label><input id="edRaceDate" type="date"></div><div class="field"><label>開催場</label><input id="edRacePlace"></div><div class="field"><label>場コード</label><input id="edRacePlaceCode" type="number"></div><div class="field"><label>開催回</label><input id="edRaceKai" type="number"></div><div class="field"><label>開催日次</label><input id="edRaceDay" type="number"></div><div class="field"><label>R</label><input id="edRaceNo" type="number"></div><div class="field wide"><label>レース名</label><input id="edRaceName"></div><div class="field"><label>芝・ダート</label><select id="edRaceSurface"><option>芝</option><option>ダート</option><option>障害</option></select></div><div class="field"><label>距離</label><input id="edRaceDistance" type="number"></div><div class="field"><label>クラス・グレード</label><input id="edRaceClass"></div><div class="field"><label>方向</label><input id="edRaceDirection" placeholder="右・左・直線"></div><div class="field"><label>頭数</label><input id="edRaceHeadcount" type="number"></div><div class="field"><label>天候</label><input id="edRaceWeather"></div><div class="field"><label>馬場状態</label><select id="edRaceTrack"><option value="">未取得</option><option value="良">良</option><option value="稍重">稍重</option><option value="重">重</option><option value="不良">不良</option></select></div><div class="field"><label>発走</label><input id="edRaceStart" type="time"></div><div class="field"><label>状態</label><input id="edRaceStatus"></div><div class="field wide"><label>更新日時</label><input id="edRaceUpdatedAt" readonly></div></div><div class="toolbar" style="margin-top:13px"><button class="btn primary" id="saveRaceEditBtn">保存</button><button class="btn" id="loadRaceEditBtn">race_id読込</button><button class="btn danger" id="deleteRaceEditBtn">削除</button></div></div></div>
-      <div id="dbTabEntryedit" class="db-tab-panel" hidden><div class="card"><div class="form-grid"><div class="field wide"><label>race_id</label><input id="edEntryRaceId"></div><div class="field"><label>枠番</label><input id="edFrameNo" type="number"></div><div class="field"><label>馬番</label><input id="edHorseNo" type="number"></div><div class="field"><label>horseId</label><input id="edHorseId"></div><div class="field wide"><label>馬名</label><input id="edHorseName"></div><div class="field"><label>性</label><input id="edSex" maxlength="2"></div><div class="field"><label>齢</label><input id="edAge" type="number"></div><div class="field"><label>性齢</label><input id="edSexAge"></div><div class="field"><label>jockeyId</label><input id="edJockeyId"></div><div class="field"><label>騎手</label><input id="edJockey"></div><div class="field"><label>trainerId</label><input id="edTrainerId"></div><div class="field"><label>調教師</label><input id="edTrainer"></div><div class="field"><label>斤量</label><input id="edWeight" type="number" step="0.1"></div><div class="field"><label>馬体重</label><input id="edHorseWeight"></div><div class="field"><label>人気</label><input id="edPopularity" type="number"></div><div class="field"><label>単勝</label><input id="edOdds" type="number" step="0.1"></div><div class="field"><label>予測勝率</label><input id="edProbWin" type="number" step="0.001"></div><div class="field"><label>予測複勝率</label><input id="edProbPlace" type="number" step="0.001"></div><div class="field"><label>EV</label><input id="edEv" type="number" step="0.001"></div><div class="field"><label>AI</label><input id="edAi" type="number" step="0.1"></div><div class="field"><label>脚質</label><input id="edStyle"></div><div class="field wide"><label>更新日時</label><input id="edEntryUpdatedAt" readonly></div></div><div class="toolbar" style="margin-top:13px"><button class="btn primary" id="saveEntryEditBtn">保存</button><button class="btn" id="loadEntryEditBtn">読込</button><button class="btn danger" id="deleteEntryEditBtn">削除</button></div></div></div>
+      <div id="dbTabEntryedit" class="db-tab-panel" hidden><div class="card"><div class="form-grid"><div class="field wide"><label>race_id</label><input id="edEntryRaceId"></div><div class="field"><label>枠番</label><input id="edFrameNo" type="number"></div><div class="field"><label>馬番</label><input id="edHorseNo" type="number"></div><div class="field"><label>horseId</label><input id="edHorseId"></div><div class="field wide"><label>馬名</label><input id="edHorseName"></div><div class="field"><label>性</label><input id="edSex" maxlength="2"></div><div class="field"><label>齢</label><input id="edAge" type="number"></div><div class="field"><label>性齢</label><input id="edSexAge"></div><div class="field"><label>jockeyId</label><input id="edJockeyId"></div><div class="field"><label>騎手</label><input id="edJockey"></div><div class="field"><label>trainerId</label><input id="edTrainerId"></div><div class="field"><label>調教師</label><input id="edTrainer"></div><div class="field"><label>斤量</label><input id="edWeight" type="number" step="0.1"></div><div class="field"><label>馬体重</label><input id="edHorseWeight"></div><div class="field"><label>人気</label><input id="edPopularity" type="number"></div><div class="field"><label>確定単勝</label><input id="edOdds" type="number" step="0.1"></div><div class="field"><label>本体エミュ独自勝率</label><input id="edProbWin" type="number" step="0.001"></div><div class="field"><label>予測複勝率</label><input id="edProbPlace" type="number" step="0.001"></div><div class="field"><label>EV（独自勝率×オッズ）</label><input id="edEv" type="number" step="0.001"></div><div class="field"><label>AI</label><input id="edAi" type="number" step="0.1"></div><div class="field"><label>脚質</label><input id="edStyle"></div><div class="field wide"><label>更新日時</label><input id="edEntryUpdatedAt" readonly></div></div><div class="toolbar" style="margin-top:13px"><button class="btn primary" id="saveEntryEditBtn">保存</button><button class="btn" id="loadEntryEditBtn">読込</button><button class="btn danger" id="deleteEntryEditBtn">削除</button></div></div></div>
       <div id="dbTabResultedit" class="db-tab-panel" hidden><div class="card"><div class="form-grid"><div class="field wide"><label>race_id</label><input id="edResultRaceId"></div><div class="field wide"><label>着順（カンマ区切り）</label><input id="edFinishOrder" placeholder="3,1,5"></div><div class="field full"><label>払戻JSON</label><textarea id="edPayouts" placeholder='{"win":{"3":520},"place":{"3":180,"1":140,"5":220},"bracketQuinella":{"1-2":760},"quinella":{"1-3":820}}'></textarea></div></div><div class="toolbar"><button class="btn primary" id="saveResultEditBtn">保存</button><button class="btn" id="loadResultEditBtn">読込</button><button class="btn danger" id="deleteResultEditBtn">削除</button></div></div></div>
     </section>
 
@@ -1295,7 +1295,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="1.2.61-netkeiba-secure-login";
+const APP_VERSION="1.2.62-independent-probability-final-odds-ev";
 const NAV_ITEMS=[["dashboard","🏠","ホーム"],["calendar","📅","開催"],["race","🏇","馬柱"],["search","🔍","検索"],["simulation","📊","SIM"],["emulator","🧪","エミュ"],["site-emulator","🖥","本体エミュ"],["analytics","📈","分析"],["strategies","🧠","戦略"],["live","📺","ライブ"],["database","🗄","DB"],["bridge","🔗","Bridge"],["forward","⏱","フォワード"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -1431,18 +1431,18 @@ function extractHorseWeightFromRow(row){
 function mergeEntryRecords(base={},incoming={}){
   const out={...base,...incoming};
   for(const k of ["horseId","horseName","sexAge","sex","jockeyId","jockey","jockeyName","trainerId","trainer","trainerName","horseWeight","style"]){if(!String(incoming?.[k]??"").trim()&&String(base?.[k]??"").trim())out[k]=base[k]}
-  for(const k of ["age","frameNo","frame","weight","weightCarry","bodyWeight"]){if(!(Number(incoming?.[k])>0)&&Number(base?.[k])>0)out[k]=base[k]}
+  for(const k of ["age","frameNo","frame","weight","weightCarry","bodyWeight","odds","oddsWin","finalOdds","popularity","probWin","probPlace","ai"]){if(!(Number(incoming?.[k])>0)&&Number(base?.[k])>0)out[k]=base[k]}
   out.sexAge=normalizeSexAgeField(out.sexAge,out.sex,out.age);out.sex=normalizeSexLabel(out.sex||out.sexAge);out.age=Number(out.age||String(out.sexAge).match(/\d{1,2}/)?.[0]||0);
   return out
 }
 function normalizeEntry(e,rid){
   const n=Number(e?.horseNo||e?.horse_no||e?.horseNumber||e?.horse_number||e?.number||e?.umaban||e?.馬番||0);if(!n)throw new Error(`馬番がありません: ${rid}`);
-  const prob=Number(e?.probWin??e?.prob_win??e?.probability??0),odds=Number(e?.odds??e?.oddsWin??e?.winOdds??e?.win_odds??0),ai=Number(e?.ai??e?.aiScore??e?.score??0);
+  const prob=Number(e?.probWin??e?.prob_win??e?.probability??0),odds=Number(e?.odds??e?.oddsWin??e?.winOdds??e?.win_odds??0),finalOdds=Number(e?.finalOdds??e?.closingOdds??e?.final_odds??0),ai=Number(e?.ai??e?.aiScore??e?.score??0);
   const sexAge=normalizeSexAgeField(e?.sexAge??e?.sex_age??e?.sexage??e?.barei??e?.性齢??"",e?.sex??e?.gender??e?.性??"",e?.age??e?.horseAge??e?.horse_age??e?.齢??0),sex=normalizeSexLabel(e?.sex??e?.gender??e?.性??sexAge),age=Number(e?.age??e?.horseAge??e?.horse_age??e?.齢??String(sexAge).match(/\d{1,2}/)?.[0]??0);
   const frameNo=Number(e?.frameNo||e?.frame_no||e?.frame||e?.waku||0),horseId=String(e?.horseId||e?.horse_id||""),horseName=String(e?.horseName||e?.horse_name||e?.name||"");
   const jockey=String(e?.jockey||e?.jockeyName||e?.jockey_name||""),trainer=String(e?.trainer||e?.trainerName||e?.trainer_name||"");
   const weight=Number(e?.weight||e?.weightCarry||e?.carriedWeight||e?.carried_weight||0),horseWeightRaw=e?.horseWeight??e?.horse_weight??e?.bodyWeight??e?.body_weight??e?.bataiWeight??e?.batai_weight??"",horseWeight=normalizeHorseWeightField(horseWeightRaw)||String(horseWeightRaw??"").trim(),bodyWeight=Number(String(horseWeight).match(/\d{3,4}/)?.[0]||0);
-  return{id:`${rid}-${String(n).padStart(2,"0")}`,race_id:rid,frameNo,frame:frameNo,horseNo:n,horseId,horseName,sexAge,sex,age,jockeyId:String(e?.jockeyId||e?.jockey_id||""),jockey,jockeyName:jockey,trainerId:String(e?.trainerId||e?.trainer_id||""),trainer,trainerName:trainer,weight,weightCarry:weight,horseWeight,bodyWeight,popularity:Number(e?.popularity||e?.popular||e?.pop||0),odds,oddsWin:odds,probWin:prob,probPlace:Number(e?.probPlace||e?.prob_place||0),ev:Number(e?.ev||(prob&&odds?prob*odds:0)),ai,aiScore:ai,style:String(e?.style||""),memo:String(e?.memo||""),updatedAt:String(e?.updatedAt||e?.updated_at||new Date().toISOString())}
+  return{id:`${rid}-${String(n).padStart(2,"0")}`,race_id:rid,frameNo,frame:frameNo,horseNo:n,horseId,horseName,sexAge,sex,age,jockeyId:String(e?.jockeyId||e?.jockey_id||""),jockey,jockeyName:jockey,trainerId:String(e?.trainerId||e?.trainer_id||""),trainer,trainerName:trainer,weight,weightCarry:weight,horseWeight,bodyWeight,popularity:Number(e?.popularity||e?.popular||e?.pop||0),odds,oddsWin:odds,finalOdds,probWin:prob,probPlace:Number(e?.probPlace||e?.prob_place||0),ev:Number(e?.ev||(prob&&(finalOdds||odds)?prob*(finalOdds||odds):0)),ai,aiScore:ai,aiSource:String(e?.aiSource||e?.ai_source||""),modelProbability:Number(e?.modelProbability??e?.model_probability??0),preRaceProbability:Number(e?.preRaceProbability??e?.pre_race_probability??0),probabilitySource:String(e?.probabilitySource||e?.probability_source||e?.probSource||""),oddsSourceLabel:String(e?.oddsSourceLabel||e?.odds_source_label||""),usesPostRaceOdds:e?.usesPostRaceOdds===true,style:String(e?.style||""),memo:String(e?.memo||""),updatedAt:String(e?.updatedAt||e?.updated_at||new Date().toISOString())}
 }
 function normalizeFinishOrder(value){
   if(Array.isArray(value))return value.map(x=>Number(x?.horseNo||x?.horse_no||x?.number||x)).filter(Boolean);
@@ -1567,8 +1567,80 @@ async function renderCalendar(){
 }
 async function renderCalendarDay(date){const races=(await getByIndex("races","date",date)).sort((a,b)=>a.placeName.localeCompare(b.placeName)||a.raceNo-b.raceNo);$("calendarSelectedTitle").textContent=`${displayDate(date)} の開催`;$("calendarRaceRows").innerHTML=races.map(r=>`<tr><td>${r.type}</td><td>${esc(r.placeName)}</td><td>${r.raceNo}R</td><td>${esc(raceNameForDisplay(r))}</td><td>${esc(r.startTime||"-")}</td><td>${esc(r.status||"-")}</td><td><button class="btn small" data-cal-open="${r.race_id}">開く</button></td></tr>`).join("")||`<tr><td colspan="7" class="empty">開催なし</td></tr>`;document.querySelectorAll("[data-cal-open]").forEach(b=>b.onclick=async()=>{state.currentRaceId=b.dataset.calOpen;await showView("race");$("raceSelector").value=state.currentRaceId;await openRace(state.currentRaceId)})}
 async function refreshRaceSelector(){const races=await getAll("races");races.sort((a,b)=>String(b.date).localeCompare(String(a.date))||a.placeName.localeCompare(b.placeName)||a.raceNo-b.raceNo);$("raceSelector").innerHTML=`<option value="">レースを選択</option>`+races.map(r=>`<option value="${esc(r.race_id)}">${displayDate(r.date)} ${r.type} ${esc(r.placeName)} ${r.raceNo}R ${esc(raceNameForDisplay(r))}</option>`).join("");if(state.currentRaceId){$("raceSelector").value=state.currentRaceId;await openRace(state.currentRaceId)}}
-function recalcEntryScores(entries){const strength=Number(state.settings.aiStrength||1);for(const e of entries){const marketProb=e.odds>0?1/e.odds:0,popProb=e.popularity?clamp(.34/Math.sqrt(e.popularity),.025,.42):.07,ability=clamp((e.ai||50)/100,0.05,.99);const importedProb=Number(e.probWin||0),looksMarketOnly=e.odds>0&&importedProb>0&&Math.abs(importedProb*e.odds-.78)<.08;const modelProb=clamp(marketProb*.55+popProb*.25+ability*.16,.01,.48);if(!importedProb||looksMarketOnly)e.probWin=modelProb;else e.probWin=clamp(importedProb*.72+modelProb*.28,.01,.48);e.ev=Number((e.probWin*e.odds).toFixed(3));e.ai=Number(clamp((e.ai||50)+(e.ev-1)*12*strength,1,120).toFixed(1))}return entries}
-async function openRace(id){if(!id)return;const [race,entries,result]=await Promise.all([getOne("races",id),getByIndex("entries","race_id",id),getOne("results",id)]);state.currentRaceId=id;$("raceIdDirect").value=id;if(!race){$("raceInfoCard").innerHTML=`<div class="empty">race_id ${esc(id)} は未登録です</div>`;$("entryRows").innerHTML="";return}recalcEntryScores(entries);$("raceInfoCard").innerHTML=`<div class="toolbar"><span class="badge">${esc(race.type)}</span><span class="badge">${esc(race.status||"状態不明")}</span><span class="badge">${esc(race.weather||"天候不明")}</span><span class="badge">${esc(race.trackCondition||"馬場不明")}</span></div><h2>${esc(race.placeName)} ${race.raceNo}R　${esc(raceNameForDisplay(race))}</h2><div class="muted">${displayDate(race.date)} ${esc(race.startTime||"")}　${esc(race.surface)} ${race.distance||"-"}m　${esc(race.className)}</div><div class="code-box" style="margin-top:12px">race_id: ${esc(race.race_id)}\n出走: ${entries.length}頭　結果: ${result?"確定":"未登録"}</div>`;entries.sort((a,b)=>a.horseNo-b.horseNo);$("entryRows").innerHTML=entries.map(e=>{const verdict=e.ev>=1.08&&e.ai>=82?"強候補":e.ev>=1&&e.ai>=72?"候補":e.ev>=.92?"検討":"見送り";return`<tr><td><span class="frame-chip">${e.frameNo||"-"}</span></td><td>${e.horseNo}</td><td class="entry-main">${esc(e.horseName)}<div class="horse-sub">${esc(e.style||"")}</div></td><td>${esc(normalizeSexAgeField(e.sexAge,e.sex,e.age)||"-")}</td><td>${esc(e.jockey)}</td><td>${esc(e.trainer)}</td><td>${e.weight||"-"}</td><td>${esc(e.horseWeight||"-")}</td><td>${e.popularity||"-"}</td><td>${e.odds.toFixed(1)}</td><td>${(e.probWin*100).toFixed(1)}%</td><td class="${e.ev>=1?"good":"bad"}">${e.ev.toFixed(3)}</td><td>${e.ai.toFixed(1)}</td><td><span class="badge">${verdict}</span></td></tr>`}).join("")||`<tr><td colspan="14" class="empty">出馬表がありません</td></tr>`;renderRankings(entries);renderResult(result);await renderReplayList()}
+function recalcEntryScores(entries){
+  const list=Array.isArray(entries)?entries:[];
+  if(!list.length)return list;
+  const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds].map(Number).find(v=>v>0)||0;
+  const inverseSum=list.reduce((sum,e)=>{const o=oddsOf(e);return sum+(o>=1?1/o:0)},0);
+  const marketProbability=e=>{const o=oddsOf(e);return o>=1&&inverseSum>0?(1/o)/inverseSum:0};
+  const trustedProbability=e=>{
+    const p=Number(e?.modelProbability??e?.modelProbWin??e?.emulatorProbability??e?.preRaceProbability??e?.probWin??e?.probability??0);
+    if(!(p>0&&p<1))return 0;
+    const o=oddsOf(e),mp=marketProbability(e),label=String(e?.probabilitySource||e?.probSource||e?.oddsSourceLabel||e?.narProbabilitySource||"");
+    if(/市場|確定オッズ代替|final.?odds|market/i.test(label))return 0;
+    if(/独自|本体|モデル|予測|予想|AI|ARION|netkeiba|手動/i.test(label))return p;
+    const directMarket=o>=1&&(Math.abs(p*o-.78)<.08||Math.abs(p-1/o)<=Math.max(.002,(1/o)*.05));
+    const normalizedMarket=mp>0&&Math.abs(p-mp)<=Math.max(.0025,mp*.06);
+    return directMarket||normalizedMarket?0:p
+  };
+  const trusted=list.map(trustedProbability);
+  const probabilityComplete=trusted.length>1&&trusted.every(p=>p>0);
+  const probabilityTotal=probabilityComplete?trusted.reduce((a,b)=>a+b,0):0;
+  const aiScores=list.map(e=>Number(e?.modelScore??e?.predictionScore??e?.aiModelScore??e?.timeIndex??e?.ai??e?.aiScore??0));
+  const aiIsMarket=list.map((e,i)=>{
+    const pop=Number(e?.popularity??e?.pop??0),legacy=pop>0?Math.max(35,103-pop*4):NaN,label=String(e?.aiSource||"");
+    return /市場|人気|market|popularity/i.test(label)||(Number.isFinite(legacy)&&Math.abs(aiScores[i]-legacy)<.01)
+  });
+  const aiComplete=aiScores.length>1&&aiScores.every((v,i)=>Number.isFinite(v)&&v>0&&!aiIsMarket[i]);
+  const aiSpread=aiComplete?Math.max(...aiScores)-Math.min(...aiScores):0;
+  let aiWeights=[],aiTotal=0;
+  if(!probabilityComplete&&aiComplete&&aiSpread>.001){
+    const mean=aiScores.reduce((a,b)=>a+b,0)/aiScores.length;
+    aiWeights=aiScores.map(v=>Math.exp(clamp((v-mean)/14,-4,4)));
+    aiTotal=aiWeights.reduce((a,b)=>a+b,0)
+  }
+  for(let i=0;i<list.length;i++){
+    const e=list[i],o=oddsOf(e),market=marketProbability(e);
+    let p=0,source="独自勝率未取得";
+    if(probabilityComplete&&probabilityTotal>0){p=trusted[i]/probabilityTotal;source=String(e.probabilitySource||e.probSource||"本体エミュ独自勝率")}
+    else if(aiTotal>0){p=aiWeights[i]/aiTotal;source="本体エミュAIモデル"}
+    e.marketImpliedProbability=market;
+    e.marketProbability=market;
+    e.marketOverround=inverseSum;
+    e.evOdds=o;
+    e.emulatorProbability=p;
+    e.independentProbability=p;
+    e.probWin=p;
+    e.probability=p;
+    e.winProbability=p;
+    e.ev=Number((p*o).toFixed(6));
+    e.expectedValue=e.ev;
+    e.probabilitySource=source;
+    e.evProbabilitySource=source;
+    e.evFormula="independent_probability_x_final_odds";
+    e.standardProbabilityMethod="independent-v1";
+    e.independentProbabilityAvailable=p>0
+  }
+  return list
+}
+async function openRace(id){
+  if(!id)return;
+  const [race,entries,result]=await Promise.all([getOne("races",id),getByIndex("entries","race_id",id),getOne("results",id)]);
+  state.currentRaceId=id;$("raceIdDirect").value=id;
+  if(!race){$("raceInfoCard").innerHTML=`<div class="empty">race_id ${esc(id)} は未登録です</div>`;$("entryRows").innerHTML="";return}
+  recalcEntryScores(entries);
+  const overround=Number(entries.find(e=>Number(e.marketOverround)>0)?.marketOverround||0);
+  const oddsState=result?"確定オッズ":"取得時オッズ";
+  $("raceInfoCard").innerHTML=`<div class="toolbar"><span class="badge">${esc(race.type)}</span><span class="badge">${esc(race.status||"状態不明")}</span><span class="badge">${esc(race.weather||"天候不明")}</span><span class="badge">${esc(race.trackCondition||"馬場不明")}</span><span class="badge">${oddsState}</span></div><h2>${esc(race.placeName)} ${race.raceNo}R　${esc(raceNameForDisplay(race))}</h2><div class="muted">${displayDate(race.date)} ${esc(race.startTime||"")}　${esc(race.surface)} ${race.distance||"-"}m　${esc(race.className)}</div><div class="code-box" style="margin-top:12px">race_id: ${esc(race.race_id)}\n出走: ${entries.length}頭　結果: ${result?"確定":"未登録"}\nEV: 本体エミュ独自勝率 × ${oddsState}${overround?`\n市場逆数合計: ${(overround*100).toFixed(1)}% → 市場勝率は100%へ正規化`:""}</div>`;
+  entries.sort((a,b)=>a.horseNo-b.horseNo);
+  $("entryRows").innerHTML=entries.map(e=>{
+    const odds=Number(e.finalOdds||e.odds||e.oddsWin||0),p=Number(e.probWin||0),market=Number(e.marketImpliedProbability||e.marketProbability||0),ev=Number(e.ev||0),ai=Number(e.ai||0);
+    const source=String(e.memberProbabilitySource||e.narProbabilitySource||e.evProbabilitySource||e.probabilitySource||"本体エミュ独自勝率");
+    const verdict=!(p>0)?"勝率未取得":ev>=1.08&&ai>=82?"強候補":ev>=1&&ai>=72?"候補":ev>=.92?"検討":"見送り";
+    return`<tr><td><span class="frame-chip">${e.frameNo||"-"}</span></td><td>${e.horseNo}</td><td class="entry-main">${esc(e.horseName)}<div class="horse-sub">${esc(e.style||"")}</div></td><td>${esc(normalizeSexAgeField(e.sexAge,e.sex,e.age)||"-")}</td><td>${esc(e.jockey)}</td><td>${esc(e.trainer)}</td><td>${e.weight||"-"}</td><td>${esc(e.horseWeight||"-")}</td><td>${e.popularity||"-"}</td><td>${odds>0?odds.toFixed(1):"-"}</td><td>${p>0?`${(p*100).toFixed(2)}%`:"—"}<div class="horse-sub">${esc(source)}</div></td><td>${market>0?`${(market*100).toFixed(2)}%`:"—"}<div class="horse-sub">比較専用</div></td><td class="${ev>=1?"good":"bad"}">${p>0&&odds>0?ev.toFixed(3):"—"}</td><td>${ai.toFixed(1)}</td><td><span class="badge">${verdict}</span></td></tr>`
+  }).join("")||`<tr><td colspan="15" class="empty">出馬表がありません</td></tr>`;
+  renderRankings(entries);renderResult(result);await renderReplayList()
+}
 function renderRankings(entries){const ai=[...entries].sort((a,b)=>b.ai-a.ai),ev=[...entries].sort((a,b)=>b.ev-a.ev);const list=rows=>`<div class="table-wrap"><table><thead><tr><th>順位</th><th>馬番</th><th>馬名</th><th>値</th></tr></thead><tbody>${rows.slice(0,10).map((e,i)=>`<tr><td>${i+1}</td><td>${e.horseNo}</td><td>${esc(e.horseName)}</td><td>${e===rows?"":e.ai}</td></tr>`).join("")}</tbody></table></div>`;$("aiRanking").innerHTML=`<ol>${ai.slice(0,10).map(e=>`<li>${e.horseNo}番 ${esc(e.horseName)}　<strong>${e.ai.toFixed(1)}</strong></li>`).join("")}</ol>`;$("evRanking").innerHTML=`<ol>${ev.slice(0,10).map(e=>`<li>${e.horseNo}番 ${esc(e.horseName)}　<strong class="${e.ev>=1?"good":"bad"}">${e.ev.toFixed(3)}</strong></li>`).join("")}</ol>`}
 function renderResult(result){if(!result){$("resultView").innerHTML=`<div class="empty">結果未登録</div>`;return}const order=result.finishOrder||[],p=result.payouts||{};let html=`<h3>着順</h3><div class="toolbar">${order.map((n,i)=>`<span class="badge">${i+1}着 ${n}番</span>`).join("")}</div><h3>払戻</h3><div class="table-wrap"><table><thead><tr><th>券種</th><th>組合せ</th><th>100円払戻</th></tr></thead><tbody>`;for(const [type,map] of Object.entries(p))for(const [key,val] of Object.entries(map||{}))html+=`<tr><td>${TICKET_LABELS[type]||type}</td><td>${esc(key)}</td><td>${yen(val)}</td></tr>`;html+=`</tbody></table></div>`;$("resultView").innerHTML=html}
 async function saveSnapshot(){if(!state.currentRaceId)return alert("レースを選択してください");const [race,entries,result]=await Promise.all([getOne("races",state.currentRaceId),getByIndex("entries","race_id",state.currentRaceId),getOne("results",state.currentRaceId)]);await addOne("snapshots",{race_id:state.currentRaceId,createdAt:new Date().toISOString(),race,entries,result});await renderReplayList();alert("スナップショットを保存しました")}
@@ -2140,7 +2212,7 @@ async function clearAllData(){if(!confirm("端末内のレース・履歴・設�
 async function saveRaceEditor(){const r=normalizeRace({race_id:$("edRaceId").value,type:$("edRaceType").value,date:$("edRaceDate").value,placeName:$("edRacePlace").value,placeCode:$("edRacePlaceCode").value,kai:$("edRaceKai").value,day:$("edRaceDay").value,raceNo:$("edRaceNo").value,name:$("edRaceName").value,surface:$("edRaceSurface").value,distance:$("edRaceDistance").value,className:$("edRaceClass").value,direction:$("edRaceDirection").value,headcount:$("edRaceHeadcount").value,weather:$("edRaceWeather").value,trackCondition:$("edRaceTrack").value,startTime:$("edRaceStart").value,status:$("edRaceStatus").value,updatedAt:$("edRaceUpdatedAt").value||new Date().toISOString()});await putOne("races",r);await refreshAll();alert("レース保存")}
 async function loadRaceEditor(){const r=await getOne("races",$("edRaceId").value.trim());if(!r)return alert("未登録");for(const [id,key] of [["edRaceType","type"],["edRaceDate","date"],["edRacePlace","placeName"],["edRacePlaceCode","placeCode"],["edRaceKai","kai"],["edRaceDay","day"],["edRaceNo","raceNo"],["edRaceName","name"],["edRaceSurface","surface"],["edRaceDistance","distance"],["edRaceClass","className"],["edRaceDirection","direction"],["edRaceHeadcount","headcount"],["edRaceWeather","weather"],["edRaceTrack","trackCondition"],["edRaceStart","startTime"],["edRaceStatus","status"],["edRaceUpdatedAt","updatedAt"]])$(id).value=key==="date"?displayDate(r[key]):r[key]??""}
 async function deleteRaceEditor(){const id=$("edRaceId").value.trim();if(!id||!confirm("レースと関連データを削除しますか？"))return;const entries=await getByIndex("entries","race_id",id);for(const e of entries)await deleteOne("entries",e.id);await deleteOne("results",id);await deleteOne("races",id);await refreshAll()}
-async function saveEntryEditor(){const rid=$("edEntryRaceId").value.trim(),e=normalizeEntry({frameNo:$("edFrameNo").value,horseNo:$("edHorseNo").value,horseId:$("edHorseId").value,horseName:$("edHorseName").value,sex:$("edSex").value,age:$("edAge").value,sexAge:$("edSexAge").value,jockeyId:$("edJockeyId").value,jockey:$("edJockey").value,trainerId:$("edTrainerId").value,trainer:$("edTrainer").value,weight:$("edWeight").value,horseWeight:$("edHorseWeight").value,popularity:$("edPopularity").value,odds:$("edOdds").value,probWin:$("edProbWin").value,probPlace:$("edProbPlace").value,ev:$("edEv").value,ai:$("edAi").value,style:$("edStyle").value,updatedAt:$("edEntryUpdatedAt").value||new Date().toISOString()},rid);await putOne("entries",e);await refreshAll();alert("出走馬保存")}
+async function saveEntryEditor(){const rid=$("edEntryRaceId").value.trim(),odds=Number($("edOdds").value||0),probWin=Number($("edProbWin").value||0),e=normalizeEntry({frameNo:$("edFrameNo").value,horseNo:$("edHorseNo").value,horseId:$("edHorseId").value,horseName:$("edHorseName").value,sex:$("edSex").value,age:$("edAge").value,sexAge:$("edSexAge").value,jockeyId:$("edJockeyId").value,jockey:$("edJockey").value,trainerId:$("edTrainerId").value,trainer:$("edTrainer").value,weight:$("edWeight").value,horseWeight:$("edHorseWeight").value,popularity:$("edPopularity").value,odds,finalOdds:odds,probWin,probabilitySource:"手動予測勝率",probPlace:$("edProbPlace").value,ev:probWin*odds,ai:$("edAi").value,style:$("edStyle").value,updatedAt:$("edEntryUpdatedAt").value||new Date().toISOString()},rid);await putOne("entries",e);await refreshAll();alert("出走馬保存")}
 async function loadEntryEditor(){const rid=$("edEntryRaceId").value.trim(),n=Number($("edHorseNo").value),e=await getOne("entries",`${rid}-${String(n).padStart(2,"0")}`);if(!e)return alert("未登録");for(const [id,key] of [["edFrameNo","frameNo"],["edHorseId","horseId"],["edHorseName","horseName"],["edSex","sex"],["edAge","age"],["edSexAge","sexAge"],["edJockeyId","jockeyId"],["edJockey","jockey"],["edTrainerId","trainerId"],["edTrainer","trainer"],["edWeight","weight"],["edHorseWeight","horseWeight"],["edPopularity","popularity"],["edOdds","odds"],["edProbWin","probWin"],["edProbPlace","probPlace"],["edEv","ev"],["edAi","ai"],["edStyle","style"],["edEntryUpdatedAt","updatedAt"]])$(id).value=e[key]??""}
 async function deleteEntryEditor(){const rid=$("edEntryRaceId").value.trim(),n=Number($("edHorseNo").value);if(!rid||!n)return;await deleteOne("entries",`${rid}-${String(n).padStart(2,"0")}`);await refreshAll()}
 async function saveResultEditor(){const r=normalizeResult({race_id:$("edResultRaceId").value,finishOrder:$("edFinishOrder").value.split(",").map(x=>Number(x.trim())).filter(Boolean),payouts:JSON.parse($("edPayouts").value||"{}")});await putOne("results",r);await refreshAll();alert("結果保存")}
@@ -2367,8 +2439,8 @@ function parseEntriesFromHtml(raw,rid){
   for(const row of rowSet){
     const horseName=textOf(row,[".Horse_Name",".HorseInfo .Horse_Name",".HorseName","[class*='HorseName']","a[href*='/horse/']","a[href*='horse.html']","a[href*='horse_id=']"]);if(!horseName)continue;
     const horseNo=findHorseNo(row);if(!horseNo||seen.has(horseNo))continue;seen.add(horseNo);
-    const odds=numberFromText(textOf(row,[".Odds",".Popular .Odds","td.Odds","[class*='Odds']"])),pop=numberFromText(textOf(row,[".Popular","td.Popular","[class*='Popular']",".Ninki","[class*='Ninki']"])),jockey=textOf(row,[".Jockey","[class*='Jockey']","a[href*='/jockey/']"]),trainer=textOf(row,[".Trainer","[class*='Trainer']","a[href*='/trainer/']"]),rowText=String(row.textContent||"").replace(/\u00a0|\u3000/g," ").replace(/\s+/g," ").trim(),sexAge=extractSexAgeFromRow(row),frameNo=numberFromText(textOf(row,[".Waku","[class*='Waku']",".Waku1",".Waku2",".Waku3",".Waku4",".Waku5",".Waku6",".Waku7",".Waku8"])),weight=numberFromText(textOf(row,[".Futan","[class*='Futan']"])),horseWeight=extractHorseWeightFromRow(row),marketProb=odds>0?0.78/odds:0,ai=pop?Math.max(35,103-pop*4):50;
-    try{entries.push(normalizeEntry({frameNo,horseNo,horseName,sexAge,jockey,trainer,weight,horseWeight,rowText,rawText:rowText,popularity:pop,odds,probWin:marketProb,ai,ev:marketProb*odds},rid))}catch(e){console.warn("entry parse skip",e)}
+    const odds=numberFromText(textOf(row,[".Odds",".Popular .Odds","td.Odds","[class*='Odds']"])),pop=numberFromText(textOf(row,[".Popular","td.Popular","[class*='Popular']",".Ninki","[class*='Ninki']"])),jockey=textOf(row,[".Jockey","[class*='Jockey']","a[href*='/jockey/']"]),trainer=textOf(row,[".Trainer","[class*='Trainer']","a[href*='/trainer/']"]),rowText=String(row.textContent||"").replace(/\u00a0|\u3000/g," ").replace(/\s+/g," ").trim(),sexAge=extractSexAgeFromRow(row),frameNo=numberFromText(textOf(row,[".Waku","[class*='Waku']",".Waku1",".Waku2",".Waku3",".Waku4",".Waku5",".Waku6",".Waku7",".Waku8"])),weight=numberFromText(textOf(row,[".Futan","[class*='Futan']"])),horseWeight=extractHorseWeightFromRow(row);
+    try{entries.push(normalizeEntry({frameNo,horseNo,horseName,sexAge,jockey,trainer,weight,horseWeight,rowText,rawText:rowText,popularity:pop,odds,probWin:0,ai:50,aiSource:"neutral-no-model",ev:0,probabilitySource:"独自勝率未取得"},rid))}catch(e){console.warn("entry parse skip",e)}
   }
   return entries
 }
@@ -2381,8 +2453,8 @@ function parseEntriesFromOddsHtml(raw,rid){
     let pop=numberFromText(textOf(row,[".Popular","td.Popular","[class*='Popular']",".Ninki","[class*='Ninki']"]));if(!pop&&nums.length>=2)pop=nums[0]===horseNo?nums[1]:nums[0];
     let odds=numberFromText(textOf(row,[".Odds","td.Odds","[class*='Odds']"]));
     if(!odds){const after=(horseCell>=0?cells.slice(horseCell+1):cells).map(x=>x.textContent.replace(/,/g,"").trim()),decimal=after.find(x=>/^\d+(?:\.\d+)$/.test(x));if(decimal)odds=Number(decimal)}
-    if(!odds)continue;seen.add(horseNo);const marketProb=0.78/odds,ai=pop?Math.max(35,103-pop*4):50;
-    try{entries.push(normalizeEntry({horseNo,horseName,popularity:pop,odds,probWin:marketProb,ai,ev:marketProb*odds},rid))}catch(e){console.warn("odds entry parse skip",e)}
+    if(!odds)continue;seen.add(horseNo);
+    try{entries.push(normalizeEntry({horseNo,horseName,popularity:pop,odds,probWin:0,ai:50,aiSource:"neutral-no-model",ev:0,probabilitySource:"独自勝率未取得"},rid))}catch(e){console.warn("odds entry parse skip",e)}
   }
   return entries
 }
@@ -2639,7 +2711,7 @@ async function bridgeLoadBundle(rid=$("bridgeRaceId").value.trim(),silent=false,
       const paths=[`/race/${encodeURIComponent(rid)}`,`/entry/${encodeURIComponent(rid)}`,`/odds/${encodeURIComponent(rid)}`,`/result/${encodeURIComponent(rid)}`],settled=await Promise.allSettled(paths.map(p=>bridgeFetch(p))),value=i=>settled[i].status==="fulfilled"?settled[i].value:null;
       const raceData=value(0),entryData=value(1),oddsData=value(2),resultData=value(3),r=raceData?.race||raceData||existingRace;if(!r)throw new Error("REST race取得失敗");
       const sourceDate=compactDate(r?.date||r?.raceDate||r?.race_date||"");if(date&&sourceDate&&sourceDate!==date)throw new Error(`race_id日付不一致 指定 ${displayDate(date)} / REST ${displayDate(sourceDate)} / ${rid}`);
-      const en=Array.isArray(entryData)?entryData:(entryData?.entries||entryData?.horses||[]),od=Array.isArray(oddsData)?oddsData:(oddsData?.odds||[]),oMap=new Map(od.map(x=>[Number(x.horseNo||x.horse_no||x.number||x.umaban),Number(x.odds||x.winOdds||0)])),merged=en.map(e=>({...e,odds:oMap.get(Number(e.horseNo||e.horse_no||e.number||e.umaban))||e.odds})),resultBody=resultData?.result||resultData,mergedRace=mergeRaceMetadata(existingRace,{...r,race_id:rid,type:kind,date:sourceDate||date}),payload={races:[mergedRace],entries:{[rid]:merged},results:resultBody?[{race_id:rid,...resultBody}]:[]};
+      const en=Array.isArray(entryData)?entryData:(entryData?.entries||entryData?.horses||[]),od=Array.isArray(oddsData)?oddsData:(oddsData?.odds||[]),oMap=new Map(od.map(x=>[Number(x.horseNo||x.horse_no||x.number||x.umaban),Number(x.odds||x.winOdds||0)])),resultBody=resultData?.result||resultData,merged=en.map(e=>{const odds=oMap.get(Number(e.horseNo||e.horse_no||e.number||e.umaban))||e.odds;return{...e,odds,finalOdds:resultBody?odds:Number(e.finalOdds||0),oddsSourceLabel:resultBody?"確定オッズ":String(e.oddsSourceLabel||"取得時オッズ")}}),mergedRace=mergeRaceMetadata(existingRace,{...r,race_id:rid,type:kind,date:sourceDate||date}),payload={races:[mergedRace],entries:{[rid]:merged},results:resultBody?[{race_id:rid,...resultBody}]:[]};
       await importPayload(payload,{silent:true,deferRefresh});if(!silent)bridgeLog("RESTレース一式登録",{race:rid,kind,entries:merged.length,result:!!resultBody})
     }else{
       const shutubaPage=await bridgeLoadHtmlPage("shutuba",rid,kind,mode),oddsPage=await bridgeLoadHtmlPage("odds",rid,kind,mode);let resultPage={html:"",url:"",errors:[]};
@@ -2649,7 +2721,13 @@ async function bridgeLoadBundle(rid=$("bridgeRaceId").value.trim(),silent=false,
       if(date&&actualDate&&actualDate!==date)throw new Error(`race_id日付不一致 指定 ${displayDate(date)} / 取得ページ ${displayDate(actualDate)} / ${rid}`);
       const parsedPages=[shutubaPage.html?parseShutubaHtml(shutubaPage.html,rid,kind,date):null,oddsPage.html?parseShutubaHtml(oddsPage.html,rid,kind,date):null,resultPage.html?parseShutubaHtml(resultPage.html,rid,kind,date):null].filter(Boolean),sourceEntries=[...parsedPages.flatMap(p=>p.entries||[]),...parseEntriesFromOddsHtml(oddsPage.html,rid),...(resultPage.html?parseEntriesFromHtml(resultPage.html,rid):[])],entryMap=new Map();
       for(const e of sourceEntries){const n=Number(e.horseNo||0);if(!n)continue;entryMap.set(n,mergeEntryRecords(entryMap.get(n)||{},e))}const entries=[...entryMap.values()],oddsMap=oddsPage.html?parseOddsHtml(oddsPage.html):new Map();
-      for(const e of entries){const o=oddsMap.get(e.horseNo);if(o){e.odds=o.odds||e.odds;e.popularity=o.popularity||e.popularity;const mp=e.odds?0.78/e.odds:0;e.probWin=e.probWin||mp;e.ev=Number((e.probWin*e.odds).toFixed(3))}}
+      for(const e of entries){
+        const o=oddsMap.get(e.horseNo);
+        if(!resultPage.html&&o){e.odds=o.odds||e.odds;e.oddsWin=e.odds;e.popularity=o.popularity||e.popularity}
+        if(resultPage.html){e.finalOdds=Number(e.odds||0);e.oddsSourceLabel="確定オッズ"}
+        else e.oddsSourceLabel=e.oddsSourceLabel||"取得時オッズ";
+        e.ev=Number((Number(e.probWin||0)*Number(e.finalOdds||e.odds||0)).toFixed(6))
+      }
       const result=resultPage.html?parseResultHtml(resultPage.html,rid):null,race=mergeRaceMetadata(existingRace,...parsedPages.map(p=>p.race),{race_id:rid,type:kind,date:date||parsedPages[0]?.race?.date,sourceUrl:resultPage.url||shutubaPage.url||oddsPage.url});
       if(!entries.length&&!result)throw new Error("ページ取得には成功しましたが出走馬・結果を解析できません");if(result)race.status="確定";else if(entries.length)race.status="出馬表取得";
       await importPayload({races:[race],entries:{[rid]:entries},results:result?[result]:[]},{silent:true,deferRefresh});if(!silent)bridgeLog("レース一式登録",{race_id:rid,kind,entries:entries.length,result:!!result,metadata:{className:race.className,surface:race.surface,distance:race.distance,trackCondition:race.trackCondition},route:{shutuba:shutubaPage.url,odds:oddsPage.url,result:resultPage.url}})
@@ -2845,7 +2923,7 @@ function textIoTableTsv(table){const headers=[...table.querySelectorAll("thead t
 function textIoLabelForInput(el){const field=el.closest(".field");const label=field?.querySelector("label")?.textContent?.trim();return label||el.getAttribute("aria-label")||el.id||textIoElementKey(el)}
 function textIoViewTsv(viewId){const root=$("view-"+viewId);if(!root)return"";const parts=[`# The競馬 Ultimate NEXT Professional v${APP_VERSION}`,`# 画面: ${TEXT_IO_LABELS[viewId]||viewId}`,`# 作成: ${new Date().toLocaleString("ja-JP")}`];const tables=[...root.querySelectorAll("table")].filter(t=>!t.closest("[hidden]"));tables.forEach((table,i)=>{const tsv=textIoTableTsv(table);if(!tsv)return;let heading="";let node=table.closest(".card")?.querySelector("h2,h3")||table.parentElement?.previousElementSibling;if(heading=node?.textContent?.trim()||"")parts.push(`\n## ${heading||`表${i+1}`}\n${tsv}`)});const rows=[];root.querySelectorAll("input,select,textarea").forEach(el=>{if(el.type==="file"||el.closest("[hidden]")||el.closest("#textIoOverlay"))return;const value=el.type==="checkbox"?(el.checked?"ON":"OFF"):el.value;if(value!=="")rows.push([textIoLabelForInput(el),String(value).replace(/[\t\r\n]+/g," ")])});if(rows.length)parts.push("\n## 入力設定\n項目\t値\n"+rows.map(r=>r.join("\t")).join("\n"));if(parts.length===3)parts.push("\n表示中のテキストデータはありません。");return parts.join("\n")}
 function textIoSimulationSummary(rows){const totalBet=rows.reduce((s,x)=>s+Number(x.invest||0),0),totalPay=rows.reduce((s,x)=>s+Number(x.pay||0),0);return{raceCount:rows.length,boughtCount:rows.filter(x=>Number(x.invest)>0).length,candidateHits:rows.filter(x=>x.candidateHit).length,purchaseHits:rows.filter(x=>x.purchaseHit).length,missHits:rows.filter(x=>x.miss).length,totalBet,totalPay,profit:totalPay-totalBet,roi:totalBet?totalPay/totalBet*100:0}}
-async function textIoBuildData(viewId){const forms=textIoCollectForms(viewId);if(viewId==="dashboard"){const races=(await getAll("races")).sort((a,b)=>String(b.date).localeCompare(String(a.date))||b.raceNo-a.raceNo).slice(0,30),sims=await getAll("simulations");return{forms,races,lastSimulation:sims.at(-1)||null}}if(viewId==="calendar"){const selectedDate=state.calendarSelected||"",races=(await getAll("races")).filter(r=>!selectedDate||r.date===selectedDate);return{forms,selectedDate,races}}if(viewId==="race"){const rid=state.currentRaceId||$("raceIdDirect")?.value.trim()||"";return{forms,currentRaceId:rid,races:rid?[await getOne("races",rid)].filter(Boolean):[],entries:rid?await getByIndex("entries","race_id",rid):[],results:rid?[await getOne("results",rid)].filter(Boolean):[]}}if(viewId==="search")return{forms,filters:readSearchFilters(),rows:state.searchResult.map(x=>({race_id:x.race_id,horseNo:x.horseNo,horseName:x.horseName,sexAge:normalizeSexAgeField(x.sexAge,x.sex,x.age),jockey:x.jockey,trainer:x.trainer,popularity:x.popularity,odds:x.odds,ev:x.ev,ai:x.ai,race:x.race}))};if(viewId==="simulation")return{forms,config:readSimConfig(),summary:textIoSimulationSummary(state.simResult),rows:state.simResult};if(viewId==="analytics")return{forms,dimension:state.currentAnalyticsDimension,summary:textIoSimulationSummary(state.analyticsRows),rows:state.analyticsRows};if(viewId==="strategies")return{forms,currentStrategyId:state.currentStrategyId,strategies:await getAll("strategies"),learningRecommendation:state.learningRecommendation};if(viewId==="live"){document.querySelectorAll("[data-live-url]").forEach(el=>{const i=Number(el.dataset.liveUrl);state.settings.livePanels[i]={title:document.querySelector(`[data-live-title="${i}"]`)?.value||"",url:el.value||""}});return{forms,liveCount:Number($("liveCount").value||2),livePanels:state.settings.livePanels||[]}}if(viewId==="database")return{forms,app:"The競馬 Ultimate NEXT Professional",version:APP_VERSION,races:await getAll("races"),entries:await getAll("entries"),results:await getAll("results"),strategies:await getAll("strategies"),simulations:await getAll("simulations"),snapshots:await getAll("snapshots"),favorites:await getAll("favorites"),settings:await getAll("settings")};if(viewId==="bridge")return{forms,bridgeUrl:$("bridgeUrl").value.trim(),bridgeDate:$("bridgeDate").value,bridgeRaceId:$("bridgeRaceId").value.trim(),log:$("bridgeLog").textContent};if(viewId==="settings")return{forms,settings:{...state.settings}};return{forms}}
+async function textIoBuildData(viewId){const forms=textIoCollectForms(viewId);if(viewId==="dashboard"){const races=(await getAll("races")).sort((a,b)=>String(b.date).localeCompare(String(a.date))||b.raceNo-a.raceNo).slice(0,30),sims=await getAll("simulations");return{forms,races,lastSimulation:sims.at(-1)||null}}if(viewId==="calendar"){const selectedDate=state.calendarSelected||"",races=(await getAll("races")).filter(r=>!selectedDate||r.date===selectedDate);return{forms,selectedDate,races}}if(viewId==="race"){const rid=state.currentRaceId||$("raceIdDirect")?.value.trim()||"";return{forms,currentRaceId:rid,races:rid?[await getOne("races",rid)].filter(Boolean):[],entries:rid?await getByIndex("entries","race_id",rid):[],results:rid?[await getOne("results",rid)].filter(Boolean):[]}}if(viewId==="search")return{forms,filters:readSearchFilters(),rows:state.searchResult.map(x=>({race_id:x.race_id,horseNo:x.horseNo,horseName:x.horseName,sexAge:normalizeSexAgeField(x.sexAge,x.sex,x.age),jockey:x.jockey,trainer:x.trainer,popularity:x.popularity,odds:x.odds,finalOdds:x.finalOdds||x.odds,probWin:x.probWin,marketImpliedProbability:x.marketImpliedProbability,probabilitySource:x.probabilitySource,ev:x.ev,evFormula:x.evFormula||"independent_probability_x_final_odds",ai:x.ai,race:x.race}))};if(viewId==="simulation")return{forms,config:readSimConfig(),summary:textIoSimulationSummary(state.simResult),rows:state.simResult};if(viewId==="analytics")return{forms,dimension:state.currentAnalyticsDimension,summary:textIoSimulationSummary(state.analyticsRows),rows:state.analyticsRows};if(viewId==="strategies")return{forms,currentStrategyId:state.currentStrategyId,strategies:await getAll("strategies"),learningRecommendation:state.learningRecommendation};if(viewId==="live"){document.querySelectorAll("[data-live-url]").forEach(el=>{const i=Number(el.dataset.liveUrl);state.settings.livePanels[i]={title:document.querySelector(`[data-live-title="${i}"]`)?.value||"",url:el.value||""}});return{forms,liveCount:Number($("liveCount").value||2),livePanels:state.settings.livePanels||[]}}if(viewId==="database")return{forms,app:"The競馬 Ultimate NEXT Professional",version:APP_VERSION,races:await getAll("races"),entries:await getAll("entries"),results:await getAll("results"),strategies:await getAll("strategies"),simulations:await getAll("simulations"),snapshots:await getAll("snapshots"),favorites:await getAll("favorites"),settings:await getAll("settings")};if(viewId==="bridge")return{forms,bridgeUrl:$("bridgeUrl").value.trim(),bridgeDate:$("bridgeDate").value,bridgeRaceId:$("bridgeRaceId").value.trim(),log:$("bridgeLog").textContent};if(viewId==="settings")return{forms,settings:{...state.settings}};return{forms}}
 async function textIoBuildPackage(viewId){return{format:"TheKeibaTextClipboard",schema:1,app:"The競馬 Ultimate NEXT Professional",appVersion:APP_VERSION,view:viewId,viewLabel:TEXT_IO_LABELS[viewId]||viewId,exportedAt:new Date().toISOString(),data:await textIoBuildData(viewId)}}
 async function textIoGenerate(){const viewId=$("textIoTarget").value,format=$("textIoFormat").value;textIoStatus("作成中です…");try{$("textIoArea").value=format==="portable"?JSON.stringify(await textIoBuildPackage(viewId),null,2):textIoViewTsv(viewId);textIoStatus(`${TEXT_IO_LABELS[viewId]}を${format==="portable"?"再読込用JSON":"表形式TSV"}で作成しました。`,"ok")}catch(e){console.error(e);textIoStatus("作成失敗: "+e.message,"bad")}}
 async function textIoCopy(){const area=$("textIoArea");if(!area.value)return textIoStatus("コピーする内容がありません。","bad");try{if(navigator.clipboard?.writeText&&window.isSecureContext)await navigator.clipboard.writeText(area.value);else{area.focus();area.select();if(!document.execCommand("copy"))throw new Error("copy未対応")}textIoStatus(`コピーしました ${area.value.length.toLocaleString()}文字`,"ok")}catch(e){area.focus();area.select();textIoStatus("自動コピーできません。選択済みなので、長押しして「コピー」を選んでください。","bad")}}
@@ -4400,7 +4478,7 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
     const c=rec.config||{},entries=rec.entries||[],candidates=rec.candidateEntries||[],tickets=rec.candidateTickets||[],purchases=rec.purchaseTickets||[],purchaseKeys=new Set(purchases.map(t=>`${t.ticketType}|${t.key}`));
     q("predCandidateCount").textContent=candidates.length;q("predTicketCount").textContent=tickets.length;q("predPurchaseCount").textContent=purchases.length;q("predInvest").textContent=yen(rec.invest||0);
     q("predConfigBadges").innerHTML=[rec.engine==="ev-analysis-emulator"?"エンジン EV分析エミュレータ":"エンジン NEXT戦略",`モード ${modeName(c)}`,`券種 ${TICKET_LABELS[c.ticketType]||c.ticketType}`,`最低EV ${num(c.minEv).toFixed(2)}`,`最低AI ${num(c.minAi).toFixed(0)}`,`上位 ${num(c.topN)}頭`,`最大 ${num(c.maxTickets)}点`,`1点 ${yen(c.unit)}`,c.noForceFill?"NoForceFill ON":"NoForceFill OFF",c.settingsAuthority?"設定モード完全権限":"SIM個別編集"].map(x=>`<span class="badge">${esc(x)}</span>`).join("");
-    q("predHorseTable").innerHTML=`<div class="table-wrap"><table><thead><tr><th>順位</th><th>馬番</th><th>馬名</th><th>性齢</th><th>人気</th><th>単勝</th><th>勝率</th><th>EV</th><th>AI</th><th>判定</th></tr></thead><tbody>${candidates.map((e,i)=>`<tr class="prediction-candidate"><td><span class="prediction-rank">${i+1}</span></td><td>${num(e.horseNo)}</td><td class="entry-main">${esc(e.horseName)}</td><td>${esc(normalizeSexAgeField(e.sexAge,e.sex,e.age)||"-")}</td><td>${num(e.popularity)||"-"}</td><td>${num(e.odds).toFixed(1)}</td><td>${(num(e.probWin)*100).toFixed(1)}%</td><td class="${num(e.ev)>=1?"good":"bad"}">${num(e.ev).toFixed(3)}</td><td>${num(e.ai).toFixed(1)}</td><td><span class="badge ${i<3?"good":""}">${i<3?"上位候補":"候補"}</span></td></tr>`).join("")||`<tr><td colspan="10" class="empty">条件を通過した馬はいません</td></tr>`}</tbody></table></div>`;
+    q("predHorseTable").innerHTML=`<div class="notice" style="margin-bottom:10px">EV＝本体エミュ独自勝率×確定オッズ。市場勝率は比較専用です。</div><div class="table-wrap"><table><thead><tr><th>順位</th><th>馬番</th><th>馬名</th><th>性齢</th><th>人気</th><th>確定単勝</th><th>本体勝率</th><th>市場勝率</th><th>EV</th><th>AI</th><th>判定</th></tr></thead><tbody>${candidates.map((e,i)=>`<tr class="prediction-candidate"><td><span class="prediction-rank">${i+1}</span></td><td>${num(e.horseNo)}</td><td class="entry-main">${esc(e.horseName)}</td><td>${esc(normalizeSexAgeField(e.sexAge,e.sex,e.age)||"-")}</td><td>${num(e.popularity)||"-"}</td><td>${num(e.finalOdds||e.odds).toFixed(1)}</td><td>${(num(e.probWin)*100).toFixed(2)}%</td><td>${num(e.marketImpliedProbability||e.marketProbability)>0?(num(e.marketImpliedProbability||e.marketProbability)*100).toFixed(2)+"%":"—"}</td><td class="${num(e.ev)>=1?"good":"bad"}">${num(e.ev).toFixed(3)}</td><td>${num(e.ai).toFixed(1)}</td><td><span class="badge ${i<3?"good":""}">${i<3?"上位候補":"候補"}</span></td></tr>`).join("")||`<tr><td colspan="11" class="empty">条件を通過した馬はいません</td></tr>`}</tbody></table></div>`;
     q("predTicketTable").innerHTML=`<div class="table-wrap"><table><thead><tr><th>判定</th><th>券種</th><th>買い目</th><th>構成馬</th><th>スコア</th><th>推定EV</th><th>金額</th></tr></thead><tbody>${tickets.map(t=>{const selected=ticketEntries(t,entries),picked=purchaseKeys.has(`${t.ticketType}|${t.key}`),ev=ticketEv(t,entries);return`<tr class="${picked?"prediction-pick":""}"><td><span class="badge ${picked?"good":""}">${picked?"推奨購入":"候補"}</span></td><td>${esc(TICKET_LABELS[t.ticketType]||t.ticketType)}</td><td><div class="prediction-ticket-key">${esc(ticketText(t))}</div><div class="prediction-ticket-sub">${esc(t.key||"")}</div></td><td>${esc(selected.map(e=>`${e.horseNo} ${e.horseName}`).join(" / ")||"-")}</td><td>${num(t.score).toFixed(1)}</td><td class="${ev>=1?"good":"bad"}">${ev.toFixed(3)}</td><td>${picked?yen(c.unit):"-"}</td></tr>`}).join("")||`<tr><td colspan="7" class="empty">設定条件を満たす買い目はありません。見送り判定です。</td></tr>`}</tbody></table></div>`;
   }
 
@@ -7183,6 +7261,7 @@ function applyRows(win,entries){
     const sel=selectedValues(rec,odds,cfg);
     e.standardProbWin=Number(e.probWin??e.probability??0);
     e.standardEv=Number(e.ev??0);
+    e.standardProbabilityMethod="independent-v1";
     e.arionProbability=rec.arionProbability;
     e.netkeibaProbability=rec.netkeibaProbability;
     e.arionEv=rec.arionProbability!==null?Number((rec.arionProbability*odds).toFixed(3)):null;
@@ -7633,7 +7712,7 @@ function install(){
   const num=(v,def=0)=>{const x=Number(v);return Number.isFinite(x)?x:def};
   const rid=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
   const horseNo=e=>num(e&&((e.horseNo??e.horse_no??e.num??e.number)),0);
-  const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
+  const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
   function cfg(){
     try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}
     catch(_){return {mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
@@ -7786,7 +7865,7 @@ function installCore(w,label){
   const num=(v,d=0)=>{const x=Number(v);return Number.isFinite(x)?x:d};
   const raceId=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
   const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.num??e.number),0);
-  const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
+  const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
   function config(){try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}}
   function data(){try{const d=JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityDataV2')||'{"races":{}}');d.races=d.races||{};return d}catch(_){return{races:{}}}}
   function sourceOf(c){if(c.mode==='arion')return'arion';if(c.mode==='netkeiba')return'netkeiba';if(c.mode==='compare')return c.compareDecision||'none';return'standard'}
@@ -7880,7 +7959,7 @@ function installCore(w,doc,label){
   const nullable=v=>{const x=Number(v);return Number.isFinite(x)?x:null};
   const raceId=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
   const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.horseNumber??e.num??e.number??e['馬番']),0);
-  const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
+  const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
 
   function config(){
     try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
@@ -7920,14 +7999,17 @@ function installCore(w,doc,label){
     const list=Array.isArray(entries)?entries:[];
     const fresh=[];
     for(const e of list){
-      if(nullable(e.standardProbWin)!==null&&nullable(e.standardEv)!==null){
+      if(e.standardProbabilityMethod==='independent-v1'&&nullable(e.standardProbWin)!==null&&nullable(e.standardEv)!==null){
         if(nullable(e.standardAi)===null)e.standardAi=num(e.ai,50);
         restoreOne(e);
-      }else fresh.push(e);
+      }else{
+        delete e.standardProbWin;delete e.standardEv;delete e.standardAi;
+        fresh.push(e)
+      }
     }
     if(fresh.length){
       for(const e of fresh){
-        // 旧外部確率が残っていて標準値が未保存の場合は、市場・人気・AIから標準値を再構成する。
+        // 旧外部確率が残っていて標準値が未保存の場合は、独立した本体モデルから標準値を再構成する。
         if(e.narProbabilityMode&&e.narProbabilityMode!=='standard'){
           e.probWin=0;e.probability=0;e.prob=0;e.winProbability=0;e.ev=0;
         }
@@ -7937,6 +8019,7 @@ function installCore(w,doc,label){
         e.standardProbWin=num(e.probWin??e.probability,0);
         e.standardEv=num(e.ev,0);
         e.standardAi=num(e.ai,50);
+        e.standardProbabilityMethod='independent-v1';
         restoreOne(e);
       }
     }
@@ -8003,7 +8086,7 @@ function installCore(w,doc,label){
       }
       const ev=Number((p*odds).toFixed(6));
       e.narProbabilityUnavailable=false;e.narProbabilityFallback=false;e.narProbabilitySource=sourceLabel(source);
-      e.probWin=p;e.probability=p;e.prob=p;e.winProbability=p;e.ev=ev;e.expectedValue=ev;e.adoptedProbability=p;e.adoptedEv=ev;
+      e.probWin=p;e.probability=p;e.prob=p;e.winProbability=p;e.ev=ev;e.expectedValue=ev;e.adoptedProbability=p;e.adoptedEv=ev;e.independentProbability=p;e.independentProbabilityAvailable=true;e.evProbabilitySource=e.narProbabilitySource;e.evFormula="independent_probability_x_final_odds";
       e.__narDecisionScore=ev*1000+p*100;
       stat.updated++;
     }
@@ -8262,7 +8345,7 @@ function installCore(w,doc,label){
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const ridOf=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
   const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.horseNumber??e.num??e.number??e['馬番']),0);
-  const oddsOf=e=>num(e&&(e.odds??e.oddsWin??e.winOdds??e.currentOdds),0);
+  const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
   const dateText=r=>String(r?.date||r?.raceDate||'');
   const placeText=r=>String(r?.placeName||r?.place||'');
   const raceNoText=r=>num(r?.raceNo??r?.race_no??r?.number,0);
@@ -8420,7 +8503,7 @@ function installCore(w,doc,label){
       }
       const ev=Number((p*odds).toFixed(6));
       e.narProbabilityUnavailable=false;e.narProbabilityFallback=false;e.narProbabilitySource=sourceLabel(source);
-      e.probWin=p;e.probability=p;e.prob=p;e.winProbability=p;e.ev=ev;e.expectedValue=ev;e.adoptedProbability=p;e.adoptedEv=ev;
+      e.probWin=p;e.probability=p;e.prob=p;e.winProbability=p;e.ev=ev;e.expectedValue=ev;e.adoptedProbability=p;e.adoptedEv=ev;e.independentProbability=p;e.independentProbabilityAvailable=true;e.evProbabilitySource=e.narProbabilitySource;e.evFormula="independent_probability_x_final_odds";
       e.__narDecisionScore=ev*1000+p*100;
       updated++;
     }
@@ -9218,7 +9301,7 @@ setInterval(installAll,2500);
       for(const item of baseValues.values())item.prob=clamp(item.raw*scale,.001,.85)
     }
     for(const item of baseValues.values()){
-      const entry=item.entry,odds=Number(entry.odds||entry.oddsWin||0);
+      const entry=item.entry,odds=Number(entry.finalOdds||entry.odds||entry.oddsWin||0);
       entry.__nkMemberBaseProb=Number(entry.probWin||entry.probability||0);
       entry.__nkMemberBaseAi=Number(entry.ai||0);
       entry.__nkMemberEnhanced=true;
@@ -9228,6 +9311,7 @@ setInterval(installAll,2500);
       entry.memberProbability=item.prob;
       entry.probWin=item.prob;entry.probability=item.prob;entry.prob=item.prob;entry.winProbability=item.prob;
       entry.ev=Number((item.prob*odds).toFixed(6));entry.expectedValue=entry.ev;
+      entry.independentProbability=item.prob;entry.independentProbabilityAvailable=true;entry.evProbabilitySource=item.source;entry.evFormula="independent_probability_x_final_odds";
       if(item.premiumScore!==null)entry.ai=Number(clamp(item.baseAi+(item.premiumScore-.5)*20*(config.premiumInfluence/100),1,120).toFixed(2))
     }
     return entries
@@ -9426,6 +9510,151 @@ setInterval(installAll,2500);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(wire,1250),{once:true});
   else setTimeout(wire,250);
+})();
+</script>
+<script id="independentProbabilityFinalOddsEvPatchV1">
+(function(){
+  "use strict";
+  const VERSION="v1.2.62 IndependentProbabilityFinalOddsEV";
+  const FLAG="__theKeibaIndependentProbabilityFinalOddsEvV1";
+  const NAR_CONFIG_KEY="TheKeibaNarProbabilityConfigV2";
+  const MEMBER_CONFIG_KEY="TheKeibaNetkeibaMemberConfigV1";
+  const MEMBER_DATA_KEY="TheKeibaNetkeibaMemberDataV1";
+  const number=(value,fallback=0)=>{const n=Number(value);return Number.isFinite(n)?n:fallback};
+  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+  const horseNo=horse=>number(horse&&(horse.num??horse.horseNo??horse.horse_no??horse.number),0);
+  const oddsOf=horse=>[horse?.finalOdds,horse?.closingOdds,horse?.odds,horse?.oddsWin,horse?.winOdds].map(v=>number(v,0)).find(v=>v>0)||0;
+  const raceIdOf=w=>{
+    const candidates=[w?.currentRaceId,w?.currentRaceID,w?.selectedRaceId];
+    try{["raceIdPrimaryInput","raceIdInput","raceIdDirect","bridgeRaceId"].forEach(id=>candidates.push(w.document?.getElementById(id)?.value))}catch(_){}
+    for(const value of candidates){const match=String(value||"").match(/\d{12}/);if(match)return match[0]}
+    return""
+  };
+  const json=(storage,key,fallback)=>{try{return JSON.parse(storage.getItem(key)||"")||fallback}catch(_){return fallback}};
+  function memberProbabilities(w,horses){
+    const fromHorse=String(horses?.find(h=>h?.race_id||h?.raceId)?.race_id||horses?.find(h=>h?.race_id||h?.raceId)?.raceId||"").match(/\d{12}/)?.[0]||"";
+    const rid=raceIdOf(w)||fromHorse,config=json(w.localStorage,MEMBER_CONFIG_KEY,{}),data=json(w.localStorage,MEMBER_DATA_KEY,{races:{}});
+    if(!rid||config.probabilityMode==="standard")return null;
+    const record=data?.races?.[rid],rows=Array.isArray(record?.rows)?record.rows:[];
+    if(!rows.length)return null;
+    const map=new Map(rows.map(row=>[horseNo(row),number(row.predictedProbability,0)]));
+    const values=horses.map(h=>map.get(horseNo(h))||0);
+    return values.length>1&&values.every(p=>p>0)?{values,source:"netkeibaレース前予想オッズ"}:null
+  }
+  function explicitProbability(horse){
+    const source=String(horse?.probabilitySource||horse?.probSource||horse?.narProbabilitySource||horse?.memberProbabilitySource||"");
+    if(/市場|確定オッズ代替|final.?odds|market|本体エミュ標準/i.test(source))return 0;
+    const value=number(
+      horse?.adoptedProbability??
+      horse?.memberProbability??
+      horse?.independentProbability??
+      horse?.modelProbability??
+      horse?.modelProbWin??
+      horse?.preRaceProbability??
+      horse?.predictedProbability??
+      horse?.aiProbability,
+      0
+    );
+    return value>0&&value<1?value:0
+  }
+  function independentRated(w,base,horses){
+    const baseByNo=new Map((Array.isArray(base)?base:[]).map(item=>[horseNo(item),item]));
+    const merged=horses.map(h=>Object.assign({},baseByNo.get(horseNo(h))||{},h));
+    const inverseSum=merged.reduce((sum,h)=>{const odds=oddsOf(h);return sum+(odds>=1?1/odds:0)},0);
+    const market=merged.map(h=>{const odds=oddsOf(h);return odds>=1&&inverseSum>0?(1/odds)/inverseSum:0});
+    const narConfig=json(w.localStorage,NAR_CONFIG_KEY,{mode:"standard",compareDecision:"none"});
+    const narSource=narConfig.mode==="arion"?"arion":narConfig.mode==="netkeiba"?"netkeiba":narConfig.mode==="compare"?narConfig.compareDecision:"standard";
+    let probabilities=merged.map((h,i)=>{
+      const b=baseByNo.get(horseNo(h))||{};
+      if(narSource!=="standard"&&narSource!=="none"){
+        const external=number(b.adoptedProbability??b.winP,0);
+        if(external>0&&!/標準/.test(String(b.narProbabilitySource||"")))return external
+      }
+      return explicitProbability(h)
+    });
+    let source="本体エミュ独自勝率";
+    const member=memberProbabilities(w,merged);
+    if(member){probabilities=member.values;source=member.source}
+    let complete=probabilities.length>1&&probabilities.every(p=>p>0);
+    if(!complete){
+      const scores=merged.map(h=>number(h.modelScore??h.predictionScore??h.aiModelScore??h.timeIndex,NaN));
+      const scoreComplete=scores.length>1&&scores.every(Number.isFinite);
+      const spread=scoreComplete?Math.max(...scores)-Math.min(...scores):0;
+      if(scoreComplete&&spread>.001){
+        const mean=scores.reduce((a,b)=>a+b,0)/scores.length;
+        probabilities=scores.map(score=>Math.exp(clamp((score-mean)/14,-4,4)));
+        complete=true;source="本体エミュAIモデル"
+      }
+    }
+    const total=complete?probabilities.reduce((a,b)=>a+b,0):0;
+    const n=Math.max(1,merged.length),placeMult=Math.min(3,2+n*.045),renMult=Math.min(2.4,1.6+n*.038);
+    return merged.map((horse,index)=>{
+      const winP=total>0?probabilities[index]/total:0;
+      const rawPlaceP=winP*placeMult+.015,favAdj=Math.max(0,winP-.25)*.7,longAdj=winP<.08?(.08-winP)*.8:0;
+      const placeP=winP>0?Math.min(.9,rawPlaceP*(1-favAdj)*(1-longAdj)):0;
+      const renP=winP>0?Math.min(.82,winP*renMult+.015):0;
+      return Object.assign({},horse,{
+        raw:winP,winP,placeP,renP,quinellaP:renP,
+        emulatorProbability:winP,independentProbability:winP,
+        independentProbabilityAvailable:winP>0,
+        probabilitySource:winP>0?source:"独自勝率未取得",
+        evProbabilitySource:winP>0?source:"独自勝率未取得",
+        marketImpliedProbability:market[index],
+        marketProbability:market[index],
+        marketOverround:inverseSum,
+        evFormula:"independent_probability_x_final_odds"
+      })
+    }).sort((a,b)=>number(b.winP)-number(a.winP))
+  }
+  function renderComparison(w,result){
+    const doc=w.document,anchor=doc.getElementById("summaryCard")||doc.getElementById("summaryGrid");
+    if(!anchor||!result)return;
+    let panel=doc.getElementById("independentEvComparisonV1");
+    if(!panel){panel=doc.createElement("div");panel.id="independentEvComparisonV1";panel.className="card";panel.style.marginBottom="12px";anchor.insertAdjacentElement("afterend",panel)}
+    const rated=Array.isArray(result.rated)?result.rated:[],valid=Array.isArray(result.valid)?result.valid:[],byNo=new Map(rated.map(h=>[horseNo(h),h]));
+    const rows=valid.slice().sort((a,b)=>horseNo(a)-horseNo(b)).map(h=>{
+      const r=byNo.get(horseNo(h))||h,odds=oddsOf(r),p=number(r.independentProbability??r.winP,0),market=number(r.marketImpliedProbability,0),ev=p*odds;
+      return`<tr><td>${horseNo(r)}</td><td>${String(r.name||r.horseName||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}</td><td>${odds>0?odds.toFixed(1):"—"}</td><td>${p>0?(p*100).toFixed(2)+"%":"—"}</td><td>${market>0?(market*100).toFixed(2)+"%":"—"}</td><td style="font-weight:800;color:${ev>=1?"var(--green)":"var(--red)"}">${p>0&&odds>0?ev.toFixed(3):"—"}</td></tr>`
+    }).join("");
+    const available=rated.some(h=>number(h.independentProbability??h.winP,0)>0),source=String(rated.find(h=>h.probabilitySource)?.probabilitySource||"独自勝率未取得");
+    panel.innerHTML=`<h2 style="margin-bottom:8px">本体勝率・市場勝率・確定オッズEV</h2><div class="url-status ${available?"ok":"err"}" style="margin-bottom:8px">${available?`EV＝${source} × 確定オッズ`:"独立した予測勝率がないためEV候補を生成しません。市場勝率は比較表示だけです。"}</div><div class="table-wrap"><table class="result-table"><thead><tr><th>馬番</th><th>馬名</th><th>確定単勝</th><th>本体勝率</th><th>市場勝率</th><th>EV</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">対象馬なし</td></tr>'}</tbody></table></div><div style="font-size:10px;color:var(--muted);margin-top:7px">市場勝率＝(1÷確定オッズ)÷全馬の逆数合計。購入判定には使いません。</div>`;
+    const candidateHead=doc.querySelector("#candBody")?.closest("table")?.querySelector("thead th:nth-child(3)");
+    if(candidateHead)candidateHead.textContent="本体独自確率"
+  }
+  function installChild(w){
+    if(!w||!w.document)return false;
+    const current=w.normalizeRatedHorses;
+    if(typeof current!=="function")return false;
+    if(!current[FLAG]){
+      const wrapped=function(allHorses){
+        let base=[];try{base=current.apply(this,arguments)}catch(error){console.warn("[Independent EV] base normalize",error)}
+        return independentRated(w,base,Array.isArray(allHorses)?allHorses:[])
+      };
+      wrapped.__original=current;wrapped[FLAG]=true;
+      w.normalizeRatedHorses=wrapped;
+      try{w.eval("normalizeRatedHorses=window.normalizeRatedHorses")}catch(_){}
+    }
+    if(!w[FLAG]){
+      w.addEventListener("TheKeibaPredictionCoreResultV1",event=>{try{renderComparison(w,event.detail)}catch(error){console.warn("[Independent EV] render",error)}});
+      w[FLAG]=true
+    }
+    try{
+      w.APP_VERSION="v5.18.306 IndependentProbabilityFinalOddsEV";
+      w.setAppVersionLabel?.()
+    }catch(_){}
+    return true
+  }
+  function install(){
+    const frame=document.getElementById("fullEmuFrame");
+    try{if(frame?.contentWindow&&frame.contentWindow.location.origin===location.origin)installChild(frame.contentWindow)}catch(_){}
+  }
+  const start=()=>{
+    const frame=document.getElementById("fullEmuFrame");
+    frame?.addEventListener("load",()=>[100,500,1500,3500,8000,13000].forEach(ms=>setTimeout(install,ms)));
+    install();setInterval(install,1800)
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
+  window.__TheKeibaIndependentEv={version:VERSION,reinstall:install}
 })();
 </script>
 </body>
