@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.60-netkeiba-membership-integration">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.60</title>
+<meta name="thekeiba-build" content="v1.2.61-netkeiba-secure-login">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.61</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -322,14 +322,22 @@ input,select,textarea{font-size:16px}
 .nk-member-table td,.nk-member-table th{white-space:nowrap}.nk-member-table .nk-comment{white-space:normal;min-width:220px;max-width:420px}
 .nk-member-source{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px}
 .nk-member-lock{padding:9px 11px;border-radius:10px;background:color-mix(in srgb,var(--panel2) 88%,var(--good) 12%);border:1px solid color-mix(in srgb,var(--good) 38%,var(--line));font-size:12px;line-height:1.5}
+.nk-login-panel{margin:12px 0;padding:12px;border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--panel2) 91%,var(--accent) 9%)}
+.nk-login-panel .toolbar{margin-top:10px}.nk-login-panel .btn{min-height:38px}
+.nk-login-guide{font-size:12px;line-height:1.6;color:var(--muted);margin-top:6px}
+.nk-login-status{white-space:pre-wrap;line-height:1.55;margin-top:10px;border-left:3px solid var(--line)}
+.nk-login-status.ok{border-left-color:var(--good)}.nk-login-status.warn{border-left-color:var(--warn)}.nk-login-status.bad{border-left-color:var(--bad)}
+.nk-login-badge.connected{color:var(--good);border-color:color-mix(in srgb,var(--good) 52%,var(--line))}
+.nk-login-badge.pending{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 52%,var(--line))}
+.nk-login-badge.signed-out{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 52%,var(--line))}
 @media(max-width:900px){.nk-member-capabilities{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){.nk-member-capabilities{grid-template-columns:1fr}.nk-member-head .btn{flex:1 1 auto}.nk-member-table .nk-comment{min-width:170px}}
+@media(max-width:560px){.nk-member-capabilities{grid-template-columns:1fr}.nk-member-head .btn{flex:1 1 auto}.nk-member-table .nk-comment{min-width:170px}.nk-login-panel .btn{flex:1 1 100%}}
 </style>
 
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.60 無料・SP会員統合版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.61 netkeiba安全ログイン対応</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -921,8 +929,20 @@ Userscript利用時はWorker URLを空欄にできます。取得失敗Rは1回�
       <h2 class="page-title">設定</h2>
       <div class="card nk-member-card" id="nkMembershipCard">
         <div class="nk-member-head">
-          <div><h3 style="margin:0">netkeiba 無料・スーパープレミアム統合</h3><div class="muted">同じアプリのまま会員モードだけを切り替えます。有料会員のID・パスワードは保存しません。</div></div>
-          <div class="nk-member-badges"><span class="badge nk-member-badge free" id="nkMembershipBadge">無料会員モード</span><span class="badge" id="nkMemberDataBadge">0レース</span></div>
+          <div><h3 style="margin:0">netkeiba 無料・スーパープレミアム統合</h3><div class="muted">netkeiba公式画面でログインし、同じブラウザの会員状態を利用します。ID・パスワードはこのアプリに入力・保存しません。</div></div>
+          <div class="nk-member-badges"><span class="badge nk-login-badge" id="nkLoginBadge">ログイン未確認</span><span class="badge nk-member-badge free" id="nkMembershipBadge">無料会員モード</span><span class="badge" id="nkMemberDataBadge">0レース</span></div>
+        </div>
+        <div class="nk-login-panel">
+          <div class="toolbar"><strong>netkeiba公式ログイン</strong><span class="badge" id="nkLoginBridgeBadge">自動確認待ち</span></div>
+          <div class="nk-login-guide">①「公式ログイン」を押してnetkeibaでログインします。②この画面へ戻り「ログイン完了」を押してください。Bridge接続中は「自動確認」でログイン状態と契約コースも確認できます。</div>
+          <div class="toolbar">
+            <button class="btn primary" type="button" id="nkLoginOpenBtn">① netkeiba公式ログイン</button>
+            <button class="btn good" type="button" id="nkLoginDoneBtn">② ログイン完了</button>
+            <button class="btn" type="button" id="nkLoginCheckBtn">ログイン状態を自動確認</button>
+            <button class="btn" type="button" id="nkAccountOpenBtn">契約コースを公式画面で確認</button>
+            <button class="btn danger" type="button" id="nkLoginClearBtn">連携表示を解除</button>
+          </div>
+          <div class="code-box nk-login-status" id="nkLoginStatus">未確認です。公式ログインは別タブで安全に行います。</div>
         </div>
         <div class="form-grid">
           <div class="field wide"><label>会員モード</label><select id="nkMembershipTier"><option value="free">無料会員・公開データ</option><option value="super">スーパープレミアム会員</option></select></div>
@@ -1275,7 +1295,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="1.2.60-netkeiba-membership-integration";
+const APP_VERSION="1.2.61-netkeiba-secure-login";
 const NAV_ITEMS=[["dashboard","🏠","ホーム"],["calendar","📅","開催"],["race","🏇","馬柱"],["search","🔍","検索"],["simulation","📊","SIM"],["emulator","🧪","エミュ"],["site-emulator","🖥","本体エミュ"],["analytics","📈","分析"],["strategies","🧠","戦略"],["live","📺","ライブ"],["database","🗄","DB"],["bridge","🔗","Bridge"],["forward","⏱","フォワード"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -8824,8 +8844,8 @@ setInterval(installAll,2500);
   setTimeout(buildUi, 1500);
 })();
 </script>
-<!-- v1.2.60: netkeiba無料会員・スーパープレミアム会員を同一アプリで切替。
-     認証情報は扱わず、レース前に利用者が確認したデータだけを端末内スナップショットとして保存する。 -->
+<!-- v1.2.61: netkeiba公式ログインを別タブで行い、ID・パスワードをアプリへ保存しない。
+     Bridge接続時は公式アカウント画面からログイン状態・契約コースを確認する。 -->
 <script id="netkeibaMembershipIntegrationV1">
 (function(){
   "use strict";
@@ -8833,12 +8853,17 @@ setInterval(installAll,2500);
   const DATA_KEY="TheKeibaNetkeibaMemberDataV1";
   const NAR_DATA_KEY="TheKeibaNarProbabilityDataV2";
   const HOOK_FLAG="__netkeibaMembershipHookV1";
+  const LOGIN_URL="https://regist.netkeiba.com/?action=def&intro=premium&pid=login&rf=reg";
+  const ACCOUNT_URL="https://regist.netkeiba.com/";
   const DEFAULT_CONFIG={
     membership:"free",
     probabilityMode:"standard",
     predictionBlend:50,
     premiumApply:"display",
-    premiumInfluence:15
+    premiumInfluence:15,
+    authStatus:"unknown",
+    authCheckedAt:"",
+    authMethod:""
   };
   const STAGE_LABELS={predicted:"発売前・予想オッズ",morning:"当日朝",live:"発売後・途中"};
   let config=loadJson(CONFIG_KEY,DEFAULT_CONFIG);
@@ -8870,7 +8895,10 @@ setInterval(installAll,2500);
       probabilityMode:["standard","predicted","blend"].includes(stored.probabilityMode)?stored.probabilityMode:"standard",
       predictionBlend:clamp(stored.predictionBlend??50,0,100),
       premiumApply:["display","adjust"].includes(stored.premiumApply)?stored.premiumApply:"display",
-      premiumInfluence:clamp(stored.premiumInfluence??15,0,30)
+      premiumInfluence:clamp(stored.premiumInfluence??15,0,30),
+      authStatus:["unknown","pending","manual","verified","signed-out"].includes(stored.authStatus)?stored.authStatus:"unknown",
+      authCheckedAt:String(stored.authCheckedAt||""),
+      authMethod:String(stored.authMethod||"")
     };
     return config
   }
@@ -8882,7 +8910,9 @@ setInterval(installAll,2500);
         state.settings.netkeibaProbabilityMode=config.probabilityMode;
         state.settings.netkeibaPredictionBlend=config.predictionBlend;
         state.settings.netkeibaPremiumApply=config.premiumApply;
-        state.settings.netkeibaPremiumInfluence=config.premiumInfluence
+        state.settings.netkeibaPremiumInfluence=config.premiumInfluence;
+        state.settings.netkeibaAuthStatus=config.authStatus;
+        state.settings.netkeibaAuthCheckedAt=config.authCheckedAt
       }
     }catch(error){console.warn("[netkeiba member] config save",error)}
     renderConfig();
@@ -8897,6 +8927,76 @@ setInterval(installAll,2500);
   function setStatus(text,kind=""){
     const box=byId("nkMemberStatus");if(!box)return;
     box.textContent=text;box.classList.remove("ok","warn","bad");if(kind)box.classList.add(kind)
+  }
+  function setLoginStatus(text,kind=""){
+    const box=byId("nkLoginStatus");if(!box)return;
+    box.textContent=text;box.classList.remove("ok","warn","bad");if(kind)box.classList.add(kind)
+  }
+  function openOfficial(url){
+    const popup=window.open("about:blank","_blank");
+    if(popup){try{popup.opener=null;popup.location.replace(url)}catch(_){popup.location.href=url}}
+    else setLoginStatus("新しいタブがブロックされました。ブラウザでポップアップを許可して、もう一度押してください。","warn");
+    return !!popup
+  }
+  function loginStatusLabel(){
+    const stamp=config.authCheckedAt?new Date(config.authCheckedAt).toLocaleString("ja-JP"):"";
+    if(config.authStatus==="verified")return{badge:`${config.membership==="super"?"SP":"会員"}ログイン確認済み`,className:"connected",text:`公式アカウント画面でログインを自動確認しました。${stamp?`\n確認日時：${stamp}`:""}`,kind:"ok"};
+    if(config.authStatus==="manual")return{badge:"ログイン完了",className:"connected",text:`公式画面でのログイン完了として記録しています。${stamp?`\n確認日時：${stamp}`:""}\n自動判定ではないため、契約コースは会員モードで選択してください。`,kind:"ok"};
+    if(config.authStatus==="signed-out")return{badge:"未ログイン",className:"signed-out",text:`公式アカウント画面は未ログインでした。${stamp?`\n確認日時：${stamp}`:""}\n「netkeiba公式ログイン」からログインしてください。`,kind:"bad"};
+    if(config.authStatus==="pending")return{badge:"ログイン操作中",className:"pending",text:"netkeibaの別タブでログイン後、この画面へ戻って「② ログイン完了」を押してください。",kind:"warn"};
+    return{badge:"ログイン未確認",className:"",text:"未確認です。公式ログインは別タブで安全に行います。",kind:""}
+  }
+  function accountResult(raw){
+    const source=String(raw||"");
+    let text=source;
+    try{text=new DOMParser().parseFromString(source,"text/html").body?.textContent||source}catch(_){}
+    text=String(text).replace(/\s+/g," ").trim();
+    const signedOut=/登録状況\s*未登録|すでに月額コース.{0,120}ログイン|netkeibaIDをお持ちの方|ログインしてください/.test(text);
+    if(signedOut)return{loggedIn:false,tier:"unknown"};
+    const accountPage=/サービス利用状況|ご利用状況|登録内容の確認|登録情報の確認|コース変更/.test(text);
+    if(!accountPage)return{loggedIn:null,tier:"unknown"};
+    const superMember=/スーパープレミアム(?:コース)?(?:\s|：|:)*(?:登録中|利用中|契約中|会員)|登録コース(?:\s|：|:)*スーパープレミアム/.test(text);
+    return{loggedIn:true,tier:superMember?"super":"unknown"}
+  }
+  function saveAuth(status,method=""){
+    config.authStatus=status;
+    config.authMethod=method;
+    config.authCheckedAt=status==="unknown"?"":new Date().toISOString();
+    saveConfig("netkeibaログイン状態を更新しました。")
+  }
+  function beginOfficialLogin(){
+    if(!openOfficial(LOGIN_URL))return;
+    saveAuth("pending","official-tab");
+    setLoginStatus("netkeibaの別タブを開きました。\nログイン後にこの画面へ戻り「② ログイン完了」を押してください。","warn")
+  }
+  function finishOfficialLogin(){
+    saveAuth("manual","official-tab");
+    setLoginStatus(`${config.membership==="super"?"スーパープレミアム":"無料会員"}モードでログイン完了として記録しました。\nID・パスワードはこのアプリに保存していません。`,"ok")
+  }
+  async function checkOfficialLogin(){
+    const button=byId("nkLoginCheckBtn");
+    if(button)button.disabled=true;
+    setLoginStatus("公式アカウント画面のログイン状態を確認中です…");
+    try{
+      if(typeof residentialBridgeText!=="function"||typeof hasResidentialBridge!=="function"||!hasResidentialBridge())throw new Error("Bridge未接続");
+      const raw=await residentialBridgeText(ACCOUNT_URL,{timeout:18000}),result=accountResult(raw);
+      if(result.loggedIn===null)throw new Error("アカウント画面を判定できませんでした");
+      if(!result.loggedIn){
+        saveAuth("signed-out","bridge");
+        setLoginStatus("公式アカウント画面は未ログインでした。\n「① netkeiba公式ログイン」からログインしてください。","bad");
+        return
+      }
+      if(result.tier==="super")config.membership="super";
+      saveAuth("verified","bridge");
+      setLoginStatus(`公式アカウント画面でログインを確認しました。\n${result.tier==="super"?"スーパープレミアム契約も確認し、SPモードへ切り替えました。":"契約コースを自動判定できない場合は、下の会員モードを選択してください。"}\nID・パスワードは取得・保存していません。`,"ok")
+    }catch(error){
+      setLoginStatus(`自動確認できませんでした：${error.message}\nBridgeが未接続でもログインは可能です。公式画面でログイン後「② ログイン完了」を押してください。`,"warn")
+    }finally{if(button)button.disabled=false}
+  }
+  function clearLoginDisplay(){
+    config.authStatus="unknown";config.authCheckedAt="";config.authMethod="";
+    saveConfig("netkeibaログイン連携表示を解除しました。");
+    setLoginStatus("連携表示を解除しました。netkeiba側のログインCookieや契約は変更していません。","warn")
   }
   function invalidateSimulation(reason){
     window.__netkeibaMembershipSimulationStale=true;
@@ -9173,6 +9273,12 @@ setInterval(installAll,2500);
     if(badge){badge.textContent=isSuper?"スーパープレミアムモード":"無料会員モード";badge.className=`badge nk-member-badge ${isSuper?"super":"free"}`}
     const stats=dataStats(),dataBadge=byId("nkMemberDataBadge");if(dataBadge)dataBadge.textContent=`${stats.races}レース・${stats.rows}頭`;
     const caps=byId("nkMemberCapabilities");if(caps)caps.innerHTML=capabilities().map(c=>`<div class="nk-member-capability ${c.on?"on":"off"}"><strong>${c.on?"✓":"—"} ${html(c.title)}</strong><small>${html(c.text)}</small></div>`).join("");
+    const auth=loginStatusLabel(),loginBadge=byId("nkLoginBadge");
+    if(loginBadge){loginBadge.textContent=auth.badge;loginBadge.className=`badge nk-login-badge ${auth.className}`}
+    const loginBox=byId("nkLoginStatus");
+    if(loginBox&&(!loginBox.textContent||loginBox.dataset.authStatus!==config.authStatus)){loginBox.dataset.authStatus=config.authStatus;setLoginStatus(auth.text,auth.kind)}
+    const bridgeBadge=byId("nkLoginBridgeBadge"),bridgeReady=typeof hasResidentialBridge==="function"&&hasResidentialBridge();
+    if(bridgeBadge)bridgeBadge.textContent=bridgeReady?"Bridge接続・自動確認可":"Bridge未接続・手動完了可";
     const rid=byId("nkMemberRaceId");if(rid&&!rid.value&&currentRaceId())rid.value=currentRaceId();
     const captured=byId("nkMemberCapturedAt");if(captured&&!captured.value)captured.value=nowLocalValue()
   }
@@ -9271,9 +9377,17 @@ setInterval(installAll,2500);
     const changeIds=["nkMembershipTier","nkProbabilityMode","nkPredictionBlend","nkPremiumApply","nkPremiumInfluence"];
     for(const id of changeIds)byId(id)?.addEventListener("change",()=>{
       configFromUi();saveConfig(`${id} を変更しました。`);
-      setStatus(`${config.membership==="super"?"スーパープレミアム":"無料会員"}モードを保存しました。会員データを使うSIMは再実行してください。`,"ok");
+      const loginReady=["manual","verified"].includes(config.authStatus);
+      setStatus(config.membership==="super"&&!loginReady
+        ?"スーパープレミアムモードを保存しました。先に上の「netkeiba公式ログイン」を行ってください。ログイン前はSP追加データを取得できません。"
+        :`${config.membership==="super"?"スーパープレミアム":"無料会員"}モードを保存しました。会員データを使うSIMは再実行してください。`,config.membership==="super"&&!loginReady?"warn":"ok");
       hookAllWindows();renderRacePanel()
     });
+    byId("nkLoginOpenBtn")?.addEventListener("click",beginOfficialLogin);
+    byId("nkLoginDoneBtn")?.addEventListener("click",finishOfficialLogin);
+    byId("nkLoginCheckBtn")?.addEventListener("click",checkOfficialLogin);
+    byId("nkAccountOpenBtn")?.addEventListener("click",()=>openOfficial(ACCOUNT_URL));
+    byId("nkLoginClearBtn")?.addEventListener("click",clearLoginDisplay);
     byId("nkMemberImportBtn")?.addEventListener("click",importFromTextarea);
     byId("nkMemberTemplateBtn")?.addEventListener("click",buildTemplate);
     byId("nkMemberOpenBtn")?.addEventListener("click",openNetkeiba);
