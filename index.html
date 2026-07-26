@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.55-airara-fetch-test-tool">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.55</title>
+<meta name="thekeiba-build" content="v1.2.56-airara-db-guard-fix">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.56</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.55 AIらら取得テスト搭載版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.56 AIらら取得テスト搭載版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -1218,7 +1218,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="1.2.55-airara-fetch-test-tool";
+const APP_VERSION="1.2.56-airara-db-guard-fix";
 const NAV_ITEMS=[["dashboard","🏠","ホーム"],["calendar","📅","開催"],["race","🏇","馬柱"],["search","🔍","検索"],["simulation","📊","SIM"],["emulator","🧪","エミュ"],["site-emulator","🖥","本体エミュ"],["analytics","📈","分析"],["strategies","🧠","戦略"],["live","📺","ライブ"],["database","🗄","DB"],["bridge","🔗","Bridge"],["forward","⏱","フォワード"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -8467,16 +8467,20 @@ setInterval(installAll,2500);
     var date = (document.getElementById('airaraDate').value||'').trim();     // YYYY-MM-DD
     var venue = (document.getElementById('airaraVenue').value||'').trim();   // 例: 盛岡
     if (!date || !venue){ out.textContent = '開催日と開催場を入れてください（本DBのraces突合に使います）。'; return; }
-    if (!window.getAll || !(window.state && window.state.db)){ out.textContent = 'ローカルDB未初期化のため突合できません。'; return; }
+    if (typeof window.getAll !== 'function'){ out.textContent = 'getAll未定義のため突合できません（このページ構成では非対応）。'; return; }
     try{
-      var races = await window.getAll('races');
-      var map = {};
+      var races;
+      try { races = await window.getAll('races'); }
+      catch(dbErr){ out.textContent = '本DBのraces読取に失敗: '+(dbErr && dbErr.message || dbErr)+'\n（本体エミュでレースを同期後に再試行してください）'; return; }
+      var map = {}, found = 0;
       (races||[]).forEach(function(rc){
         if (String(rc.date)===date && String(rc.placeName)===venue){
+          found++;
           var rn = Number(rc.raceNo!=null?rc.raceNo:rc.race_no);
           if (rn) map[rn] = rc.race_id || rc.raceId;
         }
       });
+      if (!found){ out.textContent = 'DBに '+venue+' '+date+' のレースが0件でした。\n先に本体エミュでその日の '+venue+' を同期してから、もう一度この書込を押してください。\n（AIらら側の解析は成功しているので、DB側が埋まれば書込できます）'; return; }
       var store; try{ store = JSON.parse(localStorage.getItem(DATA_KEY)||'{"races":{}}'); }catch(_){ store={races:{}}; }
       store.races = store.races || {};
       var wrote = 0, miss = [];
@@ -8494,8 +8498,8 @@ setInterval(installAll,2500);
         wrote++;
       });
       localStorage.setItem(DATA_KEY, JSON.stringify(store));
-      out.textContent = '書込完了: '+wrote+'レースの想定確率スナップショットを登録（'+venue+' '+date+'）。'
-        + (miss.length?('\nDBにraces未登録でスキップ: R'+miss.join(',R')+'（先に本体エミュでその日を同期）'):'')
+      out.textContent = '書込完了: '+wrote+'/'+parsed.length+'レースの想定確率スナップショットを登録（'+venue+' '+date+'／DB該当 '+found+'R）。'
+        + (miss.length?('\nDB未登録でスキップ: R'+miss.join(',R')+'（先に本体エミュでその日を同期）'):'')
         + '\n\n次: 想定確率ソースを「ARION AI単」(＝AIらら勝率)にして、その日をバックテスト。買い目が出れば的中率・回収率を標準と比較できます。';
     }catch(e){ out.textContent = '書込失敗: '+(e && e.message || e); }
   }
@@ -8514,7 +8518,7 @@ setInterval(installAll,2500);
     modal.id = 'airaraModal';
     modal.style.cssText = 'display:none;position:fixed;left:14px;bottom:58px;z-index:99999;width:min(560px,92vw);max-height:72vh;overflow:auto;background:#0b1220;color:#e2e8f0;border:1px solid rgba(148,163,184,.35);border-radius:14px;padding:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);flex-direction:column;gap:8px';
     modal.innerHTML =
-      '<div style="display:flex;align-items:center;gap:8px"><strong style="margin-right:auto">🧪 AIらら 取得テスト <span style="opacity:.6;font-weight:400">v1.2.55</span></strong>'
+      '<div style="display:flex;align-items:center;gap:8px"><strong style="margin-right:auto">🧪 AIらら 取得テスト <span style="opacity:.6;font-weight:400">v1.2.56</span></strong>'
       + '<button type="button" id="airaraClose" style="background:none;border:0;color:#94a3b8;font-size:18px;cursor:pointer">×</button></div>'
       + '<div style="font-size:12px;opacity:.8;line-height:1.5">前日予想データ記事のURLを入れて取得→各馬の勝率%を解析。まず届くか・解析できるかを確認します。合っていればDBと突合してスナップショット書込。</div>'
       + '<label style="font-size:12px">前日予想データ記事URL</label>'
