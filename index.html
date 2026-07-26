@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.53-nar-probability-all-race-diagnostics-v8">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.53</title>
+<meta name="thekeiba-build" content="v1.2.55-airara-fetch-test-tool">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.55</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -312,7 +312,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.53 NAR想定確率 全レース見送り診断修正版</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.55 AIらら取得テスト搭載版</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -1218,7 +1218,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="1.2.40-fullsite-live-sim-nar-typed";
+const APP_VERSION="1.2.55-airara-fetch-test-tool";
 const NAV_ITEMS=[["dashboard","🏠","ホーム"],["calendar","📅","開催"],["race","🏇","馬柱"],["search","🔍","検索"],["simulation","📊","SIM"],["emulator","🧪","エミュ"],["site-emulator","🖥","本体エミュ"],["analytics","📈","分析"],["strategies","🧠","戦略"],["live","📺","ライブ"],["database","🗄","DB"],["bridge","🔗","Bridge"],["forward","⏱","フォワード"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -7722,7 +7722,10 @@ function installCore(w,label){
     if(typeof w.recalcEntryScores==='function')w.recalcEntryScores(entries);
     if(source==='none')return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,reason:'比較のみ'}};
     const id=raceId(race.race_id||race.raceId||race.id),snapshot=data().races[id];
-    if(!snapshot||!Array.isArray(snapshot.rows))return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId:id,reason:'スナップショット未登録'}};
+    if(!snapshot||!Array.isArray(snapshot.rows)){
+      if(C.missingAction==='standard')return original.call(this,race,result,c);
+      return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId:id,reason:'スナップショット未登録'}};
+    }
     const map=new Map(snapshot.rows.map(r=>[num(r.horseNo??r.horse_no??r.num,0),r]));
     let updated=0,missing=0;
     for(const e of entries){
@@ -7741,7 +7744,10 @@ function installCore(w,label){
       e.__narDecisionScore=e.ev*1000+p*100;
       updated++;
     }
-    if(updated===0||(missing>0&&C.missingAction==='stop'))return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId:id,updated,missing,reason:updated===0?'適用データなし':'不足・照合失敗'}};
+    if(updated===0||(missing>0&&C.missingAction==='stop')){
+      if(C.missingAction==='standard')return original.call(this,race,result,c);
+      return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId:id,updated,missing,reason:updated===0?'適用データなし':'不足・照合失敗'}};
+    }
     const qualifies=e=>!e.narProbabilityUnavailable&&num(e.ev)>=num(c.minEv)&&num(e.odds)>=num(c.minOdds)&&num(e.odds)<=num(c.maxOdds);
     let candidateEntries=entries.filter(qualifies);
     // 重要：ARION/netkeiba選択時は本体AI優先を使わず、採用EVで必ず並べ直す。
@@ -8125,6 +8131,15 @@ function installCore(w,doc,label){
     const id=ridOf(race?.race_id||race?.raceId||race?.id);
     const snapshot=data().races[id];
     if(!snapshot||!Array.isArray(snapshot.rows)){
+      if(C.missingAction==='standard'){
+        const base=await oldBuild.call(w,race,result,c);
+        if(base&&typeof base==='object'){
+          base.narProbabilityBlocked=false;
+          base.narProbabilityWholeRaceFallback=true;
+          base.narProbabilityStatus=Object.assign({mode:C.mode,source,raceId:id,updated:0,missing:(entries||[]).length,fallback:(entries||[]).length,reason:'想定確率スナップショット未登録→本体標準で継続'},base.narProbabilityStatus||{});
+        }
+        return base;
+      }
       return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId:id,reason:'想定確率スナップショット未登録',updated:0,missing:entries.length}};
     }
 
@@ -8343,6 +8358,186 @@ setInterval(installAll,2500);
 })();
 
 </script>
-<!-- v1.2.53: 全レース見送り診断V8を追加。データ不足時は不足馬のみ除外し、有効データ0頭のレースだけ停止。厳格停止も選択可能。 -->
+<!-- v1.2.55: AIらら(前日予想データ)取得テストツール。直接Bridge(__narBridgeFetch)でharo-blog.comの前日予想データ記事を取得→各馬の勝率%を解析→プレビュー。確認後、本DBのraces(日付+場)とR番号で突合し想定確率スナップショット(DATA_KEY, arionProbability枠)へ書込。まだ同期には混ぜない。 -->
+<script id="airaraFetchToolV1">
+(function(){
+  'use strict';
+  if (window.top !== window.self) return;           // 親ページのみで起動（iframe二重表示防止）
+  if (window.__airaraToolV1) return; window.__airaraToolV1 = true;
+  var DATA_KEY = 'TheKeibaNarProbabilityDataV2';
+
+  function bridgeFetch(url, timeout){
+    var fn = window.__narBridgeFetch
+      || (window.top && window.top.__narBridgeFetch)
+      || (window.parent && window.parent.__narBridgeFetch);
+    if (typeof fn !== 'function') return Promise.reject(new Error('Bridgeが未接続です（__narBridgeFetch無し）。Bridge再接続後にお試しください。'));
+    return Promise.resolve(fn(url, { timeout: timeout || 30000 }));
+  }
+  function readResp(r){
+    if (typeof r === 'string') return { status: 200, text: r };
+    return { status: Number(r && r.status || 0), text: String(r && r.text || ''), error: r && r.error || '' };
+  }
+
+  // 前日予想データ記事HTMLを解析。各<table>からヘッダ行(勝率/馬番)を探し、各馬の馬番と勝率%を抽出。
+  function parseAirara(html){
+    var out = [];
+    var doc;
+    try { doc = new DOMParser().parseFromString(String(html||''), 'text/html'); }
+    catch(e){ return out; }
+    var tables = doc.querySelectorAll('table');
+    var seq = 0;
+    tables.forEach(function(table){
+      var rows = table.rows ? [].slice.call(table.rows) : [];
+      // ヘッダ行を特定：セルに「勝率」と「馬番」が両方あり。「複勝率」は勝率と別セルなので厳密一致で拾う。
+      var hIdx = -1, colWin = -1, colNo = -1;
+      for (var i=0;i<rows.length;i++){
+        var cells = [].slice.call(rows[i].cells||[]);
+        var w = -1, n = -1;
+        cells.forEach(function(c,ci){
+          var t = (c.textContent||'').replace(/\s/g,'');
+          if (t === '勝率') w = ci;
+          if (t === '馬番' || t === '馬 番') n = ci;
+        });
+        if (w >= 0 && n >= 0){ hIdx = i; colWin = w; colNo = n; break; }
+      }
+      if (hIdx < 0) return;
+      var horses = [];
+      for (var j=hIdx+1;j<rows.length;j++){
+        var cs = [].slice.call(rows[j].cells||[]);
+        if (cs.length <= Math.max(colWin,colNo)) continue;
+        var noTxt = (cs[colNo].textContent||'').match(/\d+/);
+        var winTxt = (cs[colWin].textContent||'').match(/[\d.]+/);
+        if (!noTxt || !winTxt) continue;
+        var no = parseInt(noTxt[0],10);
+        var pct = parseFloat(winTxt[0]);
+        if (!no || !isFinite(pct)) continue;
+        horses.push({ no:no, winPct:pct, prob: pct>1.5 ? pct/100 : (pct/100) });
+      }
+      if (!horses.length) return;
+      // R番号：表の直前要素をさかのぼって R マーカーを探す。無ければ出現順(1始まり)。
+      var detected = 0, label = '';
+      var el = table, hops = 0;
+      while (el && hops < 8){
+        el = el.previousElementSibling || (el.parentElement && el.parentElement !== doc.body ? el.parentElement.previousElementSibling : null);
+        hops++;
+        if (!el) break;
+        var tx = (el.textContent||'').replace(/\s/g,'');
+        if (!tx) continue;
+        var m = tx.match(/(?:^|[^0-9])(\d{1,2})R(?![0-9])/) || tx.match(/R(\d{1,2})(?![0-9])/) || tx.match(/^(\d{1,2})R/);
+        if (m){ detected = parseInt(m[1],10); label = tx.slice(0,40); break; }
+        if (!label) label = tx.slice(0,40);
+      }
+      seq++;
+      var r = (detected>=1 && detected<=16) ? detected : seq;
+      out.push({ r:r, detectedR:detected||null, seq:seq, label:label, horses:horses });
+    });
+    // R重複時は出現順を優先採用（同一Rが複数出たら seq に振り直す）
+    var seen = {};
+    out.forEach(function(o,i){ if (seen[o.r]) { o.r = o.seq; } seen[o.r]=true; });
+    return out;
+  }
+
+  function pctFmt(x){ return (x*100).toFixed(2)+'%'; }
+
+  async function doPreview(){
+    var url = (document.getElementById('airaraUrl').value||'').trim();
+    var out = document.getElementById('airaraOut');
+    if (!/^https?:\/\/(www\.)?haro-blog\.com\//i.test(url)){ out.textContent = 'haro-blog.com の前日予想データ記事URLを入れてください。\n例: https://haro-blog.com/archives/641704'; return; }
+    out.textContent = '取得中… ('+url+')';
+    try{
+      var r = readResp(await bridgeFetch(url, 30000));
+      if (!r.text){ out.textContent = 'HTTP '+r.status+'／本文0字。'+(r.error?('\nerror: '+r.error):'\n（Bridgeが haro-blog.com に到達できていない可能性。診断でBridge version=1.7.7・@connect反映を確認）'); return; }
+      var parsed = parseAirara(r.text);
+      window.__airaraLastParsed = parsed;
+      var head = 'HTTP '+r.status+'／本文 '+r.text.length+'字／解析レース数 '+parsed.length+'\n';
+      if (!parsed.length){ out.textContent = head + '\n表を解析できませんでした。冒頭を貼って調整します:\n----\n' + r.text.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,600); return; }
+      var lines = parsed.map(function(p){
+        var top = p.horses.slice().sort(function(a,b){return b.winPct-a.winPct;}).slice(0,3)
+          .map(function(h){return h.no+'番='+h.winPct+'%';}).join(' / ');
+        return 'R'+p.r+(p.detectedR?'':'(順)')+'  '+p.horses.length+'頭  上位: '+top+'   ['+p.label+']';
+      });
+      out.textContent = head + '\n' + lines.join('\n') + '\n\n※ 想定確率としてこの「勝率%」を使います。内容が合っていれば下の「DBと突合して書込」へ。';
+    }catch(e){ out.textContent = '取得失敗: '+(e && e.message || e); }
+  }
+
+  async function doWrite(){
+    var out = document.getElementById('airaraOut');
+    var parsed = window.__airaraLastParsed;
+    if (!parsed || !parsed.length){ out.textContent = '先に「取得・解析」で内容を確認してください。'; return; }
+    var date = (document.getElementById('airaraDate').value||'').trim();     // YYYY-MM-DD
+    var venue = (document.getElementById('airaraVenue').value||'').trim();   // 例: 盛岡
+    if (!date || !venue){ out.textContent = '開催日と開催場を入れてください（本DBのraces突合に使います）。'; return; }
+    if (!window.getAll || !(window.state && window.state.db)){ out.textContent = 'ローカルDB未初期化のため突合できません。'; return; }
+    try{
+      var races = await window.getAll('races');
+      var map = {};
+      (races||[]).forEach(function(rc){
+        if (String(rc.date)===date && String(rc.placeName)===venue){
+          var rn = Number(rc.raceNo!=null?rc.raceNo:rc.race_no);
+          if (rn) map[rn] = rc.race_id || rc.raceId;
+        }
+      });
+      var store; try{ store = JSON.parse(localStorage.getItem(DATA_KEY)||'{"races":{}}'); }catch(_){ store={races:{}}; }
+      store.races = store.races || {};
+      var wrote = 0, miss = [];
+      parsed.forEach(function(p){
+        var rid = map[p.r];
+        if (!rid){ miss.push(p.r); return; }
+        store.races[rid] = {
+          raceId: rid,
+          capturedAt: new Date().toISOString(),
+          source: 'airara',
+          rows: p.horses.map(function(h){
+            return { horseNo:h.no, arionWinPercent:h.winPct, arionProbability:h.prob, netkeibaPredictedOdds:null, netkeibaProbability:null };
+          })
+        };
+        wrote++;
+      });
+      localStorage.setItem(DATA_KEY, JSON.stringify(store));
+      out.textContent = '書込完了: '+wrote+'レースの想定確率スナップショットを登録（'+venue+' '+date+'）。'
+        + (miss.length?('\nDBにraces未登録でスキップ: R'+miss.join(',R')+'（先に本体エミュでその日を同期）'):'')
+        + '\n\n次: 想定確率ソースを「ARION AI単」(＝AIらら勝率)にして、その日をバックテスト。買い目が出れば的中率・回収率を標準と比較できます。';
+    }catch(e){ out.textContent = '書込失敗: '+(e && e.message || e); }
+  }
+
+  function buildUi(){
+    if (document.getElementById('airaraLauncher')) return;
+    var btn = document.createElement('button');
+    btn.id = 'airaraLauncher';
+    btn.type = 'button';
+    btn.textContent = '🧪 AIらら';
+    btn.style.cssText = 'position:fixed;left:14px;bottom:14px;z-index:99998;padding:8px 12px;border-radius:10px;border:1px solid rgba(148,163,184,.4);background:#0f172a;color:#e2e8f0;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer';
+    btn.onclick = function(){ var m=document.getElementById('airaraModal'); if(m) m.style.display = (m.style.display==='none'?'flex':'none'); };
+    document.body.appendChild(btn);
+
+    var modal = document.createElement('div');
+    modal.id = 'airaraModal';
+    modal.style.cssText = 'display:none;position:fixed;left:14px;bottom:58px;z-index:99999;width:min(560px,92vw);max-height:72vh;overflow:auto;background:#0b1220;color:#e2e8f0;border:1px solid rgba(148,163,184,.35);border-radius:14px;padding:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);flex-direction:column;gap:8px';
+    modal.innerHTML =
+      '<div style="display:flex;align-items:center;gap:8px"><strong style="margin-right:auto">🧪 AIらら 取得テスト <span style="opacity:.6;font-weight:400">v1.2.55</span></strong>'
+      + '<button type="button" id="airaraClose" style="background:none;border:0;color:#94a3b8;font-size:18px;cursor:pointer">×</button></div>'
+      + '<div style="font-size:12px;opacity:.8;line-height:1.5">前日予想データ記事のURLを入れて取得→各馬の勝率%を解析。まず届くか・解析できるかを確認します。合っていればDBと突合してスナップショット書込。</div>'
+      + '<label style="font-size:12px">前日予想データ記事URL</label>'
+      + '<input id="airaraUrl" placeholder="https://haro-blog.com/archives/641704" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(148,163,184,.35);background:#0f172a;color:#e2e8f0">'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + '<div style="flex:1;min-width:150px"><label style="font-size:12px">開催日</label><input id="airaraDate" type="date" style="width:100%;padding:7px;border-radius:8px;border:1px solid rgba(148,163,184,.35);background:#0f172a;color:#e2e8f0"></div>'
+      + '<div style="flex:1;min-width:150px"><label style="font-size:12px">開催場（例: 盛岡）</label><input id="airaraVenue" placeholder="盛岡" style="width:100%;padding:7px;border-radius:8px;border:1px solid rgba(148,163,184,.35);background:#0f172a;color:#e2e8f0"></div>'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + '<button type="button" id="airaraPreview" style="flex:1;min-width:150px;padding:9px;border-radius:9px;border:0;background:#f59e0b;color:#1e293b;font-weight:600;cursor:pointer">取得・解析（プレビュー）</button>'
+      + '<button type="button" id="airaraWrite" style="flex:1;min-width:150px;padding:9px;border-radius:9px;border:1px solid rgba(148,163,184,.4);background:#134e4a;color:#d1fae5;font-weight:600;cursor:pointer">DBと突合して書込</button>'
+      + '</div>'
+      + '<pre id="airaraOut" style="white-space:pre-wrap;word-break:break-word;font-size:12px;background:#020617;border:1px solid rgba(148,163,184,.25);border-radius:8px;padding:10px;margin:0;min-height:60px;max-height:38vh;overflow:auto">URLを入れて「取得・解析」を押してください。</pre>';
+    document.body.appendChild(modal);
+    document.getElementById('airaraClose').onclick = function(){ modal.style.display='none'; };
+    document.getElementById('airaraPreview').onclick = doPreview;
+    document.getElementById('airaraWrite').onclick = doWrite;
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildUi, { once:true });
+  else buildUi();
+  setTimeout(buildUi, 1500);
+})();
+</script>
 </body>
 </html>
