@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.63-main-emulator-history-model-final-odds-ev">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.63</title>
+<meta name="thekeiba-build" content="v1.2.64-zero-investment-auto-fallback">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.64</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -337,7 +337,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.63 本体エミュ履歴勝率×確定オッズEV</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.64 本体エミュ履歴勝率×確定オッズEV・投資0自動復旧</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -1295,7 +1295,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="1.2.63-main-emulator-history-model-final-odds-ev";
+const APP_VERSION="1.2.64-zero-investment-auto-fallback";
 const NAV_ITEMS=[["dashboard","🏠","ホーム"],["calendar","📅","開催"],["race","🏇","馬柱"],["search","🔍","検索"],["simulation","📊","SIM"],["emulator","🧪","エミュ"],["site-emulator","🖥","本体エミュ"],["analytics","📈","分析"],["strategies","🧠","戦略"],["live","📺","ライブ"],["database","🗄","DB"],["bridge","🔗","Bridge"],["forward","⏱","フォワード"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -6854,7 +6854,7 @@ ${e.message}`,"bad");return false}
       mode: "standard",
       compareDecision: "none",
       minEv: 1.00,
-      missingAction: "stop"
+      missingAction: "standard"
     };
   }
 
@@ -6953,7 +6953,7 @@ ${e.message}`,"bad");return false}
       </div>
 
       <div class="settings-row">
-        <label>比較式の購入判定（いつでも選択可）</label>
+        <label>比較式の購入判定（想定確率ソース＝比較式の時のみ有効）</label>
         <select id="narProbDecisionV2">
           <option value="none">比較のみ・購入判定しない</option><option value="standard">本体エミュ標準で判定</option>
           <option value="arion">ARIONで判定</option>
@@ -6970,8 +6970,8 @@ ${e.message}`,"bad");return false}
       <div class="settings-row">
         <label>データ未取得時</label>
         <select id="narProbMissingV2">
-          <option value="stop">候補生成を停止</option>
-          <option value="standard">本体標準を維持</option>
+          <option value="standard">本体標準へ自動フォールバック（推奨・投資0防止）</option>
+          <option value="stop">不足馬だけ除外・有効0頭なら停止</option>
         </select>
       </div>
 
@@ -6998,7 +6998,7 @@ ${e.message}`,"bad");return false}
     function refresh(){
       cfg = readJSON(storage, CONFIG_KEY, defaultConfig());
       q("narProbInnerBadgeV2").textContent = "現在：" + modeLabel(cfg);
-      q("narProbDecisionV2").disabled = false;
+      q("narProbDecisionV2").disabled = cfg.mode !== "compare";
       parentBadge(modeLabel(cfg));
 
       win.TheKeibaNarProbability = win.TheKeibaNarProbability || {};
@@ -7032,7 +7032,7 @@ ${e.message}`,"bad");return false}
         }
         if(typeof win.refreshAll==="function")await win.refreshAll();
         const a=win.__narProbabilityLastApply||{};
-        detail=`\nrace_id：${a.raceId||"未特定"}／登録：${a.registered?"あり":"なし"}／反映：${a.updated||0}頭／不足：${a.missing||0}頭`;
+        detail=a.raceId?`\nrace_id：${a.raceId}／登録：${a.registered?"あり":"なし"}／反映：${a.updated||0}頭／不足：${a.missing||0}頭`:`\n現在レース未選択。期間横断SIMでは各race_idを自動判定し、未登録時は本体標準へフォールバックします。`;
       }catch(e){detail="\n再計算警告："+(e?.message||e)}
       q("narProbStatusV2").textContent =
         (reason||"保存しました。")+"\n想定確率：" + modeLabel(cfg) + detail +
@@ -7133,7 +7133,7 @@ function horseNo(o){
   return Number(o?.horseNo??o?.horse_no??o?.horseNumber??o?.number??o?.["馬番"]??0);
 }
 function defaultCfg(){
-  return{mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"};
+  return{mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"};
 }
 function getCfg(win){
   return Object.assign(defaultCfg(),safeJson(win.localStorage.getItem(CFG_KEY)||"{}",{}));
@@ -7460,11 +7460,11 @@ function inject(){
     function narConfig(){
       try{
         return Object.assign(
-          {mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"},
+          {mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"},
           JSON.parse(localStorage.getItem("TheKeibaNarProbabilityConfigV2")||"{}")
         );
       }catch(_){
-        return {mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"};
+        return {mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"};
       }
     }
 
@@ -7491,8 +7491,15 @@ function inject(){
       if(externalMode&&!compareUsesStandard){
         if(sourceRace){
           window.TheKeibaNarProbability.applyEntries(entries);
+        }else if(cfg.missingAction==="standard"){
+          // 外部想定確率が無い過去レースは、本体エミュ履歴勝率へ安全にフォールバックする。
+          for(const e of entries){
+            e.narProbabilityUnavailable=false;
+            e.narProbabilityFallback=true;
+            e.narProbabilityMode=cfg.mode;
+            e.narProbabilitySource="期間横断・想定確率未登録→本体標準";
+          }
         }else{
-          // 過去スナップショットがないレースを購入させない。
           for(const e of entries){
             e.narProbabilityUnavailable=true;
             e.narProbabilityMode=cfg.mode;
@@ -7549,7 +7556,7 @@ function inject(){
       const originalRunSimulationCore=runSimulationCore;
       runSimulationCore=async function(){
         const cfg=narConfig();
-        if(cfg.mode!=="standard"&&!(cfg.mode==="compare"&&cfg.compareDecision==="standard")){
+        if(cfg.mode!=="standard"&&!(cfg.mode==="compare"&&cfg.compareDecision==="standard")&&cfg.missingAction!=="standard"){
           const c=readSimConfig();
           const races=await getRacesInRange(c.start,c.end);
           const filtered=races.filter(r=>
@@ -7610,7 +7617,7 @@ function inject(){
       n.id="narProbPeriodNoticeV4";
       n.className="notice";
       n.style.marginBottom="10px";
-      n.innerHTML="<strong>期間横断SIM対応</strong><br><small>ARION／netkeibaの当時スナップショットが登録されたレースだけを購入判定します。未登録の過去レースは自動除外し、現在値を過去へ流用しません。</small>";
+      n.innerHTML="<strong>期間横断SIM対応</strong><br><small>ARION／netkeibaの当時スナップショットが登録されたレースだけを購入判定します。未登録の過去レースは本体エミュ履歴勝率へフォールバックし、現在の外部予測値を過去へ流用しません。</small>";
       sim.insertBefore(n,sim.firstChild);
     }
   }catch(_){}
@@ -7714,8 +7721,8 @@ function install(){
   const horseNo=e=>num(e&&((e.horseNo??e.horse_no??e.num??e.number)),0);
   const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
   function cfg(){
-    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}
-    catch(_){return {mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}
+    catch(_){return {mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}
   }
   function db(){
     try{const x=JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityDataV2')||'{"races":{}}');x.races=x.races||{};return x}
@@ -7751,6 +7758,11 @@ function install(){
     entries=Array.isArray(entries)?entries:[];
 
     if(!R||!Array.isArray(R.rows)){
+      if(C.missingAction==='standard'){
+        const base=await oldBuild.call(this,race,result,c);
+        return Object.assign(base,{narProbabilityBlocked:false,narProbabilityWholeRaceFallback:true,
+          narProbabilityStatus:{mode:C.mode,source,raceId,registered:false,updated:0,missing:entries.length,fallback:entries.length,reason:'当時スナップショット未登録→本体標準'}});
+      }
       return {race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,
         narProbabilityBlocked:true,narProbabilityStatus:{mode:C.mode,source,raceId,registered:false,updated:0,missing:entries.length,reason:'当時スナップショット未登録'}};
     }
@@ -7806,7 +7818,7 @@ function install(){
     const wrappedRun=async function(){
       const C=cfg(), source=selectedSource(C);
       w.__narProbabilityPeriodV5={mode:C.mode,source,total:0,covered:0,blocked:0,updated:0,missing:0};
-      if(source!=='standard'){
+      if(source!=='standard'&&C.missingAction!=='standard'){
         try{
           const c=w.readSimConfig();
           const races=await w.getRacesInRange(c.start,c.end);
@@ -7838,7 +7850,7 @@ function install(){
     const sim=d.getElementById('tab-simulation');
     if(sim&&!d.getElementById('narProbPeriodDefinitiveV5')){
       const box=d.createElement('div');box.id='narProbPeriodDefinitiveV5';box.className='notice';box.style.marginBottom='10px';
-      const refresh=()=>{const C=cfg(),s=selectedSource(C);box.innerHTML='<strong>期間横断SIM・想定確率実判定</strong><br><small>現在の判定：'+s+'。各race_idの保存スナップショットからEV・候補・最大3点を毎回再生成します。未登録レースは本体標準へ戻さず除外します。</small>'};
+      const refresh=()=>{const C=cfg(),s=selectedSource(C);box.innerHTML='<strong>期間横断SIM・想定確率実判定</strong><br><small>現在の判定：'+s+'。各race_idの保存スナップショットからEV・候補・最大3点を毎回再生成します。未登録レースは本体エミュ履歴勝率へ自動フォールバックします。</small>'};
       refresh();sim.insertBefore(box,sim.firstChild);setInterval(refresh,1500);
     }
   }catch(_){ }
@@ -7866,7 +7878,7 @@ function installCore(w,label){
   const raceId=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
   const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.num??e.number),0);
   const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
-  function config(){try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}}
+  function config(){try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}}
   function data(){try{const d=JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityDataV2')||'{"races":{}}');d.races=d.races||{};return d}catch(_){return{races:{}}}}
   function sourceOf(c){if(c.mode==='arion')return'arion';if(c.mode==='netkeiba')return'netkeiba';if(c.mode==='compare')return c.compareDecision||'none';return'standard'}
   function probability(rec,source){if(!rec)return NaN;if(source==='arion')return num(rec.arionProbability,NaN);if(source==='netkeiba')return num(rec.netkeibaProbability,NaN);return NaN}
@@ -7962,8 +7974,8 @@ function installCore(w,doc,label){
   const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
 
   function config(){
-    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
-    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
+    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}
   }
   function data(){
     try{const d=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');d.races=d.races||{};return d}
@@ -8351,8 +8363,8 @@ function installCore(w,doc,label){
   const raceNoText=r=>num(r?.raceNo??r?.race_no??r?.number,0);
 
   function config(){
-    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
-    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
+    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}
   }
   function data(){
     try{const d=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');d.races=d.races||{};return d}
@@ -9515,7 +9527,7 @@ setInterval(installAll,2500);
 <script id="independentProbabilityFinalOddsEvPatchV1">
 (function(){
   "use strict";
-  const VERSION="v1.2.63 MainEmulatorHistoryProbabilityFinalOddsEV";
+  const VERSION="v1.2.64 MainEmulatorHistoryProbabilityFinalOddsEV";
   const FLAG="__theKeibaIndependentProbabilityFinalOddsEvV1";
   const NAR_CONFIG_KEY="TheKeibaNarProbabilityConfigV2";
   const MEMBER_CONFIG_KEY="TheKeibaNetkeibaMemberConfigV1";
@@ -9663,7 +9675,7 @@ setInterval(installAll,2500);
   "use strict";
   if(window.__TheKeibaMainEmulatorHistoryProbabilityV1)return;
 
-  const VERSION="v1.2.63 MainEmulatorHistoryProbabilityV1";
+  const VERSION="v1.2.64 MainEmulatorHistoryProbabilityV1";
   const CACHE_KEY="TheKeibaMainEmulatorProbabilityCurrentV1";
   const PATCH_FLAG="__theKeibaMainEmulatorHistoryProbabilityV1";
   const INDEPENDENT_FLAG="__theKeibaIndependentProbabilityFinalOddsEvV1";
@@ -9864,16 +9876,24 @@ setInterval(installAll,2500);
     let applied=0;
     for(const e of list){
       const x=model.get(horseNo(e));if(!x)continue;
-      if(sourceIsExternal(e))continue;
+      const odds=[e.finalOdds,e.closingOdds,e.odds,e.oddsWin,e.winOdds].map(v=>num(v,0)).find(v=>v>0)||0;
+      const standardEv=odds>0?Number((x.probability*odds).toFixed(6)):0;
+      // 外部ソースが選択されていても、本体標準の復旧用ベースラインは必ず最新化する。
       e.modelProbability=x.probability;
       e.preRaceProbability=x.probability;
       e.emulatorProbability=x.probability;
       e.independentProbability=x.probability;
       e.independentProbabilityAvailable=true;
-      e.probWin=x.probability;e.probability=x.probability;e.winProbability=x.probability;
-      e.ai=x.ai;e.aiScore=x.ai;e.modelScore=x.score;
-      e.modelConfidence=x.confidence;e.modelEvidence=x.evidence;e.modelEvidenceParts=x.parts;
-      e.probabilitySource=x.source;e.evProbabilitySource=x.source;
+      e.standardProbWin=x.probability;e.standardEv=standardEv;e.standardAi=x.ai;e.standardProbabilityMethod="independent-v1";
+      e.modelConfidence=x.confidence;e.modelEvidence=x.evidence;e.modelEvidenceParts=x.parts;e.modelScore=x.score;
+      const hasRealExternal=sourceIsExternal(e)&&!e.narProbabilityUnavailable&&!e.narProbabilityFallback&&num(e.adoptedProbability,0)>0;
+      if(!hasRealExternal){
+        e.probWin=x.probability;e.probability=x.probability;e.winProbability=x.probability;
+        e.ev=standardEv;e.expectedValue=standardEv;
+        e.ai=x.ai;e.aiScore=x.ai;
+        e.probabilitySource=x.source;e.evProbabilitySource=x.source;
+        e.narProbabilityUnavailable=false;
+      }
       e.usesPostRaceOdds=false;e.evFormula="main_emulator_history_probability_x_final_odds";
       applied++
     }
@@ -10008,6 +10028,48 @@ setInterval(installAll,2500);
     setTimeout(()=>api.ensureBuilt("起動時ウォームアップ").then(installChildren).catch(()=>{}),900)
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",wire,{once:true});else wire()
+})();
+</script>
+
+<script id="zeroInvestmentRecoveryPatchV1">
+(function(){
+  "use strict";
+  const CFG="TheKeibaNarProbabilityConfigV2",MIG="TheKeibaZeroInvestmentRecoveryV1";
+  function migrate(w){
+    try{
+      const c=Object.assign({mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"},JSON.parse(w.localStorage.getItem(CFG)||"{}"));
+      if(!w.localStorage.getItem(MIG)){
+        c.missingAction="standard";
+        w.localStorage.setItem(CFG,JSON.stringify(c));
+        w.localStorage.setItem(MIG,new Date().toISOString());
+        try{w.dispatchEvent(new w.CustomEvent("TheKeibaNarProbabilityConfigChanged",{detail:c}))}catch(_){}
+      }
+    }catch(_){}
+  }
+  function install(w,d){
+    if(!w||!d)return;
+    migrate(w);
+    try{
+      const select=d.getElementById("narProbMissingV2");
+      if(select){const current=JSON.parse(w.localStorage.getItem(CFG)||"{}");select.value=current.missingAction||"standard";const opt=[...select.options].find(o=>o.value==="standard");if(opt)opt.textContent="本体標準へ自動フォールバック（推奨・投資0防止）"}
+      const decision=d.getElementById("narProbDecisionV2"),mode=d.getElementById("narProbModeV2");
+      if(decision&&mode)decision.disabled=mode.value!=="compare";
+      const host=d.getElementById("tab-simulation")||d.getElementById("view-simulation");
+      if(host&&!d.getElementById("zeroInvestmentRecoveryNoticeV1")){
+        const box=d.createElement("div");box.id="zeroInvestmentRecoveryNoticeV1";box.className="notice";box.style.marginBottom="10px";
+        box.innerHTML="<strong>投資0円・自動復旧 V1</strong><br><small>ARION／netkeibaの当時データが無いレースは、EVを0へ潰さず、本体エミュ履歴勝率×確定オッズへ自動フォールバックします。比較式の購入判定は『比較式』選択時だけ有効です。</small>";
+        host.insertBefore(box,host.firstChild);
+      }
+    }catch(_){}
+  }
+  function all(){
+    install(window,document);
+    const f=document.getElementById("fullEmuFrame");
+    if(f){try{install(f.contentWindow,f.contentDocument||f.contentWindow.document)}catch(_){}}
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",all,{once:true});else all();
+  const f=document.getElementById("fullEmuFrame");if(f)f.addEventListener("load",()=>[100,500,1500,3500,7000].forEach(ms=>setTimeout(all,ms)));
+  setInterval(all,2200);
 })();
 </script>
 </body>
