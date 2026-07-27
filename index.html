@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.65-probability-source-separation">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.65</title>
+<meta name="thekeiba-build" content="v1.2.66-external-probability-pipeline">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.66</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -337,7 +337,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.65 想定確率ソース完全分離・実採用監査</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.66 外部想定確率取得・実採用監査</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -550,7 +550,7 @@ input,select,textarea{font-size:16px}
           <button class="btn" id="fullEmuOpenBtn">↗ 別タブ</button>
           <select id="fullEmuViewport" style="width:auto" title="表示幅"><option value="full">全幅</option><option value="tablet">iPad幅</option><option value="mobile">スマホ幅</option></select>
         </div>
-        <div class="full-emu-badges"><span class="badge" id="fullEmuOriginBadge">接続方式を確認中</span><span class="badge" id="fullEmuBridgeBadge">Bridge未確認</span><span class="badge" id="fullEmuLiveBadge">LIVE接続待ち</span><span class="badge" id="fullEmuLiveCountBadge">0R</span><span class="badge" id="fullEmuThemeBadge">テーマ連動待ち</span><span class="badge" id="fullEmuVersionBadge">内蔵版 v5.18.308</span><span class="badge" id="fullEmuProbabilityBadge">本体勝率モデル準備中</span></div>
+        <div class="full-emu-badges"><span class="badge" id="fullEmuOriginBadge">接続方式を確認中</span><span class="badge" id="fullEmuBridgeBadge">Bridge未確認</span><span class="badge" id="fullEmuLiveBadge">LIVE接続待ち</span><span class="badge" id="fullEmuLiveCountBadge">0R</span><span class="badge" id="fullEmuThemeBadge">テーマ連動待ち</span><span class="badge" id="fullEmuVersionBadge">内蔵版 v5.18.309</span><span class="badge" id="fullEmuProbabilityBadge">本体勝率モデル準備中</span></div>
         <div class="code-box full-emu-status" id="fullEmuStatus">「丸ごと読込」を押すと、公開サイト本体をこの画面内で起動します。</div>
       </div>
       <div class="card" style="padding:10px">
@@ -946,8 +946,8 @@ Userscript利用時はWorker URLを空欄にできます。取得失敗Rは1回�
         </div>
         <div class="form-grid">
           <div class="field wide"><label>会員モード</label><select id="nkMembershipTier"><option value="free">無料会員・公開データ</option><option value="super">スーパープレミアム会員</option></select></div>
-          <div class="field wide"><label>想定確率への使い方</label><select id="nkProbabilityMode"><option value="standard">本体エミュ履歴モデル</option><option value="predicted">netkeiba予想オッズを採用</option><option value="blend">本体標準と予想オッズを混合</option></select></div>
-          <div class="field"><label>予想オッズ混合率</label><input id="nkPredictionBlend" type="number" min="0" max="100" step="5" value="50"></div>
+          <div class="field wide"><label>想定確率への使い方</label><select id="nkProbabilityMode"><option value="standard">本体エミュ履歴モデル</option><option value="predicted">netkeiba予想オッズを単独採用</option></select></div>
+          <div class="field wide"><label>確率ソースの分離</label><div class="code-box">本体標準とnetkeiba予想オッズは混合しません。予想オッズが全頭分そろわない場合は購入判定を停止します。</div></div>
           <div class="field wide"><label>SP追加データ</label><select id="nkPremiumApply"><option value="display">表示・比較のみ</option><option value="adjust">タイム指数・調教で軽く補正</option></select></div>
           <div class="field"><label>SP補正強度</label><input id="nkPremiumInfluence" type="number" min="0" max="30" step="5" value="15"></div>
         </div>
@@ -1295,7 +1295,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="1.2.65-probability-source-separation";
+const APP_VERSION="1.2.66-external-probability-pipeline";
 const NAV_ITEMS=[["dashboard","🏠","ホーム"],["calendar","📅","開催"],["race","🏇","馬柱"],["search","🔍","検索"],["simulation","📊","SIM"],["emulator","🧪","エミュ"],["site-emulator","🖥","本体エミュ"],["analytics","📈","分析"],["strategies","🧠","戦略"],["live","📺","ライブ"],["database","🗄","DB"],["bridge","🔗","Bridge"],["forward","⏱","フォワード"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -6484,8 +6484,18 @@ window.addEventListener("DOMContentLoaded",()=>{installTextIoViewButtons();wireT
       }
       try{child.__theKeibaBridgeHandshake?.()}catch(_){}
       try{child.dispatchEvent(new Event("online"));child.dispatchEvent(new Event("focus"))}catch(_){}
-      bridgeInjected=!!(direct||fetcher||workerConfigured);
-      setBadge("fullEmuBridgeBadge",bridgeInjected?"Bridge：type/race_id優先・旧url自動変換":"Bridge：親画面で未接続",bridgeInjected?"same":"cross");
+      const bridgeResponded=!!(
+        window.__NAR_BRIDGE_READY__||
+        BRIDGE_DIAG.ready||
+        (direct&&window.__narBridgeHasDirect)||
+        workerConfigured
+      );
+      bridgeInjected=bridgeResponded;
+      setBadge(
+        "fullEmuBridgeBadge",
+        bridgeResponded?"Bridge：実応答確認済・type/race_id優先":"Bridge：実応答未確認",
+        bridgeResponded?"same":"cross"
+      );
       return bridgeInjected
     }catch(e){
       bridgeInjected=false;setBadge("fullEmuBridgeBadge","Bridge接続失敗","cross");
@@ -6854,7 +6864,7 @@ ${e.message}`,"bad");return false}
       mode: "standard",
       compareDecision: "none",
       minEv: 1.00,
-      missingAction: "standard"
+      missingAction: "stop"
     };
   }
 
@@ -7032,7 +7042,7 @@ ${e.message}`,"bad");return false}
         }
         if(typeof win.refreshAll==="function")await win.refreshAll();
         const a=win.__narProbabilityLastApply||{};
-        detail=a.raceId?`\nrace_id：${a.raceId}／登録：${a.registered?"あり":"なし"}／反映：${a.updated||0}頭／不足：${a.missing||0}頭`:`\n現在レース未選択。期間横断SIMでは各race_idを自動判定し、未登録時は本体標準へフォールバックします。`;
+        detail=a.raceId?`\nrace_id：${a.raceId}／登録：${a.registered?"あり":"なし"}／反映：${a.updated||0}頭／不足：${a.missing||0}頭`:`\n現在レース未選択。期間横断SIMでは各race_idを自動判定し、未登録時は「データ未取得時」の設定に従います。`;
       }catch(e){detail="\n再計算警告："+(e?.message||e)}
       q("narProbStatusV2").textContent =
         (reason||"保存しました。")+"\n想定確率：" + modeLabel(cfg) + detail +
@@ -7133,7 +7143,7 @@ function horseNo(o){
   return Number(o?.horseNo??o?.horse_no??o?.horseNumber??o?.number??o?.["馬番"]??0);
 }
 function defaultCfg(){
-  return{mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"};
+  return{mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"};
 }
 function getCfg(win){
   return Object.assign(defaultCfg(),safeJson(win.localStorage.getItem(CFG_KEY)||"{}",{}));
@@ -7460,11 +7470,11 @@ function inject(){
     function narConfig(){
       try{
         return Object.assign(
-          {mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"},
+          {mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"},
           JSON.parse(localStorage.getItem("TheKeibaNarProbabilityConfigV2")||"{}")
         );
       }catch(_){
-        return {mode:"standard",compareDecision:"none",minEv:1,missingAction:"standard"};
+        return {mode:"standard",compareDecision:"none",minEv:1,missingAction:"stop"};
       }
     }
 
@@ -7492,7 +7502,7 @@ function inject(){
         if(sourceRace){
           window.TheKeibaNarProbability.applyEntries(entries);
         }else if(cfg.missingAction==="standard"){
-          // 外部想定確率が無い過去レースは、本体エミュ履歴勝率へ安全にフォールバックする。
+          // ユーザーが明示した場合だけ、本体エミュ履歴勝率へフォールバックする。
           for(const e of entries){
             e.narProbabilityUnavailable=false;
             e.narProbabilityFallback=true;
@@ -7617,7 +7627,7 @@ function inject(){
       n.id="narProbPeriodNoticeV4";
       n.className="notice";
       n.style.marginBottom="10px";
-      n.innerHTML="<strong>期間横断SIM対応</strong><br><small>ARION／netkeibaの当時スナップショットが登録されたレースだけを購入判定します。未登録の過去レースは本体エミュ履歴勝率へフォールバックし、現在の外部予測値を過去へ流用しません。</small>";
+      n.innerHTML="<strong>期間横断SIM対応</strong><br><small>ARION／netkeibaの当時スナップショットが登録されたレースだけを購入判定します。未登録時は設定に従って停止し、現在の外部予測値を過去へ流用しません。本体標準への代替は明示選択時だけです。</small>";
       sim.insertBefore(n,sim.firstChild);
     }
   }catch(_){}
@@ -7721,8 +7731,8 @@ function install(){
   const horseNo=e=>num(e&&((e.horseNo??e.horse_no??e.num??e.number)),0);
   const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
   function cfg(){
-    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}
-    catch(_){return {mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}
+    catch(_){return {mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
   }
   function db(){
     try{const x=JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityDataV2')||'{"races":{}}');x.races=x.races||{};return x}
@@ -7850,7 +7860,7 @@ function install(){
     const sim=d.getElementById('tab-simulation');
     if(sim&&!d.getElementById('narProbPeriodDefinitiveV5')){
       const box=d.createElement('div');box.id='narProbPeriodDefinitiveV5';box.className='notice';box.style.marginBottom='10px';
-      const refresh=()=>{const C=cfg(),s=selectedSource(C);box.innerHTML='<strong>期間横断SIM・想定確率実判定</strong><br><small>現在の判定：'+s+'。各race_idの保存スナップショットからEV・候補・最大3点を毎回再生成します。未登録レースは本体エミュ履歴勝率へ自動フォールバックします。</small>'};
+      const refresh=()=>{const C=cfg(),s=selectedSource(C),missing=C.missingAction==='standard'?'未登録レースは明示設定により本体標準へ代替します。':'未登録レースは購入判定を停止します。';box.innerHTML='<strong>期間横断SIM・想定確率実判定</strong><br><small>現在の判定：'+s+'。各race_idの保存スナップショットからEV・候補・最大3点を毎回再生成します。'+missing+'</small>'};
       refresh();sim.insertBefore(box,sim.firstChild);setInterval(refresh,1500);
     }
   }catch(_){ }
@@ -7878,7 +7888,7 @@ function installCore(w,label){
   const raceId=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
   const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.num??e.number),0);
   const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
-  function config(){try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}}
+  function config(){try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityConfigV2')||'{}'))}catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}}
   function data(){try{const d=JSON.parse(w.localStorage.getItem('TheKeibaNarProbabilityDataV2')||'{"races":{}}');d.races=d.races||{};return d}catch(_){return{races:{}}}}
   function sourceOf(c){if(c.mode==='arion')return'arion';if(c.mode==='netkeiba')return'netkeiba';if(c.mode==='compare')return c.compareDecision||'none';return'standard'}
   function probability(rec,source){if(!rec)return NaN;if(source==='arion')return num(rec.arionProbability,NaN);if(source==='netkeiba')return num(rec.netkeibaProbability,NaN);return NaN}
@@ -7974,8 +7984,8 @@ function installCore(w,doc,label){
   const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>0)||0;
 
   function config(){
-    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
-    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
+    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
   }
   function data(){
     try{const d=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');d.races=d.races||{};return d}
@@ -8199,7 +8209,7 @@ setInterval(installAll,2500);
 const FRAME_ID='fullEmuFrame';
 const CFG_KEY='TheKeibaNarProbabilityConfigV2';
 const DATA_KEY='TheKeibaNarProbabilityDataV2';
-const FLAG='__narProbabilityDiagnosticsV8';
+const FLAG='__narProbabilityDiagnosticsV8Installed';
 const DIAG_KEY='TheKeibaNarProbabilityDiagnosticsV8';
 
 // ── AIらら 期間横断 自動取得ヘルパー（共有）──────────────────────────
@@ -8210,12 +8220,79 @@ const DIAG_KEY='TheKeibaNarProbabilityDiagnosticsV8';
 const AIRARA=(function(){
   const cache={};                       // key: "YYYY-MM-DD|場" -> {ok,byR} または Promise
   const N=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d;};
-  function bridge(w){return w.__narBridgeFetch||(w.top&&w.top.__narBridgeFetch)||(w.parent&&w.parent.__narBridgeFetch)||null;}
+  function bridge(w){
+    const candidates=[
+      w&&w.__narBridgeDirect,
+      w&&w.__narBridgeFetch,
+      w&&w.top&&w.top.__narBridgeDirect,
+      w&&w.top&&w.top.__narBridgeFetch,
+      w&&w.parent&&w.parent.__narBridgeDirect,
+      w&&w.parent&&w.parent.__narBridgeFetch
+    ];
+    return candidates.find(function(fn){return typeof fn==='function';})||null;
+  }
   function autoOn(w){try{return (w.localStorage.getItem('airaraAuto')||'1')!=='0';}catch(_){return true;}}
   function baseVenue(pn){return String(pn||'').replace(/[（(].*$/,'').replace(/\s+/g,'').trim();}
   function respText(r){return typeof r==='string'?r:(r&&r.text)||'';}
-  function nextDay(d){try{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+1);return x.toISOString().slice(0,10);}catch(_){return d;}}
-  function prevDay(d,n){try{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()-(n||1));return x.toISOString().slice(0,10);}catch(_){return d;}}
+  async function directText(w,url,timeout){
+    if(!w||typeof w.fetch!=='function')throw new Error('browser-fetch無し');
+    const Controller=w.AbortController||window.AbortController;
+    const controller=Controller?new Controller():null;
+    const timer=controller?setTimeout(function(){try{controller.abort();}catch(_){}},Math.max(3000,Number(timeout||15000))):null;
+    try{
+      const response=await w.fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',signal:controller&&controller.signal});
+      if(!response||!response.ok)throw new Error('HTTP '+Number(response&&response.status||0));
+      const text=await response.text();
+      if(!String(text||'').trim())throw new Error('空応答');
+      return{status:Number(response.status||200),text:String(text),route:'browser-direct'};
+    }finally{
+      if(timer)clearTimeout(timer);
+    }
+  }
+  async function requestText(w,url,options){
+    const timeout=Math.max(3000,Number(options&&options.timeout||18000));
+    const preferDirect=/^https:\/\/haro-blog\.com\//i.test(String(url||''));
+    const order=preferDirect?['direct','bridge']:['bridge','direct'];
+    const errors=[];
+    for(const route of order){
+      if(route==='direct'){
+        try{return await directText(w,url,timeout);}catch(error){errors.push('direct '+(error&&error.message||error));}
+        continue;
+      }
+      const fn=bridge(w);
+      if(!fn){errors.push('Bridge未検出');continue;}
+      try{
+        const response=await fn(url,{timeout:timeout});
+        const status=typeof response==='string'?200:Number(response&&response.status||0);
+        const text=respText(response);
+        if(status<200||status>=400)throw new Error((response&&response.error)||('HTTP '+status));
+        if(!String(text||'').trim())throw new Error('空応答');
+        return{status:status,text:String(text),route:'bridge'};
+      }catch(error){errors.push('bridge '+(error&&error.message||error));}
+    }
+    return{status:0,text:'',route:'',error:errors.join(' / ')||'取得失敗'};
+  }
+  function decodeHtmlText(value){
+    try{return new DOMParser().parseFromString('<!doctype html><html><body><div>'+String(value||'')+'</div></body></html>','text/html').body.textContent||'';}
+    catch(_){return String(value||'').replace(/<[^>]+>/g,' ');}
+  }
+  function normalizePost(p){
+    return{
+      link:String(p&&p.link||''),
+      title:decodeHtmlText(p&&p.title&&p.title.rendered||p&&p.title||'').trim(),
+      content:String(p&&p.content&&p.content.rendered||p&&p.content||''),
+      date:String(p&&p.date||'')
+    };
+  }
+  function shiftDay(d,amount){
+    try{
+      const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m)return d;
+      return new Date(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]))+Number(amount||0)*86400000).toISOString().slice(0,10);
+    }catch(_){return d;}
+  }
+  function nextDay(d){return shiftDay(d,1);}
+  function prevDay(d,n){return shiftDay(d,-Math.max(1,Number(n||1)));}
   function titleDate(d){const m=String(d).match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(m[1].slice(2)+'.'+m[2]+'.'+m[3]):'';}
   // 記事HTML→ {R番号: [{no,pct,prob}]}。旧=HTML表(勝率/馬番列)、新=テキスト行(◎ 8 【61.2%】…)の両対応。
   function parseTables(doc){
@@ -8262,7 +8339,11 @@ const AIRARA=(function(){
     return out;
   }
   function parseByR(html){
-    let doc;try{doc=new DOMParser().parseFromString(String(html||''),'text/html');}catch(_){return{};}
+    let doc;
+    try{
+      const raw=String(html||''),source=/<html[\s>]/i.test(raw)?raw:'<!doctype html><html><body>'+raw+'</body></html>';
+      doc=new DOMParser().parseFromString(source,'text/html');
+    }catch(_){return{};}
     const tab=parseTables(doc),flow=parseFlow(doc),out={},keys={};
     Object.keys(tab).forEach(function(k){keys[k]=1;});Object.keys(flow).forEach(function(k){keys[k]=1;});
     Object.keys(keys).forEach(function(k){const t=tab[k]||[],f=flow[k]||[];out[k]=(f.length>t.length)?f:(t.length?t:f);});
@@ -8285,41 +8366,68 @@ const AIRARA=(function(){
     return out;
   }
   async function fetchVenueDay(w,date,venue){
-    const fn=bridge(w);if(!fn)return{ok:false,stage:'no-bridge'};
     const dt=titleDate(date),v=normVenue(venue),base='https://haro-blog.com';
-    let list=[];
-    // 1) WP-REST 日付ウィンドウ（記事一覧のみ・軽量）
+    let list=[],discoveryRoute='',lastError='';
+    // 1) WP-REST 日付ウィンドウ。本文も同時取得し、Bridge無しでもCORS対応APIから完結させる。
     try{
-      const rest=base+'/wp-json/wp/v2/posts?per_page=100&_fields=id,link,title'
-        +'&after='+prevDay(date,1)+'T00:00:00&before='+nextDay(date)+'T23:59:59';
-      const arr=JSON.parse(respText(await fn(rest,{timeout:30000})));
-      if(Array.isArray(arr))list=arr.map(function(p){return{link:p&&p.link,title:(p&&p.title&&p.title.rendered)||''};});
-    }catch(_){}
+      const rest=base+'/wp-json/wp/v2/posts?per_page=100&_fields=id,link,title,content,date'
+        +'&after='+date+'T00:00:00&before='+nextDay(date)+'T00:00:00';
+      const response=await requestText(w,rest,{timeout:18000});
+      if(response.text){
+        const arr=JSON.parse(response.text);
+        if(Array.isArray(arr)){list=arr.map(normalizePost);discoveryRoute=response.route+'-rest-date';}
+      }else lastError=response.error||'REST日付検索失敗';
+    }catch(error){lastError=error&&error.message||String(error);}
     // 1b) 空なら search 併用（場名で絞り込み）
     if(!list.length){
       try{
-        const rest2=base+'/wp-json/wp/v2/posts?per_page=30&_fields=id,link,title&search='+encodeURIComponent(v);
-        const arr2=JSON.parse(respText(await fn(rest2,{timeout:30000})));
-        if(Array.isArray(arr2))list=arr2.map(function(p){return{link:p&&p.link,title:(p&&p.title&&p.title.rendered)||''};});
-      }catch(_){}
+        const rest2=base+'/wp-json/wp/v2/posts?per_page=100&_fields=id,link,title,content,date&search='+encodeURIComponent(v+' '+dt);
+        const response=await requestText(w,rest2,{timeout:18000});
+        if(response.text){
+          const arr2=JSON.parse(response.text);
+          if(Array.isArray(arr2)){list=arr2.map(normalizePost);discoveryRoute=response.route+'-rest-search';}
+        }else if(response.error)lastError=response.error;
+      }catch(error){lastError=error&&error.message||String(error);}
     }
-    // 2) RESTが全滅なら月間アーカイブHTMLから抽出（直接取得は実証済みの経路）
-    let usedArchive=false;
+    // 2) RESTが全滅なら月間アーカイブをページ送りして対象記事を探す。
+    //    旧版は先頭ページだけだったため、月末以外の記事を取りこぼしていた。
+    let usedArchive=false,archiveHit=null,archivePages=0;
     if(!list.length){
-      try{
-        const ym=String(date).slice(0,7).replace('-','/');
-        list=extractArchiveLinks(respText(await fn(base+'/archives/date/'+ym,{timeout:30000})));usedArchive=true;
-      }catch(_){}
+      const ym=String(date).slice(0,7).replace('-','/');
+      for(let page=1;page<=32;page++){
+        const archiveUrl=base+'/archives/date/'+ym+(page===1?'':'/page/'+page);
+        const response=await requestText(w,archiveUrl,{timeout:15000});
+        if(!response.text){
+          lastError=response.error||lastError;
+          break;
+        }
+        usedArchive=true;archivePages=page;
+        const pageLinks=extractArchiveLinks(response.text).map(normalizePost);
+        const exact=pageLinks.find(function(p){return titleHit(p.title,v,dt);});
+        list.push.apply(list,pageLinks);
+        if(exact){archiveHit=exact;discoveryRoute=response.route+'-archive-page-'+page;break;}
+        if(!pageLinks.length)break;
+      }
     }
-    if(!list.length)return{ok:false,stage:usedArchive?'archive-empty':'discovery-empty'};
+    if(!list.length)return{ok:false,stage:usedArchive?'archive-empty':'discovery-empty',error:lastError,archivePages:archivePages};
     // 3) タイトル突合（日付一致優先→場のみ）
-    const hit=list.find(function(p){return titleHit(p.title,v,dt);})||list.find(function(p){return titleHit(p.title,v,'');});
+    const hit=archiveHit||list.find(function(p){return titleHit(p.title,v,dt);})||list.find(function(p){return titleHit(p.title,v,'');});
     if(!hit||!hit.link)return{ok:false,stage:'no-title-match',listCount:list.length,samples:list.slice(0,6).map(function(p){return p.title;})};
     // 4) 記事HTML取得→解析
-    let content='';try{content=respText(await fn(hit.link,{timeout:30000}));}catch(_){}
-    if(!content)return{ok:false,stage:'article-empty',link:hit.link,title:hit.title};
+    let content=String(hit.content||'');
+    let articleRoute=discoveryRoute;
+    if(!content){
+      const response=await requestText(w,hit.link,{timeout:18000});
+      content=response.text||'';
+      articleRoute=response.route||articleRoute;
+      if(!content)lastError=response.error||lastError;
+    }
+    if(!content)return{ok:false,stage:'article-empty',link:hit.link,title:hit.title,error:lastError};
     const byR=parseByR(content);const rc=Object.keys(byR).length;
-    return rc?{ok:true,byR:byR,link:hit.link,title:hit.title,rCount:rc,source:usedArchive?'archive':'rest'}:{ok:false,stage:'parse-empty',link:hit.link,title:hit.title};
+    return rc?{
+      ok:true,byR:byR,link:hit.link,title:hit.title,rCount:rc,
+      source:usedArchive?'archive':'rest',route:articleRoute||discoveryRoute,archivePages:archivePages
+    }:{ok:false,stage:'parse-empty',link:hit.link,title:hit.title,error:lastError};
   }
   function note(w,o){try{w.__airaraLast=Object.assign({at:Date.now()},o);}catch(_){}}
   async function ensure(w,race){
@@ -8336,16 +8444,151 @@ const AIRARA=(function(){
       const horses=res.byR[rn];if(!horses||!horses.length){note(w,{stage:'no-race-in-article',date:date,venue:venue,raceNo:rn,haveR:Object.keys(res.byR||{}).join(',')});return null;}
       let store;try{store=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');}catch(_){store={races:{}};}
       store.races=store.races||{};
-      store.races[rid]={raceId:rid,capturedAt:new Date().toISOString(),source:'airara-auto',
-        rows:horses.map(function(h){return{horseNo:h.no,arionWinPercent:h.pct,arionProbability:h.prob,netkeibaPredictedOdds:null,netkeibaProbability:null};})};
+      const old=store.races[rid]||{},rowMap=new Map((old.rows||[]).map(function(row){return[N(row.horseNo),Object.assign({},row)];}));
+      horses.forEach(function(h){
+        const previous=rowMap.get(h.no)||{horseNo:h.no};
+        rowMap.set(h.no,Object.assign(previous,{horseNo:h.no,arionWinPercent:h.pct,arionProbability:h.prob}));
+      });
+      store.races[rid]={
+        raceId:rid,
+        capturedAt:new Date().toISOString(),
+        source:old.source&&old.source!=='airara-auto'?old.source+'+airara-auto':'airara-auto',
+        sourceUrl:res.link||old.sourceUrl||'',
+        rows:[...rowMap.values()].sort(function(a,b){return N(a.horseNo)-N(b.horseNo);})
+      };
       try{w.localStorage.setItem(DATA_KEY,JSON.stringify(store));}catch(_){}
-      note(w,{stage:'ok',date:date,venue:venue,raceNo:rn,source:res.source});
+      note(w,{stage:'ok',date:date,venue:venue,raceNo:rn,source:res.source,route:res.route||'',link:res.link||'',archivePages:res.archivePages||0});
       return store.races[rid];
     }catch(e){note(w,{stage:'error',msg:e&&e.message});return null;}
   }
   return{ensure:ensure,probe:function(w,date,venue){return fetchVenueDay(w,date,venue);},parse:function(html){return parseByR(html);}};
 })();
 try{window.__AIRARA=AIRARA;}catch(_){}
+
+// netkeiba AI予想オッズは、発売開始後に実オッズへ切り替わる前だけ保存する。
+// 過去ページの確定オッズを予想オッズとして流用しない。
+const NETKEIBA_AI=(function(){
+  const cache={};
+  const N=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d;};
+  function ridOf(v){const m=String(v||'').match(/\d{12,14}/);return m?m[0]:'';}
+  function raceDate(race){
+    const raw=String(race&&(race.date||race.raceDate||race.race_date)||'');
+    const m=raw.match(/(\d{4})-?(\d{2})-?(\d{2})/);
+    return m?m[1]+'-'+m[2]+'-'+m[3]:'';
+  }
+  function todayLocal(w){
+    const d=new Date(),p=n=>String(n).padStart(2,'0');
+    return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  }
+  function bridge(w){
+    const candidates=[
+      w&&w.__narBridgeDirect,
+      w&&w.__narBridgeFetch,
+      w&&w.top&&w.top.__narBridgeDirect,
+      w&&w.top&&w.top.__narBridgeFetch,
+      w&&w.parent&&w.parent.__narBridgeDirect,
+      w&&w.parent&&w.parent.__narBridgeFetch
+    ];
+    return candidates.find(function(fn){return typeof fn==='function';})||null;
+  }
+  function responseText(response){return typeof response==='string'?response:String(response&&response.text||'');}
+  function note(w,o){try{w.__netkeibaAiLast=Object.assign({at:Date.now()},o);}catch(_){}}
+  function parse(html){
+    let doc;
+    try{doc=new DOMParser().parseFromString(String(html||''),'text/html');}
+    catch(_){return{ok:false,stage:'parse-document-error'};}
+    const pageText=String((doc.body||doc.documentElement||{}).textContent||'').replace(/\s+/g,' ');
+    if(!/単勝\s*予想オッズ/.test(pageText)||!/馬券発売開始後は実際のオッズに切り替わ/.test(pageText)){
+      return{ok:false,stage:'not-predicted-stage'};
+    }
+    let best=[];
+    doc.querySelectorAll('table').forEach(function(table){
+      const tableText=String(table.textContent||'').replace(/\s+/g,'');
+      let nearby='',node=table.previousElementSibling,hops=0;
+      while(node&&hops++<5){nearby+=String(node.textContent||'');node=node.previousElementSibling;}
+      if(!/予想オッズ/.test(tableText+nearby))return;
+      const rows=[];
+      table.querySelectorAll('tr').forEach(function(tr){
+        const cells=[].slice.call(tr.querySelectorAll('th,td')).map(function(cell){
+          return String(cell.textContent||'').replace(/\s+/g,' ').trim();
+        });
+        if(cells.length<3||/馬番|予想オッズ/.test(cells.join('')))return;
+        const numeric=cells.map(function(text,index){
+          const m=text.replace(/,/g,'').match(/^(\d+(?:\.\d+)?)$/);
+          return m?{index:index,value:Number(m[1]),text:m[1]}:null;
+        }).filter(Boolean);
+        if(numeric.length<2)return;
+        const oddsCell=[...numeric].reverse().find(function(x){return x.value>1&&x.index>=cells.length-2;})||
+          [...numeric].reverse().find(function(x){return x.value>1;});
+        if(!oddsCell)return;
+        const integers=numeric.filter(function(x){return x.index<oddsCell.index&&Number.isInteger(x.value)&&x.value>=1&&x.value<=99;});
+        const noCell=integers.length>=2?integers[1]:integers[0];
+        if(!noCell||noCell.value>18)return;
+        const nameCells=cells.slice(noCell.index+1,oddsCell.index).filter(function(x){return x&&!/^[◎○▲△☆注×\-]+$/.test(x);});
+        rows.push({horseNo:noCell.value,horseName:nameCells.at(-1)||'',netkeibaPredictedOdds:oddsCell.value});
+      });
+      const unique=[...new Map(rows.map(function(row){return[row.horseNo,row];})).values()];
+      if(unique.length>best.length)best=unique;
+    });
+    if(best.length<2)return{ok:false,stage:'predicted-table-empty'};
+    const inverse=best.reduce(function(sum,row){return sum+1/row.netkeibaPredictedOdds;},0);
+    if(!(inverse>0))return{ok:false,stage:'predicted-normalize-fail'};
+    best.forEach(function(row){row.netkeibaProbability=(1/row.netkeibaPredictedOdds)/inverse;});
+    best.sort(function(a,b){return a.horseNo-b.horseNo;});
+    return{ok:true,rows:best};
+  }
+  function merge(w,rid,parsed,url){
+    let store;
+    try{store=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');}
+    catch(_){store={races:{}};}
+    store.races=store.races||{};
+    const old=store.races[rid]||{},map=new Map((old.rows||[]).map(function(row){return[N(row.horseNo),Object.assign({},row)];}));
+    parsed.rows.forEach(function(row){
+      const previous=map.get(row.horseNo)||{horseNo:row.horseNo};
+      map.set(row.horseNo,Object.assign(previous,row));
+    });
+    store.races[rid]={
+      raceId:rid,
+      capturedAt:new Date().toISOString(),
+      source:old.source&&old.source!=='netkeiba-ai-auto'?old.source+'+netkeiba-ai-auto':'netkeiba-ai-auto',
+      sourceUrl:url,
+      stage:'predicted',
+      rows:[...map.values()].sort(function(a,b){return N(a.horseNo)-N(b.horseNo);})
+    };
+    w.localStorage.setItem(DATA_KEY,JSON.stringify(store));
+    return store.races[rid];
+  }
+  async function ensure(w,race){
+    const rid=ridOf(race&&(race.race_id||race.raceId||race.id));
+    if(!rid){note(w,{stage:'no-rid'});return null;}
+    const date=raceDate(race);
+    if(date&&date<todayLocal(w)){note(w,{stage:'historical-no-snapshot',raceId:rid,date:date});return null;}
+    if(cache[rid])return cache[rid];
+    cache[rid]=(async function(){
+      const fn=bridge(w);
+      if(!fn){note(w,{stage:'no-bridge',raceId:rid});return null;}
+      const url='https://nar.sp.netkeiba.com/odds/?race_id='+encodeURIComponent(rid);
+      try{
+        const response=await fn(url,{timeout:18000});
+        const status=typeof response==='string'?200:Number(response&&response.status||0);
+        if(status<200||status>=400)throw new Error((response&&response.error)||('HTTP '+status));
+        const parsed=parse(responseText(response));
+        if(!parsed.ok){note(w,{stage:parsed.stage,raceId:rid,url:url});return null;}
+        const saved=merge(w,rid,parsed,url);
+        note(w,{stage:'ok',raceId:rid,rows:parsed.rows.length,url:url});
+        return saved;
+      }catch(error){
+        note(w,{stage:'fetch-fail',raceId:rid,error:error&&error.message||String(error)});
+        return null;
+      }
+    })();
+    const result=await cache[rid];
+    cache[rid]=result;
+    return result;
+  }
+  return{ensure:ensure,parse:parse};
+})();
+try{window.__NETKEIBA_AI=NETKEIBA_AI;}catch(_){}
 // ─────────────────────────────────────────────────────────────
 
 function installCore(w,doc,label){
@@ -8363,8 +8606,8 @@ function installCore(w,doc,label){
   const raceNoText=r=>num(r?.raceNo??r?.race_no??r?.number,0);
 
   function config(){
-    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
-    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'standard'}}
+    try{return Object.assign({mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}
+    catch(_){return{mode:'standard',compareDecision:'none',minEv:1,missingAction:'stop'}}
   }
   function data(){
     try{const d=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');d.races=d.races||{};return d}
@@ -8448,13 +8691,34 @@ function installCore(w,doc,label){
 
     const id=ridOf(race?.race_id||race?.raceId||race?.id);
     let snapshot=data().races[id];
-    let airaraStage='';
-    if(!snapshot||!Array.isArray(snapshot.rows)){
-      try{const got=await AIRARA.ensure(w,race);if(got&&Array.isArray(got.rows)&&got.rows.length)snapshot=got;}catch(_){}
+    let airaraStage='',netkeibaStage='';
+    const snapshotRows=()=>Array.isArray(snapshot&&snapshot.rows)?snapshot.rows:[];
+    const hasArion=()=>snapshotRows().some(function(row){return probability(row,'arion')!==null;});
+    const hasNetkeiba=()=>snapshotRows().some(function(row){return probability(row,'netkeiba')!==null;});
+    if((source==='arion'||source==='both')&&!hasArion()){
+      try{
+        const got=await AIRARA.ensure(w,race);
+        if(got&&Array.isArray(got.rows)&&got.rows.length)snapshot=got;
+        else snapshot=data().races[id]||snapshot;
+      }catch(_){}
       try{airaraStage=(w.__airaraLast&&w.__airaraLast.stage)||'';}catch(_){}
     }
+    if((source==='netkeiba'||source==='both')&&!hasNetkeiba()){
+      try{
+        const got=await NETKEIBA_AI.ensure(w,race);
+        if(got&&Array.isArray(got.rows)&&got.rows.length)snapshot=got;
+        else snapshot=data().races[id]||snapshot;
+      }catch(_){}
+      try{netkeibaStage=(w.__netkeibaAiLast&&w.__netkeibaAiLast.stage)||'';}catch(_){}
+    }
     if(!snapshot||!Array.isArray(snapshot.rows)){
-      const why='想定確率未登録・AIらら自動取得'+(airaraStage?('失敗('+airaraStage+')'):'未実行');
+      const reasons=[];
+      if(source==='arion'||source==='both')reasons.push('ARION自動取得'+(airaraStage?('失敗('+airaraStage+')'):'未実行'));
+      if(source==='netkeiba'||source==='both')reasons.push(
+        netkeibaStage==='historical-no-snapshot'?'netkeiba過去予想オッズ未保存':
+        'netkeiba予想オッズ取得'+(netkeibaStage?('失敗('+netkeibaStage+')'):'未実行')
+      );
+      const why='想定確率未登録・'+(reasons.join('／')||'外部データ無し');
       if(C.missingAction==='standard'){
         const base=await oldBuild.call(w,race,result,c);
         if(base&&typeof base==='object'){
@@ -8522,7 +8786,11 @@ function installCore(w,doc,label){
 
     const strict=C.missingAction==='strict';
     if(updated===0||(strict&&missing>0)){
-      return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStrictBlocked:strict&&missing>0,narProbabilityStatus:{mode:C.mode,source,raceId:id,updated,missing,fallback,rejected,reason:updated===0?'適用できる想定確率なし':'厳格設定：1頭以上のデータ不足'}};
+      let reason=updated===0?'適用できる想定確率なし':'厳格設定：1頭以上のデータ不足';
+      if(updated===0&&source==='netkeiba'&&netkeibaStage==='historical-no-snapshot')reason='過去開催のnetkeiba AI予想オッズスナップショット未保存';
+      else if(updated===0&&source==='arion'&&airaraStage)reason='ARION自動取得失敗('+airaraStage+')';
+      else if(updated===0&&source==='both')reason='ARION・netkeiba両方の想定確率が揃っていません';
+      return{race,result,entries,candidateEntries:[],candidateTickets:[],purchaseTickets:[],rankScore:-1,narProbabilityBlocked:true,narProbabilityStrictBlocked:strict&&missing>0,narProbabilityStatus:{mode:C.mode,source,raceId:id,updated,missing,fallback,rejected,reason:reason,airaraStage:airaraStage,netkeibaStage:netkeibaStage}};
     }
 
     const qualifies=e=>!e.narProbabilityUnavailable&&num(e.ev)>=num(c.minEv,1)&&oddsOf(e)>=num(c.minOdds,0)&&oddsOf(e)<=num(c.maxOdds,999999);
@@ -8953,7 +9221,6 @@ setInterval(installAll,2500);
   const DEFAULT_CONFIG={
     membership:"free",
     probabilityMode:"standard",
-    predictionBlend:50,
     premiumApply:"display",
     premiumInfluence:15,
     authStatus:"unknown",
@@ -8985,10 +9252,10 @@ setInterval(installAll,2500);
   function currentRaceId(){return raceId((typeof state!=="undefined"&&state.currentRaceId)||byId("raceIdDirect")?.value||byId("nkMemberRaceId")?.value)}
   function currentSettings(){
     const stored=loadJson(CONFIG_KEY,DEFAULT_CONFIG);
+    const storedProbabilityMode=stored.probabilityMode==="blend"?"predicted":stored.probabilityMode;
     config={
       membership:["free","super"].includes(stored.membership)?stored.membership:"free",
-      probabilityMode:["standard","predicted","blend"].includes(stored.probabilityMode)?stored.probabilityMode:"standard",
-      predictionBlend:clamp(stored.predictionBlend??50,0,100),
+      probabilityMode:["standard","predicted"].includes(storedProbabilityMode)?storedProbabilityMode:"standard",
       premiumApply:["display","adjust"].includes(stored.premiumApply)?stored.premiumApply:"display",
       premiumInfluence:clamp(stored.premiumInfluence??15,0,30),
       authStatus:["unknown","pending","manual","verified","signed-out"].includes(stored.authStatus)?stored.authStatus:"unknown",
@@ -9003,7 +9270,6 @@ setInterval(installAll,2500);
       if(typeof state!=="undefined"&&state.settings){
         state.settings.netkeibaMembership=config.membership;
         state.settings.netkeibaProbabilityMode=config.probabilityMode;
-        state.settings.netkeibaPredictionBlend=config.predictionBlend;
         state.settings.netkeibaPremiumApply=config.premiumApply;
         state.settings.netkeibaPremiumInfluence=config.premiumInfluence;
         state.settings.netkeibaAuthStatus=config.authStatus;
@@ -9259,10 +9525,46 @@ setInterval(installAll,2500);
   function restoreEntries(entries){
     for(const entry of entries||[]){
       if(!entry?.__nkMemberEnhanced)continue;
-      if(Number.isFinite(entry.__nkMemberBaseProb))entry.probWin=entry.__nkMemberBaseProb;
+      if(Number.isFinite(entry.__nkMemberBaseProb)){
+        const p=entry.__nkMemberBaseProb;
+        entry.probWin=p;entry.probability=p;entry.prob=p;entry.winProbability=p;
+        entry.independentProbability=p;entry.independentProbabilityAvailable=p>0
+      }
       if(Number.isFinite(entry.__nkMemberBaseAi))entry.ai=entry.__nkMemberBaseAi;
       entry.ev=Number(entry.probWin||0)*Number(entry.odds||entry.oddsWin||0);
+      entry.expectedValue=entry.ev;
+      if(entry.__nkMemberBaseProbabilitySource!==undefined)entry.probabilitySource=entry.__nkMemberBaseProbabilitySource;
+      if(entry.__nkMemberBaseEvProbabilitySource!==undefined)entry.evProbabilitySource=entry.__nkMemberBaseEvProbabilitySource;
+      delete entry.memberProbability;
+      delete entry.memberProbabilitySource;
+      delete entry.memberPremiumScore;
       delete entry.__nkMemberEnhanced
+    }
+    return entries
+  }
+  function blockPredictedEntries(entries,reason,record=null,predictedCount=0){
+    const active=(entries||[]).filter(entry=>horseNo(entry.horseNo||entry.horse_no));
+    for(const entry of active){
+      const no=horseNo(entry.horseNo||entry.horse_no);
+      const row=record?.rows?.find(item=>horseNo(item.horseNo)===no);
+      entry.__nkMemberBaseProb=Number(entry.probWin||entry.probability||0);
+      entry.__nkMemberBaseAi=Number(entry.ai||0);
+      entry.__nkMemberBaseProbabilitySource=entry.probabilitySource;
+      entry.__nkMemberBaseEvProbabilitySource=entry.evProbabilitySource;
+      entry.__nkMemberEnhanced=true;
+      entry.netkeibaMemberTier=config.membership;
+      entry.netkeibaSnapshotStage=record?.stage||"";
+      entry.netkeibaCapturedAt=record?.capturedAt||"";
+      entry.netkeibaPredictedOdds=row?.predictedOdds??null;
+      entry.netkeibaPredictedProbability=row?.predictedProbability??null;
+      entry.netkeibaPredictionCoverage=`${predictedCount}/${active.length}`;
+      entry.memberBaseProbability=entry.__nkMemberBaseProb;
+      entry.memberProbabilitySource=reason;
+      entry.memberProbability=0;
+      entry.probWin=0;entry.probability=0;entry.prob=0;entry.winProbability=0;
+      entry.ev=0;entry.expectedValue=0;
+      entry.independentProbability=0;entry.independentProbabilityAvailable=false;
+      entry.evProbabilitySource=reason;entry.evFormula="external_probability_unavailable"
     }
     return entries
   }
@@ -9270,14 +9572,18 @@ setInterval(installAll,2500);
     if(!Array.isArray(entries)||!entries.length)return entries;
     restoreEntries(entries);
     const rid=raceId(entries[0]?.race_id||entries[0]?.raceId),record=memberData.races?.[rid];
-    if(!record)return entries;
+    if(!record)return config.probabilityMode==="predicted"
+      ?blockPredictedEntries(entries,"netkeiba予想オッズ未保存（購入判定停止）")
+      :entries;
     derivePredictedProbabilities(record);
     const rows=new Map(record.rows.map(row=>[horseNo(row.horseNo),row]));
     const active=entries.filter(entry=>horseNo(entry.horseNo||entry.horse_no));
     const predictedCount=active.filter(entry=>Number(rows.get(horseNo(entry.horseNo||entry.horse_no))?.predictedProbability)>0).length;
     const predictedComplete=active.length>1&&predictedCount===active.length;
     const probabilityMode=config.probabilityMode;
-    const blend=clamp(config.predictionBlend,0,100)/100;
+    if(probabilityMode==="predicted"&&!predictedComplete){
+      return blockPredictedEntries(entries,"netkeiba予想オッズ不足（購入判定停止）",record,predictedCount)
+    }
     const baseValues=new Map();
     for(const entry of active){
       const no=horseNo(entry.horseNo||entry.horse_no),row=rows.get(no),base=Number(entry.probWin||entry.probability||0);
@@ -9293,9 +9599,7 @@ setInterval(installAll,2500);
       let selected=base,source="本体エミュ標準";
       if(predictedComplete&&probabilityMode==="predicted"){
         selected=Number(row.predictedProbability);source="netkeiba予想オッズ"
-      }else if(predictedComplete&&probabilityMode==="blend"){
-        selected=base*(1-blend)+Number(row.predictedProbability)*blend;source=`本体標準＋netkeiba ${Math.round(blend*100)}%`
-      }else if(probabilityMode!=="standard"&&!predictedComplete)source="予想オッズ不足→本体標準";
+      }
       baseValues.set(no,{entry,row,prob:clamp(selected,.001,.85),source,baseAi:Number(entry.ai||0)})
     }
     if(config.membership==="super"&&config.premiumApply==="adjust"){
@@ -9316,6 +9620,8 @@ setInterval(installAll,2500);
       const entry=item.entry,odds=Number(entry.finalOdds||entry.odds||entry.oddsWin||0);
       entry.__nkMemberBaseProb=Number(entry.probWin||entry.probability||0);
       entry.__nkMemberBaseAi=Number(entry.ai||0);
+      entry.__nkMemberBaseProbabilitySource=entry.probabilitySource;
+      entry.__nkMemberBaseEvProbabilitySource=entry.evProbabilitySource;
       entry.__nkMemberEnhanced=true;
       entry.memberBaseProbability=entry.__nkMemberBaseProb;
       entry.memberProbabilitySource=item.source;
@@ -9352,19 +9658,18 @@ setInterval(installAll,2500);
     const superMode=config.membership==="super";
     return[
       {title:"出馬表・実オッズ・結果",text:"既存Bridgeで無料利用",on:true},
-      {title:"予想オッズ保存",text:"発売前の表示を手動取込",on:true},
+      {title:"予想オッズ保存",text:"発売前はSIM実行時に自動保存・手動取込も可",on:true},
       {title:"タイム指数・調教・コメント",text:superMode?"SPデータを任意取込":"SP選択時に有効",on:superMode},
       {title:"過去の予想オッズ",text:"会員種別に関係なく未提供",on:false}
     ]
   }
   function renderConfig(){
     currentSettings();
-    const tier=byId("nkMembershipTier"),prob=byId("nkProbabilityMode"),blend=byId("nkPredictionBlend"),premium=byId("nkPremiumApply"),influence=byId("nkPremiumInfluence");
-    if(tier)tier.value=config.membership;if(prob)prob.value=config.probabilityMode;if(blend)blend.value=config.predictionBlend;
+    const tier=byId("nkMembershipTier"),prob=byId("nkProbabilityMode"),premium=byId("nkPremiumApply"),influence=byId("nkPremiumInfluence");
+    if(tier)tier.value=config.membership;if(prob)prob.value=config.probabilityMode;
     if(premium)premium.value=config.premiumApply;if(influence)influence.value=config.premiumInfluence;
     const isSuper=config.membership==="super";
     if(premium)premium.disabled=!isSuper;if(influence)influence.disabled=!isSuper;
-    if(blend)blend.disabled=config.probabilityMode!=="blend";
     const badge=byId("nkMembershipBadge");
     if(badge){badge.textContent=isSuper?"スーパープレミアムモード":"無料会員モード";badge.className=`badge nk-member-badge ${isSuper?"super":"free"}`}
     const stats=dataStats(),dataBadge=byId("nkMemberDataBadge");if(dataBadge)dataBadge.textContent=`${stats.races}レース・${stats.rows}頭`;
@@ -9394,7 +9699,6 @@ setInterval(installAll,2500);
   function configFromUi(){
     config.membership=byId("nkMembershipTier")?.value||config.membership;
     config.probabilityMode=byId("nkProbabilityMode")?.value||config.probabilityMode;
-    config.predictionBlend=clamp(byId("nkPredictionBlend")?.value??config.predictionBlend,0,100);
     config.premiumApply=byId("nkPremiumApply")?.value||config.premiumApply;
     config.premiumInfluence=clamp(byId("nkPremiumInfluence")?.value??config.premiumInfluence,0,30);
     localStorage.setItem(CONFIG_KEY,JSON.stringify(config))
@@ -9450,7 +9754,7 @@ setInterval(installAll,2500);
     if(!record){
       if(coverage)coverage.textContent="未登録";
       if(summary)summary.textContent=`race_id ${rid}：レース前スナップショットはありません。`;
-      if(target)target.innerHTML='<div class="empty">設定の「netkeiba 無料・スーパープレミアム統合」から、このレースのデータを保存してください。</div>';
+      if(target)target.innerHTML='<div class="empty">発売前のレースは、netkeibaを選んでSIMを実行するとBridge経由でAI予想オッズを自動保存します。過去開催は保存済みスナップショット、または手動取込が必要です。</div>';
       return
     }
     derivePredictedProbabilities(record);
@@ -9470,7 +9774,7 @@ setInterval(installAll,2500);
   }
   function wire(){
     renderConfig();
-    const changeIds=["nkMembershipTier","nkProbabilityMode","nkPredictionBlend","nkPremiumApply","nkPremiumInfluence"];
+    const changeIds=["nkMembershipTier","nkProbabilityMode","nkPremiumApply","nkPremiumInfluence"];
     for(const id of changeIds)byId(id)?.addEventListener("change",()=>{
       configFromUi();saveConfig(`${id} を変更しました。`);
       const loginReady=["manual","verified"].includes(config.authStatus);
@@ -9527,7 +9831,7 @@ setInterval(installAll,2500);
 <script id="independentProbabilityFinalOddsEvPatchV1">
 (function(){
   "use strict";
-  const VERSION="v1.2.65 MainEmulatorHistoryProbabilityFinalOddsEV";
+  const VERSION="v1.2.66 MainEmulatorHistoryProbabilityFinalOddsEV";
   const FLAG="__theKeibaIndependentProbabilityFinalOddsEvV1";
   const NAR_CONFIG_KEY="TheKeibaNarProbabilityConfigV2";
   const MEMBER_CONFIG_KEY="TheKeibaNetkeibaMemberConfigV1";
@@ -9548,10 +9852,12 @@ setInterval(installAll,2500);
     const rid=raceIdOf(w)||fromHorse,config=json(w.localStorage,MEMBER_CONFIG_KEY,{}),data=json(w.localStorage,MEMBER_DATA_KEY,{races:{}});
     if(!rid||config.probabilityMode==="standard")return null;
     const record=data?.races?.[rid],rows=Array.isArray(record?.rows)?record.rows:[];
-    if(!rows.length)return null;
+    if(!rows.length)return{values:horses.map(()=>0),source:"netkeiba予想オッズ未保存（購入判定停止）",blocked:true};
     const map=new Map(rows.map(row=>[horseNo(row),number(row.predictedProbability,0)]));
     const values=horses.map(h=>map.get(horseNo(h))||0);
-    return values.length>1&&values.every(p=>p>0)?{values,source:"netkeibaレース前予想オッズ"}:null
+    return values.length>1&&values.every(p=>p>0)
+      ?{values,source:"netkeibaレース前予想オッズ",blocked:false}
+      :{values:horses.map(()=>0),source:"netkeiba予想オッズ不足（購入判定停止）",blocked:true}
   }
   function explicitProbability(horse){
     const source=String(horse?.probabilitySource||horse?.probSource||horse?.narProbabilitySource||horse?.memberProbabilitySource||"");
@@ -9588,7 +9894,7 @@ setInterval(installAll,2500);
     const member=memberProbabilities(w,merged);
     if(member){probabilities=member.values;source=member.source}
     let complete=probabilities.length>1&&probabilities.every(p=>p>0);
-    if(!complete){
+    if(!complete&&!member?.blocked){
       const scores=merged.map(h=>number(h.modelScore??h.predictionScore??h.aiModelScore??h.timeIndex,NaN));
       const scoreComplete=scores.length>1&&scores.every(Number.isFinite);
       const spread=scoreComplete?Math.max(...scores)-Math.min(...scores):0;
@@ -9651,7 +9957,7 @@ setInterval(installAll,2500);
       w[FLAG]=true
     }
     try{
-      w.APP_VERSION="v5.18.308 ProbabilitySourceSeparation";
+      w.APP_VERSION="v5.18.309 ExternalProbabilityPipeline";
       w.setAppVersionLabel?.()
     }catch(_){}
     return true
@@ -9675,7 +9981,7 @@ setInterval(installAll,2500);
   "use strict";
   if(window.__TheKeibaMainEmulatorHistoryProbabilityV1)return;
 
-  const VERSION="v1.2.65 MainEmulatorHistoryProbabilityV1";
+  const VERSION="v1.2.66 MainEmulatorHistoryProbabilityV1";
   const CACHE_KEY="TheKeibaMainEmulatorProbabilityCurrentV1";
   const PATCH_FLAG="__theKeibaMainEmulatorHistoryProbabilityV1";
   const INDEPENDENT_FLAG="__theKeibaIndependentProbabilityFinalOddsEvV1";
@@ -10017,7 +10323,7 @@ setInterval(installAll,2500);
     wrapped.__original=current;wrapped[PATCH_FLAG]=true;wrapped[INDEPENDENT_FLAG]=true;
     w.normalizeRatedHorses=wrapped;
     try{w.eval("normalizeRatedHorses=window.normalizeRatedHorses")}catch(_){}
-    try{w.APP_VERSION="v5.18.308 ProbabilitySourceSeparation";w.setAppVersionLabel?.()}catch(_){}
+    try{w.APP_VERSION="v5.18.309 ExternalProbabilityPipeline";w.setAppVersionLabel?.()}catch(_){}
     return true
   }
   function installChildren(){
@@ -10141,6 +10447,49 @@ setInterval(installAll,2500);
       if(fallbackEntries>0)s.partialFallback++
     }
   }
+  function simulationRows(w){
+    try{
+      const direct=w.state&&Array.isArray(w.state.simResult)?w.state.simResult:null;
+      if(direct)return direct
+    }catch(_){}
+    try{
+      const rows=w.eval("typeof state!=='undefined'&&Array.isArray(state.simResult)?state.simResult:[]");
+      return Array.isArray(rows)?rows:[]
+    }catch(_){return[]}
+  }
+  function rebuildStatsFromRows(w){
+    const rows=simulationRows(w);
+    if(!rows.length)return false;
+    const old=stats(w),c=config(w),source=sourceOf(c);
+    const s=blankStats(w);
+    s.source=source;s.mode=c.mode;s.startedAt=old.startedAt||new Date().toISOString();
+    s.completedAt=new Date().toISOString();s.completed=true;s.running=false;
+    for(const row of rows){
+      s.total++;
+      if(source==="standard"){s.standard++;continue}
+      if(source==="none"){s.comparisonOnly++;continue}
+      const entries=Array.isArray(row?.entries)?row.entries:[];
+      const externalEntries=entries.filter(entry=>
+        !entry?.narProbabilityUnavailable&&
+        !entry?.narProbabilityFallback&&
+        number(entry?.adoptedProbability??entry?.probWin,0)>0&&
+        !/標準|代替/.test(String(entry?.narProbabilitySource||""))
+      ).length;
+      const fallbackEntries=entries.filter(entry=>
+        entry?.narProbabilityFallback||/標準|代替/.test(String(entry?.narProbabilitySource||""))
+      ).length;
+      if(externalEntries>0){
+        s.external++;
+        if(fallbackEntries>0)s.partialFallback++
+      }else if(fallbackEntries>0){
+        s.fallback++
+      }else{
+        s.stopped++
+      }
+    }
+    w.__TheKeibaProbabilitySourceStatsV2=s;
+    return true
+  }
   function usageText(w){
     const s=stats(w),c=config(w),source=sourceOf(c);
     if(!s.total){
@@ -10164,7 +10513,13 @@ setInterval(installAll,2500);
       return"外部確率の実採用は0Rです。本体標準への代替だけなので、標準モードと同じ結果になります。";
     }
     if(s.completed&&s.external===0&&s.partialFallback===0&&s.stopped>0){
-      return"対象期間の外部確率がありません。ARION／netkeibaのrace_id別データを取り込んでから再実行してください。";
+      if(source==="arion"){
+        let stage="";try{stage=String(w.__airaraLast?.stage||"")}catch(_){}
+        return"ARIONを取得できず停止しました"+(stage?"（"+stage+"）":"")+"。設定内のAIらら自動取得テストで通信・記事解析を確認してください。";
+      }
+      if(source==="netkeiba")return"過去開催のnetkeiba AI予想オッズは保存済みスナップショットが無いため停止しました。確定オッズへの置換は行いません。";
+      if(source==="both")return"ARIONとnetkeibaの両スナップショットが揃うレースがないため停止しました。";
+      return"対象期間の外部確率がありません。race_id別データを取り込んでから再実行してください。";
     }
     if(c.missingAction==="standard"){
       return"本体標準への代替を明示選択中です。外部データが無いレースは標準モードと同じ計算になります。";
@@ -10182,6 +10537,20 @@ setInterval(installAll,2500);
       badge=d.createElement("span");badge.id="fullEmuSourceUsageBadgeV2";badge.className="badge";badgeHost.appendChild(badge)
     }
     if(badge)badge.textContent=usage
+    // SIM本体がiframe内で動いた場合も、親画面の監査バッジへ同じ実採用結果を反映する。
+    if(w!==window){
+      const outerLine=document.getElementById("probabilitySourceUsageV2");
+      if(outerLine)outerLine.textContent=usage+"。"+warning;
+      let outerBadge=document.getElementById("fullEmuSourceUsageBadgeV2");
+      const outerHost=document.querySelector(".full-emu-badges");
+      if(!outerBadge&&outerHost){
+        outerBadge=document.createElement("span");
+        outerBadge.id="fullEmuSourceUsageBadgeV2";
+        outerBadge.className="badge";
+        outerHost.appendChild(outerBadge)
+      }
+      if(outerBadge)outerBadge.textContent=usage
+    }
   }
   function ensureUi(w,d){
     if(!d)return;
@@ -10245,6 +10614,7 @@ setInterval(installAll,2500);
           return await currentRun.apply(this,arguments)
         }finally{
           const s=stats(w);s.running=false;s.completed=true;s.completedAt=new Date().toISOString();
+          if(!s.total)rebuildStatsFromRows(w);
           updateUi(w,d)
         }
       };
