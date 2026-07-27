@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.67-external-probability-autofetch-before-skip">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.67</title>
+<meta name="thekeiba-build" content="v1.2.68-nar-active-venue-recovery">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.68</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -337,7 +337,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.67 見送り前に外部想定確率を自動取得</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.68 NAR選択中開催場の欠落を修正</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -1295,7 +1295,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="1.2.67-external-probability-autofetch-before-skip";
+const APP_VERSION="1.2.68-nar-active-venue-recovery";
 const NAV_ITEMS=[["dashboard","🏠","ホーム"],["calendar","📅","開催"],["race","🏇","馬柱"],["search","🔍","検索"],["simulation","📊","SIM"],["emulator","🧪","エミュ"],["site-emulator","🖥","本体エミュ"],["analytics","📈","分析"],["strategies","🧠","戦略"],["live","📺","ライブ"],["database","🗄","DB"],["bridge","🔗","Bridge"],["forward","⏱","フォワード"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -2662,14 +2662,23 @@ async function bridgeLoadList({silent=false,deferRefresh=false,types=null,allowE
           if(BACKTEST_SYNC?.stop)throw new Error("同期停止");
           const initial=await bridgeLegacyUrl(narBase,{timeout:22000}),initialHtml=unwrapBridgeHtml(initial),initialSig=raceListHtmlSignals(initialHtml);successfulPages++;
           diagnostics.pages.push({type:"NAR",url:narBase.replace(/^https?:\/\//,""),chars:initialSig.chars});
-          const ids=extractNarKaisaiIds(initialHtml,date),nar=[];
+          // v1.2.68:
+          // netkeibaのNAR開催タブは、初期選択中の開催場だけリンクではなく通常文字になる。
+          // kaisai_idリンクだけを巡回すると、その初期表示場（2026-07-27は盛岡）が丸ごと欠落するため、
+          // 最初のページに表示済みのレースも必ず取り込み、残りの開催場リンクと合流する。
+          const initialRaces=parseRaceListHtml(initialHtml,"NAR",date),
+                initialKaisaiIds=new Set(initialRaces.map(r=>String(r.race_id||"").slice(0,10)).filter(id=>/^\d{10}$/.test(id))),
+                ids=extractNarKaisaiIds(initialHtml,date),
+                nar=[...initialRaces];
+          if(initialRaces.length)logs.push(`${initialRaces[0].placeName||"NAR初期表示"}:${initialRaces.length}R（初期表示を回収）`);
           if(ids.length){
             for(const kid of ids){
+              if(initialKaisaiIds.has(kid))continue;
               if(BACKTEST_SYNC?.stop)throw new Error("同期停止");
               try{const html=await bridgeLegacyUrl(`${narBase}&kaisai_id=${kid}`,{timeout:22000}),part=parseRaceListHtml(html,"NAR",date);successfulPages++;nar.push(...part);logs.push(`${BRIDGE_NAR_PLACES[kid.slice(4,6)]||kid}:${part.length}R`)}
               catch(e){logs.push(`${kid}:失敗 ${e.message}`)}
             }
-          }else nar.push(...parseRaceListHtml(initialHtml,"NAR",date));
+          }
           narCount=nar.length;races.push(...nar)
         }catch(e){if(String(e.message)==="同期停止")throw e;logs.push(`NAR失敗:${e.message}`);diagnostics.pages.push({type:"NAR",error:e.message})}
       }
