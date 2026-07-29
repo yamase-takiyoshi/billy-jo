@@ -8396,13 +8396,22 @@ const AIRARA=(function(){
     Object.keys(keys).forEach(function(k){const t=tab[k]||[],f=flow[k]||[];out[k]=(f.length>t.length)?f:(t.length?t:f);});
     return out;
   }
-  function normVenue(s){return String(s||'').replace(/[（(].*$/,'').replace(/[\s\u3000]/g,'').trim();}
+  function normVenue(s){
+    let v=String(s||'').replace(/[（(].*$/,'').replace(/競馬場|競馬/g,'').replace(/[\s\u3000]/g,'').trim();
+    const aliases={'ばんえい帯広':'帯広','帯広ば':'帯広','高知競馬':'高知','盛岡競馬場':'盛岡','水沢競馬場':'水沢'};
+    return aliases[v]||v;
+  }
   // タイトル例:「【AI地方競馬予想】高　知：26.07.25」。スペース除去して 場＋日付(YY.MM.DD)で突合。
   function titleHit(title,v,dt){
     const t=String(title||'').replace(/[\s\u3000]/g,'');
     if(!v||t.indexOf(v)<0)return false;
     if(!/予想/.test(t))return false;
-    return dt?t.indexOf(dt)>=0:true;
+    if(!dt)return true;
+    const m=String(dt).match(/^(\d{2})\.(\d{2})\.(\d{2})$/);
+    if(!m)return t.indexOf(dt)>=0;
+    const yy=m[1],mo=Number(m[2]),dd=Number(m[3]),yyyy='20'+yy;
+    const variants=[dt,yy+'.'+mo+'.'+dd,yyyy+'.'+String(mo).padStart(2,'0')+'.'+String(dd).padStart(2,'0'),mo+'月'+dd+'日',String(mo).padStart(2,'0')+'/'+String(dd).padStart(2,'0')];
+    return variants.some(function(x){return t.indexOf(x)>=0;});
   }
   function extractArchiveLinks(html){
     const out=[];let doc;try{doc=new DOMParser().parseFromString(String(html||''),'text/html');}catch(_){return out;}
@@ -8418,7 +8427,7 @@ const AIRARA=(function(){
     // 1) WP-REST 日付ウィンドウ。本文も同時取得し、Bridge無しでもCORS対応APIから完結させる。
     try{
       const rest=base+'/wp-json/wp/v2/posts?per_page=100&_fields=id,link,title,content,date'
-        +'&after='+date+'T00:00:00&before='+nextDay(date)+'T00:00:00';
+        +'&after='+prevDay(date,2)+'T00:00:00&before='+nextDay(date)+'T23:59:59';
       const response=await requestText(w,rest,{timeout:18000});
       if(response.text){
         const arr=JSON.parse(response.text);
@@ -8439,7 +8448,8 @@ const AIRARA=(function(){
     // 2) RESTが全滅なら月間アーカイブをページ送りして対象記事を探す。
     //    旧版は先頭ページだけだったため、月末以外の記事を取りこぼしていた。
     let usedArchive=false,archiveHit=null,archivePages=0;
-    if(!list.length){
+    const restHit=list.find(function(p){return titleHit(p.title,v,dt);})||list.find(function(p){return titleHit(p.title,v,'');});
+    if(!restHit){
       const ym=String(date).slice(0,7).replace('-','/');
       for(let page=1;page<=32;page++){
         const archiveUrl=base+'/archives/date/'+ym+(page===1?'':'/page/'+page);
@@ -8458,7 +8468,7 @@ const AIRARA=(function(){
     }
     if(!list.length)return{ok:false,stage:usedArchive?'archive-empty':'discovery-empty',error:lastError,archivePages:archivePages};
     // 3) タイトル突合（日付一致優先→場のみ）
-    const hit=archiveHit||list.find(function(p){return titleHit(p.title,v,dt);})||list.find(function(p){return titleHit(p.title,v,'');});
+    const hit=archiveHit||restHit||list.find(function(p){return titleHit(p.title,v,dt);})||list.find(function(p){return titleHit(p.title,v,'');});
     if(!hit||!hit.link)return{ok:false,stage:'no-title-match',listCount:list.length,samples:list.slice(0,6).map(function(p){return p.title;})};
     // 4) 記事HTML取得→解析
     let content=String(hit.content||'');
@@ -10695,6 +10705,49 @@ setInterval(installAll,2500);
   const frame=document.getElementById("fullEmuFrame");
   if(frame)frame.addEventListener("load",()=>[100,500,1500,3500,7000].forEach(ms=>setTimeout(installAll,ms)));
   setInterval(installAll,2200)
+})();
+</script>
+
+<script id="narProbabilityPrefetchActualOddsPatchV9">
+(function(){
+'use strict';
+const DATA_KEY='TheKeibaNarProbabilityDataV2';
+const FLAG='__narProbabilityActualOddsFallbackV9';
+function install(w){
+  if(!w||w[FLAG])return false;
+  const NK=(w.__NETKEIBA_AI||(w.parent&&w.parent.__NETKEIBA_AI)||(w.top&&w.top.__NETKEIBA_AI));
+  if(!NK||typeof NK.ensure!=='function'||typeof w.getByIndex!=='function')return false;
+  const original=NK.ensure.bind(NK);
+  const num=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d;};
+  const ridOf=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:'';};
+  const horseNo=e=>num(e&&(e.horseNo??e.horse_no??e.horseNumber??e.num??e.number??e['馬番']),0);
+  const oddsOf=e=>[e?.finalOdds,e?.closingOdds,e?.odds,e?.oddsWin,e?.winOdds,e?.currentOdds].map(v=>num(v,0)).find(v=>v>1)||0;
+  function load(){try{const x=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');x.races=x.races||{};return x;}catch(_){return{races:{}};}}
+  function saveActual(race,entries){
+    const rid=ridOf(race&&(race.race_id||race.raceId||race.id));if(!rid)return null;
+    const valid=(entries||[]).map(e=>({horseNo:horseNo(e),odds:oddsOf(e),horseName:String(e?.horseName||e?.name||'')})).filter(x=>x.horseNo>0&&x.odds>1);
+    if(valid.length<2)return null;
+    const inv=valid.reduce((s,x)=>s+1/x.odds,0);if(!(inv>0))return null;
+    const store=load(),old=store.races[rid]||{},map=new Map((old.rows||[]).map(r=>[num(r.horseNo),Object.assign({},r)]));
+    valid.forEach(x=>{const prev=map.get(x.horseNo)||{horseNo:x.horseNo};map.set(x.horseNo,Object.assign(prev,{horseNo:x.horseNo,horseName:x.horseName||prev.horseName||'',netkeibaActualOdds:x.odds,netkeibaProbability:(1/x.odds)/inv,netkeibaProbabilityKind:'actual-odds-market'}));});
+    store.races[rid]={raceId:rid,capturedAt:new Date().toISOString(),source:old.source?old.source+'+netkeiba-actual-odds-auto':'netkeiba-actual-odds-auto',sourceUrl:old.sourceUrl||'',stage:'actual-odds-fallback',rows:[...map.values()].sort((a,b)=>num(a.horseNo)-num(b.horseNo))};
+    try{w.localStorage.setItem(DATA_KEY,JSON.stringify(store));}catch(_){return null;}
+    try{w.__netkeibaAiLast={stage:'actual-odds-fallback',raceId:rid,rows:valid.length,at:Date.now()};}catch(_){}
+    return store.races[rid];
+  }
+  NK.ensure=async function(win,race){
+    let got=null;try{got=await original(win||w,race);}catch(_){}
+    if(got&&Array.isArray(got.rows)&&got.rows.some(r=>r&&r.netkeibaProbability!=null))return got;
+    try{const rid=ridOf(race&&(race.race_id||race.raceId||race.id));const entries=await w.getByIndex('entries','race_id',rid);return saveActual(race,entries)||got;}catch(_){return got;}
+  };
+  NK.ensure.__actualOddsFallbackV9=true;
+  w[FLAG]=true;
+  return true;
+}
+function all(){try{install(window);}catch(_){}const f=document.getElementById('fullEmuFrame');if(f){try{install(f.contentWindow);}catch(_){}}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',all,{once:true});else all();
+const f=document.getElementById('fullEmuFrame');if(f)f.addEventListener('load',()=>[100,500,1500,3500,7000].forEach(ms=>setTimeout(all,ms)));
+setInterval(all,2500);
 })();
 </script>
 </body>
