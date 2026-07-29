@@ -337,7 +337,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.70 想定確率事前自動取得後に期間横断SIM開始</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.71 想定確率事前取得完了後に期間横断SIM開始</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -8322,42 +8322,7 @@ const AIRARA=(function(){
   }
   function decodeHtmlText(value){
     try{return new DOMParser().parseFromString('<!doctype html><html><body><div>'+String(value||'')+'</div>
-<script id="narProbabilityCorePrefetchV10">
-(function(){
-'use strict';
-const CFG_KEY='TheKeibaNarProbabilityConfigV2';
-const DATA_KEY='TheKeibaNarProbabilityDataV2';
-const rid=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
-const cfg=()=>{try{return Object.assign({mode:'standard',compareDecision:'none'},JSON.parse(localStorage.getItem(CFG_KEY)||'{}'))}catch(_){return{mode:'standard',compareDecision:'none'}}};
-const db=()=>{try{const x=JSON.parse(localStorage.getItem(DATA_KEY)||'{"races":{}}');x.races=x.races||{};return x}catch(_){return{races:{}}}};
-const sourceOf=c=>c.mode==='arion'?'arion':c.mode==='netkeiba'?'netkeiba':c.mode==='compare'?(c.compareDecision||'none'):'standard';
-const has=(rows,source)=>Array.isArray(rows)&&(source==='arion'?rows.some(x=>Number.isFinite(Number(x&&x.arionProbability))):source==='netkeiba'?rows.some(x=>Number.isFinite(Number(x&&x.netkeibaProbability))):source==='both'?rows.some(x=>Number.isFinite(Number(x&&x.arionProbability)))&&rows.some(x=>Number.isFinite(Number(x&&x.netkeibaProbability))):true);
-window.__prefetchNarProbabilityForPeriod=async function(c){
-  const C=cfg(),source=sourceOf(C);
-  if(source==='standard')return {skipped:true,reason:'standard'};
-  if(source==='none')throw new Error('比較のみでは期間横断SIMを開始できません');
-  const races=await getRacesInRange(c.start,c.end);
-  const targets=(races||[]).filter(r=>(!c.start||r.date>=c.start)&&(!c.end||r.date<=c.end)&&(!c.type||r.type===c.type)&&(!c.places?.length||c.places.includes(r.placeName)));
-  const AR=window.__AIRARA, NK=window.__NETKEIBA_AI;
-  let ok=0,ng=0;
-  if(typeof setSimSyncStatus==='function')setSimSyncStatus('想定確率の事前自動取得を開始… 0/'+targets.length);
-  for(let i=0;i<targets.length;i++){
-    const race=targets[i],id=rid(race.race_id||race.raceId||race.id);
-    let snap=db().races[id];
-    try{
-      if((source==='arion'||source==='both')&&!has(snap&&snap.rows,'arion')&&AR&&typeof AR.ensure==='function')await AR.ensure(window,race);
-      snap=db().races[id]||snap;
-      if((source==='netkeiba'||source==='both')&&!has(snap&&snap.rows,'netkeiba')&&NK&&typeof NK.ensure==='function')await NK.ensure(window,race);
-      snap=db().races[id]||snap;
-    }catch(e){console.warn('[prefetch]',id,e)}
-    if(has(snap&&snap.rows,source))ok++;else ng++;
-    if(typeof setSimSyncStatus==='function')setSimSyncStatus('想定確率を事前自動取得中… '+(i+1)+'/'+targets.length+'　成功 '+ok+'R　不足 '+ng+'R');
-  }
-  if(typeof setSimSyncStatus==='function')setSimSyncStatus('事前自動取得完了　成功 '+ok+'R / 不足 '+ng+'R　→ 期間横断SIM開始');
-  return {total:targets.length,ok,ng,source};
-};
-})();
-</script>
+
 
 </body></html>','text/html').body.textContent||'';}
     catch(_){return String(value||'').replace(/<[^>]+>/g,' ');}
@@ -10787,6 +10752,63 @@ function all(){try{install(window);}catch(_){}const f=document.getElementById('f
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',all,{once:true});else all();
 const f=document.getElementById('fullEmuFrame');if(f)f.addEventListener('load',()=>[100,500,1500,3500,7000].forEach(ms=>setTimeout(all,ms)));
 setInterval(all,2500);
+})();
+</script>
+
+<script id="narProbabilityCorePrefetchV11">
+(function(){
+'use strict';
+const CFG_KEY='TheKeibaNarProbabilityConfigV2';
+const DATA_KEY='TheKeibaNarProbabilityDataV2';
+const rid=v=>{const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''};
+function cfg(){try{return Object.assign({mode:'standard',compareDecision:'none'},JSON.parse(localStorage.getItem(CFG_KEY)||'{}'))}catch(_){return{mode:'standard',compareDecision:'none'}}}
+function db(){try{const x=JSON.parse(localStorage.getItem(DATA_KEY)||'{"races":{}}');x.races=x.races||{};return x}catch(_){return{races:{}}}}
+function sourceOf(c){return c.mode==='arion'?'arion':c.mode==='netkeiba'?'netkeiba':c.mode==='compare'?(c.compareDecision||'none'):'standard'}
+function probability(row,source){
+  const keys=source==='arion'?['arionProbability','airaraProbability','arion','airara','probabilityArion']:['netkeibaProbability','netkeiba','probabilityNetkeiba'];
+  for(const k of keys){const n=Number(row&&row[k]);if(Number.isFinite(n)&&n>0)return n}
+  return null;
+}
+function has(rows,source){
+  if(!Array.isArray(rows)||!rows.length)return false;
+  if(source==='arion')return rows.some(r=>probability(r,'arion')!==null);
+  if(source==='netkeiba')return rows.some(r=>probability(r,'netkeiba')!==null);
+  if(source==='both')return has(rows,'arion')&&has(rows,'netkeiba');
+  return true;
+}
+async function ensureOne(source,race){
+  if(source==='arion'||source==='both'){
+    if(typeof AIRARA!=='undefined'&&AIRARA&&typeof AIRARA.ensure==='function')await AIRARA.ensure(window,race);
+    else throw new Error('AIらら取得エンジン未検出');
+  }
+  if(source==='netkeiba'||source==='both'){
+    if(typeof NETKEIBA_AI!=='undefined'&&NETKEIBA_AI&&typeof NETKEIBA_AI.ensure==='function')await NETKEIBA_AI.ensure(window,race);
+    else throw new Error('netkeiba取得エンジン未検出');
+  }
+}
+window.__prefetchNarProbabilityForPeriod=async function(c){
+  const C=cfg(),source=sourceOf(C);
+  if(source==='standard')return {skipped:true,reason:'standard'};
+  if(source==='none')throw new Error('比較のみでは期間横断SIMを開始できません');
+  const races=await getRacesInRange(c.start,c.end);
+  const targets=(races||[]).filter(r=>(!c.start||r.date>=c.start)&&(!c.end||r.date<=c.end)&&(!c.type||r.type===c.type)&&(!c.places?.length||c.places.includes(r.placeName)));
+  let ok=0,ng=0;
+  if(typeof setSimSyncStatus==='function')setSimSyncStatus('想定確率の事前自動取得を開始… 0/'+targets.length+'R');
+  for(let i=0;i<targets.length;i++){
+    const race=targets[i],id=rid(race.race_id||race.raceId||race.id);
+    let snap=db().races[id];
+    try{
+      if(!has(snap&&snap.rows,source))await ensureOne(source,race);
+    }catch(e){console.warn('[事前取得]',id,e)}
+    snap=db().races[id]||snap;
+    if(has(snap&&snap.rows,source))ok++;else ng++;
+    if(typeof setSimSyncStatus==='function')setSimSyncStatus('想定確率を事前自動取得中… '+(i+1)+'/'+targets.length+'R　成功 '+ok+'R　不足 '+ng+'R');
+    await new Promise(r=>setTimeout(r,0));
+  }
+  if(typeof setSimSyncStatus==='function')setSimSyncStatus('事前自動取得完了　成功 '+ok+'R / 不足 '+ng+'R　→ 期間横断SIM開始');
+  return {total:targets.length,ok,ng,source};
+};
+console.log('[Prefetch V11] installed');
 })();
 </script>
 </body>
