@@ -7847,7 +7847,7 @@ function install(){
     const wrappedRun=async function(){
       const C=cfg(), source=selectedSource(C);
       w.__narProbabilityPeriodV5={mode:C.mode,source,total:0,covered:0,blocked:0,updated:0,missing:0};
-      if(source!=='standard'&&C.missingAction!=='standard'){
+      if(source!=='standard'){
         try{
           const c=w.readSimConfig();
           const races=await w.getRacesInRange(c.start,c.end);
@@ -7878,12 +7878,13 @@ function install(){
               snap=db().races[id]||snap;
             }
             if(!need(snap&&snap.rows))covered++;else failed++;
-            if(typeof w.setSimSyncStatus==='function'&&(i%3===0||i===filtered.length-1))w.setSimSyncStatus('AIらら想定確率を自動取得中… '+(i+1)+'/'+filtered.length+'　取得済 '+covered+'R　未取得 '+failed+'R（判定='+source+'）');
+            if(typeof w.setSimSyncStatus==='function'&&(i%3===0||i===filtered.length-1))w.setSimSyncStatus('想定確率を事前自動取得中… '+(i+1)+'/'+filtered.length+'　取得済 '+covered+'R　未取得 '+failed+'R（判定='+source+'）');
           }
           w.__narProbabilityPeriodV5.total=filtered.length;w.__narProbabilityPeriodV5.covered=covered;
-          if(typeof w.setSimSyncStatus==='function')w.setSimSyncStatus('自動取得完了　判定='+source+' / 対象 '+filtered.length+'R / 取得済 '+covered+'R / 未取得 '+Math.max(0,filtered.length-covered)+'R　→バックテスト実行');
+          if(typeof w.setSimSyncStatus==='function')w.setSimSyncStatus('事前自動取得完了　判定='+source+' / 対象 '+filtered.length+'R / 取得済 '+covered+'R / 未取得 '+Math.max(0,filtered.length-covered)+'R　→期間横断シミュレーション開始');
         }catch(e){console.warn('[NAR Probability V5] prefetch',e)}
       }
+      // 事前取得ループが完了するまで await し、その後にだけ期間横断SIM本体を開始する。
       const result=await oldRun.apply(this,arguments);
       return result;
     };
