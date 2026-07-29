@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="The競馬 RDBMS">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="thekeiba-build" content="v1.2.70-prefetch-core">
-<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.70</title>
+<meta name="thekeiba-build" content="v1.2.74-prefetch-before-skip">
+<title>The競馬 Ultimate NEXT Professional TARGET RDBMS Edition v1.2.74</title>
 <style>
 :root{
   --bg:#07111f;--bg-soft:#0a1626;--panel:#0f1d2e;--panel2:#17283d;--panel3:#20344d;
@@ -337,7 +337,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.73 想定確率の事前自動取得完了後に期間横断SIM開始</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.74 想定確率(ARION/netkeiba)を全レースまとめて事前自動取得してから期間横断SIM開始</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -1295,7 +1295,7 @@ async function probeResidentialBridge(date=compactDate(isoToday()),timeout=7000)
   window.addEventListener("focus",()=>setTimeout(install,100));
 })();
 
-const APP_VERSION="1.2.69-probability-prefetch";
+const APP_VERSION="1.2.74-probability-prefetch-all";
 const NAV_ITEMS=[["dashboard","🏠","ホーム"],["calendar","📅","開催"],["race","🏇","馬柱"],["search","🔍","検索"],["simulation","📊","SIM"],["emulator","🧪","エミュ"],["site-emulator","🖥","本体エミュ"],["analytics","📈","分析"],["strategies","🧠","戦略"],["live","📺","ライブ"],["database","🗄","DB"],["bridge","🔗","Bridge"],["forward","⏱","フォワード"],["settings","⚙","設定"]];
 const TICKET_LABELS={win:"単勝",place:"複勝",bracketQuinella:"枠連",quinella:"馬連",wide:"ワイド",exacta:"馬単",trio:"3連複",trifecta:"3連単",all:"全券種"};
 const PREDICTION_MODE_LABELS={custom:"戦略・個別設定",ai:"AI重視",ev:"EV重視",expected:"期待払戻重視",balanced:"総合バランス",agreement:"全て同意",clone:"完全クローン EV分析互換"};
@@ -7613,7 +7613,9 @@ function inject(){
       const originalRunSimulationCore=runSimulationCore;
       runSimulationCore=async function(){
         const cfg=narConfig();
-        if(cfg.mode!=="standard"&&!(cfg.mode==="compare"&&cfg.compareDecision==="standard")&&cfg.missingAction!=="standard"){
+        const src=cfg.mode==="arion"?"arion":cfg.mode==="netkeiba"?"netkeiba":cfg.mode==="compare"?(cfg.compareDecision||"none"):"standard";
+        // v1.2.74: 未登録レースで見送り停止する代わりに、期間内の全レースの想定確率(ARION/netkeiba)をまとめて事前自動取得してから期間横断SIMを開始する。
+        if(src!=="standard"&&src!=="none"&&!(cfg.mode==="compare"&&cfg.compareDecision==="standard")&&cfg.missingAction!=="standard"){
           const c=readSimConfig();
           const races=await getRacesInRange(c.start,c.end);
           const filtered=races.filter(r=>
@@ -7622,31 +7624,27 @@ function inject(){
             (!c.type||r.type===c.type)&&
             (!c.places?.length||c.places.includes(r.placeName))
           );
-          const d=narData();
-          const covered=filtered.filter(r=>d.races[narRaceId(r.race_id||r.raceId)]).length;
-          const missing=Math.max(0,filtered.length-covered);
-
-          if(typeof setSimSyncStatus==="function"){
-            setSimSyncStatus(
-              "想定確率期間横断SIM："+cfg.mode+
-              "　対象 "+filtered.length+"R　スナップショット登録 "+covered+
-              "R　未登録 "+missing+"R\\\\n未登録レースは購入せず除外します。"
-            );
+          const AR=(window.__AIRARA||(window.parent&&window.parent.__AIRARA)||(window.top&&window.top.__AIRARA));
+          const NK=(window.__NETKEIBA_AI||(window.parent&&window.parent.__NETKEIBA_AI)||(window.top&&window.top.__NETKEIBA_AI));
+          const hasArion=rows=>Array.isArray(rows)&&rows.some(x=>x&&x.arionProbability!=null);
+          const hasNk=rows=>Array.isArray(rows)&&rows.some(x=>x&&x.netkeibaProbability!=null);
+          const need=rows=>src==="arion"?!hasArion(rows):src==="netkeiba"?!hasNk(rows):src==="both"?!(hasArion(rows)&&hasNk(rows)):true;
+          let ok=0,ng=0;
+          if(typeof setSimSyncStatus==="function")setSimSyncStatus("【前処理】想定確率("+src+")をまとめて自動取得します… 0/"+filtered.length+"R　SIM未開始");
+          for(let i=0;i<filtered.length;i++){
+            const r=filtered[i],id=narRaceId(r.race_id||r.raceId);
+            let snap=narData().races[id];
+            if(need(snap&&snap.rows)){
+              try{
+                if((src==="arion"||src==="both")&&AR&&typeof AR.ensure==="function"){const g=await AR.ensure(window,r);if(g&&Array.isArray(g.rows)&&g.rows.length)snap=g;}
+                if(need((narData().races[id]||{}).rows)&&(src==="netkeiba"||src==="both")&&NK&&typeof NK.ensure==="function"){const g=await NK.ensure(window,r);if(g&&Array.isArray(g.rows)&&g.rows.length)snap=g;}
+              }catch(e){console.warn("[期間横断SIM事前取得V4]",id,e);}
+              snap=narData().races[id]||snap;
+            }
+            if(!need(snap&&snap.rows))ok++;else ng++;
+            if(typeof setSimSyncStatus==="function"&&(i%3===0||i===filtered.length-1))setSimSyncStatus("【前処理】想定確率をまとめて自動取得中… "+(i+1)+"/"+filtered.length+"R　取得済 "+ok+"R　未取得 "+ng+"R　SIM未開始");
           }
-
-          if(!covered){
-            state.simResult=[];
-            renderSimulation({
-              raceCount:0,boughtCount:0,candidateHits:0,purchaseHits:0,
-              missHits:0,totalBet:0,totalPay:0,profit:0,roi:0
-            });
-            alert(
-              "選択期間にはARION／netkeibaの当時スナップショットが登録されていません。\\\\n"+
-              "現在の予測値を過去レースへ流用すると先読みになるため、バックテストを停止しました。\\\\n"+
-              "本体エミュ標準へ戻すか、レース当時に保存した想定確率JSONを読み込んでください。"
-            );
-            return null;
-          }
+          if(typeof setSimSyncStatus==="function")setSimSyncStatus("【前処理完了】判定="+src+"／対象 "+filtered.length+"R／取得済 "+ok+"R／未取得 "+ng+"R　→ 期間横断シミュレーションを開始します");
         }
         return originalRunSimulationCore.apply(this,arguments);
       };
