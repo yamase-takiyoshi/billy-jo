@@ -337,7 +337,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.71 想定確率事前取得完了後に期間横断SIM開始</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.72 想定確率の事前自動取得完了後に期間横断SIM開始</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -10809,6 +10809,98 @@ window.__prefetchNarProbabilityForPeriod=async function(c){
   return {total:targets.length,ok,ng,source};
 };
 console.log('[Prefetch V11] installed');
+})();
+</script>
+
+<script id="periodSimHardPrefetchGateV12">
+(function(){
+'use strict';
+const FLAG='__periodSimHardPrefetchGateV12';
+const CFG_KEY='TheKeibaNarProbabilityConfigV2';
+const DATA_KEY='TheKeibaNarProbabilityDataV2';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function rid(v){const m=String(v||'').match(/\d{12,14}/);return m?m[0]:''}
+function readCfg(w){try{return Object.assign({mode:'standard',compareDecision:'none'},JSON.parse(w.localStorage.getItem(CFG_KEY)||'{}'))}catch(_){return{mode:'standard',compareDecision:'none'}}}
+function sourceOf(c){return c.mode==='arion'?'arion':c.mode==='netkeiba'?'netkeiba':c.mode==='compare'?(c.compareDecision||'none'):'standard'}
+function readDb(w){try{const d=JSON.parse(w.localStorage.getItem(DATA_KEY)||'{"races":{}}');d.races=d.races||{};return d}catch(_){return{races:{}}}}
+function prob(row,source){
+ const keys=source==='arion'?['arionProbability','airaraProbability','arion','airara','probabilityArion']:['netkeibaProbability','netkeiba','probabilityNetkeiba'];
+ for(const k of keys){const n=Number(row&&row[k]);if(Number.isFinite(n)&&n>0)return n}
+ return null;
+}
+function hasRows(rows,source){
+ if(!Array.isArray(rows)||!rows.length)return false;
+ if(source==='arion')return rows.some(r=>prob(r,'arion')!==null);
+ if(source==='netkeiba')return rows.some(r=>prob(r,'netkeiba')!==null);
+ if(source==='both')return hasRows(rows,'arion')&&hasRows(rows,'netkeiba');
+ return true;
+}
+function status(w,msg){
+ try{if(typeof w.setSimSyncStatus==='function')w.setSimSyncStatus(msg)}catch(_){ }
+ try{
+  const d=w.document; let box=d.getElementById('periodSimPrefetchOverlayV12');
+  if(!box){box=d.createElement('div');box.id='periodSimPrefetchOverlayV12';box.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(2,8,20,.88);display:flex;align-items:center;justify-content:center;padding:24px';box.innerHTML='<div style="width:min(680px,92vw);padding:28px;border:2px solid #22c55e;border-radius:18px;background:#0b1528;color:#fff;font:700 18px/1.7 system-ui;box-shadow:0 20px 80px #000"><div style="font-size:24px;margin-bottom:12px">想定確率・事前自動取得</div><div id="periodSimPrefetchTextV12"></div></div>';d.body.appendChild(box)}
+  const t=d.getElementById('periodSimPrefetchTextV12');if(t)t.textContent=msg;
+ }catch(_){ }
+}
+function hide(w){try{w.document.getElementById('periodSimPrefetchOverlayV12')?.remove()}catch(_){ }}
+async function prefetch(w,c){
+ const C=readCfg(w),source=sourceOf(C);
+ if(source==='standard')return {skipped:true,source};
+ if(source==='none')throw new Error('比較のみでは事前取得できません');
+ if(typeof w.getRacesInRange!=='function')throw new Error('対象レース取得関数がありません');
+ const races=await w.getRacesInRange(c.start,c.end);
+ const targets=(races||[]).filter(r=>(!c.start||r.date>=c.start)&&(!c.end||r.date<=c.end)&&(!c.type||r.type===c.type)&&(!c.places?.length||c.places.includes(r.placeName)));
+ let ok=0,ng=0;
+ status(w,'対象 '+targets.length+'R を確定しました。\n事前自動取得を開始します… 0/'+targets.length+'R');
+ for(let i=0;i<targets.length;i++){
+  const race=targets[i],id=rid(race.race_id||race.raceId||race.id);
+  let snap=readDb(w).races[id];
+  try{
+   if(!hasRows(snap&&snap.rows,source)){
+    if((source==='arion'||source==='both')){
+      if(!w.AIRARA||typeof w.AIRARA.ensure!=='function')throw new Error('AIらら取得エンジン未検出');
+      await w.AIRARA.ensure(w,race);
+    }
+    if((source==='netkeiba'||source==='both')){
+      if(!w.NETKEIBA_AI||typeof w.NETKEIBA_AI.ensure!=='function')throw new Error('netkeiba取得エンジン未検出');
+      await w.NETKEIBA_AI.ensure(w,race);
+    }
+   }
+  }catch(e){console.warn('[HardPrefetch V12]',id,e)}
+  snap=readDb(w).races[id]||snap;
+  if(hasRows(snap&&snap.rows,source))ok++;else ng++;
+  status(w,'事前自動取得中… '+(i+1)+'/'+targets.length+'R\n成功 '+ok+'R　不足 '+ng+'R\nSIM本体はまだ開始していません。');
+  await sleep(0);
+ }
+ status(w,'事前自動取得完了\n成功 '+ok+'R　不足 '+ng+'R\nこれから期間横断SIMを開始します。');
+ await sleep(900);
+ return {total:targets.length,ok,ng,source};
+}
+function install(w,label){
+ if(!w||w[FLAG])return false;
+ const current=w.runSimulationCore;
+ if(typeof current!=='function')return false;
+ const wrapped=async function(){
+  const c=typeof w.readSimConfig==='function'?w.readSimConfig():{};
+  try{await prefetch(w,c);return await current.apply(this,arguments)}
+  finally{hide(w)}
+ };
+ wrapped.__original=current;wrapped.__hardPrefetchV12=true;
+ w.runSimulationCore=wrapped;
+ try{w.eval('runSimulationCore=window.runSimulationCore')}catch(_){ }
+ w[FLAG]=true;
+ console.log('[HardPrefetch V12] installed:',label);
+ return true;
+}
+function all(){
+ try{install(window,'parent')}catch(_){ }
+ const f=document.getElementById('fullEmuFrame');
+ if(f){try{install(f.contentWindow,'iframe')}catch(_){ }}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',all,{once:true});else all();
+const f=document.getElementById('fullEmuFrame');if(f)f.addEventListener('load',()=>[100,500,1500,3000,6000].forEach(ms=>setTimeout(all,ms)));
+setInterval(all,1500);
 })();
 </script>
 </body>
