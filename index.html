@@ -337,7 +337,7 @@ input,select,textarea{font-size:16px}
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.72 想定確率の事前自動取得完了後に期間横断SIM開始</small></div></div>
+  <div class="brand"><div class="brand-mark">🏇</div><div class="brand-copy"><h1>The競馬 Ultimate NEXT Professional</h1><small>TARGET RDBMS Edition v1.2.73 想定確率の事前自動取得完了後に期間横断SIM開始</small></div></div>
   <div class="header-actions"><a class="btn small" href="standard.html" title="標準版へ戻る">↩ 標準版</a><button class="btn small desktop-only" id="headerRealSyncBtn">実データ同期</button><button class="btn small" id="textIoBtn" title="現在の画面をテキストでコピー・貼り付け">📋 <span class="textio-label">テキスト</span></button><button class="btn small" id="splitToggleBtn" title="右側に多角収支分析を表示">◫ 分析画面</button><button class="btn small" id="themeBtn" title="テーマ切替">🌙</button></div>
 </header>
 <div class="app-shell">
@@ -1719,7 +1719,45 @@ async function buildSimulationCandidate(race,result,c){let entries=await getByIn
 function allocateSequentialCandidates(items,c){const days=new Map();for(const item of items){const day=days.get(item.race.date)||{remaining:c.dailyBudget,boughtRaces:0};if(day.boughtRaces<c.maxRaces&&item.candidateTickets.length){const affordable=Math.floor(day.remaining/c.unit);item.purchaseTickets=item.candidateTickets.slice(0,affordable)}const invest=item.purchaseTickets.length*c.unit;if(invest>0){day.remaining-=invest;day.boughtRaces++}item.remaining=day.remaining;days.set(item.race.date,day)}}
 function allocateDailyRankCandidates(items,c){const groups=new Map();for(const item of items){const list=groups.get(item.race.date)||[];list.push(item);groups.set(item.race.date,list)}for(const list of groups.values()){let remaining=c.dailyBudget,boughtRaces=0;const ranked=[...list].sort((a,b)=>b.rankScore-a.rankScore||a.race.placeName.localeCompare(b.race.placeName)||a.race.raceNo-b.race.raceNo);for(const item of ranked){if(boughtRaces>=c.maxRaces||!item.candidateTickets.length){item.remaining=remaining;continue}const affordable=Math.floor(remaining/c.unit);item.purchaseTickets=item.candidateTickets.slice(0,affordable);const invest=item.purchaseTickets.length*c.unit;if(invest>0){remaining-=invest;boughtRaces++}item.remaining=remaining}for(const item of list)if(item.remaining===undefined)item.remaining=remaining}}
 async function computeSimulationRows(c){const [races,results]=await Promise.all([getRacesInRange(c.start,c.end),getAll("results")]),resMap=new Map(results.filter(hasUsableConfirmedResult).map(r=>[r.race_id,r])),filtered=races.filter(r=>(!c.start||r.date>=c.start)&&(!c.end||r.date<=c.end)&&(!c.type||r.type===c.type)&&(!c.places.length||c.places.includes(r.placeName))&&(!c.skipDebutRaces||!/(?:新馬|メイクデビュー|デビュー|初出走|能検)/i.test(`${r.name||""} ${r.className||""}`))).sort((a,b)=>String(a.date).localeCompare(String(b.date))||a.placeName.localeCompare(b.placeName)||a.raceNo-b.raceNo),items=[];for(const race of filtered){const result=resMap.get(race.race_id);if(result)items.push(await buildSimulationCandidate(race,result,c))}if(c.budgetMode==="dailyRank")allocateDailyRankCandidates(items,c);else allocateSequentialCandidates(items,c);const rows=[];let bank=0;for(const item of items){const{race,result,entries,candidateTickets,purchaseTickets}=item,candidateHit=candidateTickets.some(t=>ticketPayout(result,t)>0),purchaseHit=purchaseTickets.some(t=>ticketPayout(result,t)>0),invest=purchaseTickets.length*c.unit;let pay=0;for(const t of purchaseTickets)pay+=ticketPayout(result,t)*(c.unit/100);const profit=pay-invest;bank+=profit;const ticketBreakdown=Object.fromEntries(SIM_TICKET_TYPES.map(type=>[type,{candidate:candidateTickets.filter(t=>t.ticketType===type).length,purchase:purchaseTickets.filter(t=>t.ticketType===type).length,pay:purchaseTickets.filter(t=>t.ticketType===type).reduce((sum,t)=>sum+ticketPayout(result,t)*(c.unit/100),0)}]));rows.push({race,result,entries,ticketType:c.ticketType,candidateTickets,purchaseTickets,ticketBreakdown,candidateHit,purchaseHit,miss:candidateHit&&!purchaseHit,invest,pay,profit,roi:invest?pay/invest*100:0,bank,capitalBefore:Number(item.capitalBefore??c.initialCapital??0),capitalAfter:Number(item.capitalAfter??((c.initialCapital||0)+bank)),effectiveDailyBudget:Number(item.effectiveDailyBudget??c.dailyBudget??0),capitalDrawdown:Number(item.capitalDrawdown||0),capitalDrawdownPercent:Number(item.capitalDrawdownPercent||0),budgetBlocked:String(item.budgetBlocked||""),remaining:item.remaining,rankScore:item.rankScore})}const totalBet=rows.reduce((sum,x)=>sum+x.invest,0),totalPay=rows.reduce((sum,x)=>sum+x.pay,0),summary={raceCount:rows.length,boughtCount:rows.filter(x=>x.invest>0).length,candidateHits:rows.filter(x=>x.candidateHit).length,purchaseHits:rows.filter(x=>x.purchaseHit).length,missHits:rows.filter(x=>x.miss).length,totalBet,totalPay,profit:totalPay-totalBet,roi:totalBet?totalPay/totalBet*100:0,initialCapital:Number(c.initialCapital||0),finalCapital:Number(rows.at(-1)?.capitalAfter??c.initialCapital??0),capitalReturn:Number(c.initialCapital?((rows.at(-1)?.capitalAfter??c.initialCapital)-c.initialCapital)/c.initialCapital*100:0),maxDrawdown:Math.max(0,...rows.map(x=>Number(x.capitalDrawdown||0))),maxDrawdownPercent:Math.max(0,...rows.map(x=>Number(x.capitalDrawdownPercent||0)))};return{rows,summary}}
-async function runSimulationCore(){const c=readSimConfig();if(typeof window.__prefetchNarProbabilityForPeriod==="function")await window.__prefetchNarProbabilityForPeriod(c);const {rows,summary}=await computeSimulationRows(c);state.simResult=rows;const id=await addOne("simulations",{createdAt:new Date().toISOString(),config:c,summary,rows:rows.map(x=>({...x,race:x.race,result:undefined}))});renderSimulation(summary);await renderDashboard();await syncSimulationToAnalysis({force:true,reason:"バックテスト完了"});return id}
+async function prefetchNarProbabilityForPeriodCore(c){
+  const CFG_KEY="TheKeibaNarProbabilityConfigV2",DATA_KEY="TheKeibaNarProbabilityDataV2";
+  const readCfg=()=>{try{return Object.assign({mode:"standard",compareDecision:"none"},JSON.parse(localStorage.getItem(CFG_KEY)||"{}"))}catch(_){return{mode:"standard",compareDecision:"none"}}};
+  const sourceOf=C=>C.mode==="arion"?"arion":C.mode==="netkeiba"?"netkeiba":C.mode==="compare"?(C.compareDecision||"none"):"standard";
+  const probability=(row,source)=>{const keys=source==="arion"?["arionProbability","airaraProbability","arion","airara","probabilityArion"]:["netkeibaProbability","netkeiba","probabilityNetkeiba"];for(const k of keys){const n=Number(row&&row[k]);if(Number.isFinite(n)&&n>0)return n}return null};
+  const has=(rows,source)=>Array.isArray(rows)&&rows.length>0&&(source==="arion"?rows.some(r=>probability(r,"arion")!==null):source==="netkeiba"?rows.some(r=>probability(r,"netkeiba")!==null):source==="both"?rows.some(r=>probability(r,"arion")!==null)&&rows.some(r=>probability(r,"netkeiba")!==null):true);
+  const readStore=()=>{try{const x=JSON.parse(localStorage.getItem(DATA_KEY)||'{"races":{}}');x.races=x.races||{};return x}catch(_){return{races:{}}}};
+  const rid=v=>{const m=String(v||"").match(/\d{12,14}/);return m?m[0]:""};
+  const C=readCfg(),source=sourceOf(C);
+  if(source==="standard")return{skipped:true,source,total:0,ok:0,ng:0};
+  if(source==="none")throw new Error("比較のみでは期間横断SIMを開始できません");
+  const races=await getRacesInRange(c.start,c.end);
+  const targets=(races||[]).filter(r=>(!c.start||r.date>=c.start)&&(!c.end||r.date<=c.end)&&(!c.type||r.type===c.type)&&(!c.places?.length||c.places.includes(r.placeName)));
+  const host=(window.parent&&window.parent!==window)?window.parent:window;
+  const AR=host.__AIRARA||window.__AIRARA;
+  const NK=host.__NETKEIBA_AI||window.__NETKEIBA_AI;
+  if((source==="arion"||source==="both")&&(!AR||typeof AR.ensure!=="function"))throw new Error("AIらら事前取得エンジン未接続");
+  if((source==="netkeiba"||source==="both")&&(!NK||typeof NK.ensure!=="function"))throw new Error("netkeiba事前取得エンジン未接続");
+  let ok=0,ng=0;
+  if(typeof setSimSyncStatus==="function")setSimSyncStatus(`【前処理】想定確率を事前自動取得します… 0/${targets.length}R　SIM未開始`);
+  await new Promise(r=>setTimeout(r,250));
+  for(let i=0;i<targets.length;i++){
+    const race=targets[i],id=rid(race.race_id||race.raceId||race.id);
+    let snap=readStore().races[id];
+    try{
+      if((source==="arion"||source==="both")&&!has(snap&&snap.rows,"arion"))await AR.ensure(window,race);
+      snap=readStore().races[id]||snap;
+      if((source==="netkeiba"||source==="both")&&!has(snap&&snap.rows,"netkeiba"))await NK.ensure(window,race);
+    }catch(e){console.warn("[期間横断SIM事前取得]",id,e)}
+    snap=readStore().races[id]||snap;
+    if(has(snap&&snap.rows,source))ok++;else ng++;
+    if(typeof setSimSyncStatus==="function")setSimSyncStatus(`【前処理】想定確率を事前自動取得中… ${i+1}/${targets.length}R　成功 ${ok}R　不足 ${ng}R　SIM未開始`);
+    await new Promise(r=>setTimeout(r,0));
+  }
+  if(typeof setSimSyncStatus==="function")setSimSyncStatus(`【前処理完了】成功 ${ok}R／不足 ${ng}R　これから期間横断SIMを開始します`);
+  await new Promise(r=>setTimeout(r,700));
+  return{skipped:false,source,total:targets.length,ok,ng,completed:true};
+}
+async function runSimulationCore(){const c=readSimConfig();await prefetchNarProbabilityForPeriodCore(c);const {rows,summary}=await computeSimulationRows(c);state.simResult=rows;const id=await addOne("simulations",{createdAt:new Date().toISOString(),config:c,summary,rows:rows.map(x=>({...x,race:x.race,result:undefined}))});renderSimulation(summary);await renderDashboard();await syncSimulationToAnalysis({force:true,reason:"バックテスト完了"});return id}
 
 const BACKTEST_BATCH_DAYS=92;
 const BACKTEST_SYNC={running:false,stop:false,batch:0,totalBatches:0};
